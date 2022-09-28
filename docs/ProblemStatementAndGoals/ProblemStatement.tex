@@ -2,15 +2,21 @@
 
 \usepackage{tabularx}
 \usepackage{booktabs}
+%\usepackage[a4paper, total={6in, 8in}]{geometry}
+
+\setlength\parindent{24pt}
 
 \title{Problem Statement and Goals\\\progname}
-
-\author{\authname}
+\author{\authname Team \#34, ParkingLotDrone \\
+Fady Zekry Hanna, zekryhf \\
+Winnie Trandinh, trandinh \\
+Muhammad Ali, alim102 \\
+Muhammad Khan, khanm120}
 
 \date{}
 
-\input{../Comments}
-\input{../Common}
+%\input{..\Comments}
+%\input{..\Common}
 
 \begin{document}
 
@@ -22,35 +28,122 @@
 \toprule
 \textbf{Date} & \textbf{Developer(s)} & \textbf{Change}\\
 \midrule
-Date1 & Name(s) & Description of changes\\
-Date2 & Name(s) & Description of changes\\
+24-09-2022 & Ali and Zaid & Initial Revision\\
+26-09-2022 & Winnie and Fady & Edits \\
 ... & ... & ...\\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 \section{Problem Statement}
+\subsection{Problem Description}
 
-\wss{You should check your problem statement with the
-\href{https://github.com/smiths/capTemplate/blob/main/docs/Checklists/ProbState-Checklist.pdf}
-{problem statement checklist}.}
-\wss{You can change the section headings, as long as you include the required information.}
+\indent The struggle of finding a parking spot in a busy parking lot is an issue that many visitors and organizers face. The hassle of finding a parking spot results in a loss of time for the visitors, a wastage of vehicle energy, and causes frustration for visitors. All of these issues result in lost revenue and/or productivity for all stakeholders, visitors and organizers. Parking lot sizes often cannot be increased without planning and investment. Given that the number of parking spots is often a constraint, utilizing the existing parking spaces efficiently is critical to minimizing the negative impacts of this issue.
 
-\subsection{Problem}
+
+\indent Existing solutions sometimes involve a designated person, a parking lot officer, who helps to communicate parking spot availability to visitors. Of course, the primary drawback is that the operator being a person often cannot see or monitor large swaths of the parking lot accurately. Other solutions involve installing vehicle counters in the parking lot. These vehicle counters are installed either at the entrance/exits or throughout the parking lot, such as a distributed system of cameras.  These solutions are expensive and involve installations at precise locations, and thus require greater investment for organizers. Vehicle counter technology thus does not fulfill the need for many outdoor, seasonal, temporary, and/or cheaper organizers.  Examples include provincial/national parks, concerts, and religious places of worship where the highest demand for this solution is only for a certain period of time. 
+\subsection{Project Description}
+
+ParkingLotHawk is an aerial drone that will fly above the parking lot to gather information about slot availability and general parking lot status. The parking lot authorities will be able to access and visualize this information from an application on their Personal Computers (PCs). The parking lot authorities will command the ParkingLotHawk  only through an application running on their PC. The drone will be able to stabilize and move to different locations autonomously. Thus from the PC application, the operator will be able to launch or land the drone, after which they can either let the drone mutinously investigate the entire parking lot or have the drone investigate specific sections of the parking lot. 
+
+\subsection{Environment}
+The only technology available in the typical environment is the Operator's Computer. Apart from that, the environment contains a parking lot to investigate. 
 
 \subsection{Inputs and Outputs}
 
-\wss{Characterize the problem in terms of ``high level'' inputs and outputs.  
-Use abstraction so that you can avoid details.}
+The primary input to this problem includes the parking lot. The parking lot dimensions and total parking slots in the lot are optional inputs the operator can provide, as an autonomous solution should investigate any parking lot it starts to detect. 
+
+Other inputs include specific areas of interest within the parking lot the relevant parking lot authority wants to investigate. These areas of interest should be chosen and updated live and during operation. 
+
+There are several key outputs that would be beneficial to operators in understanding the status of parking at their events. The most basic output is a live visual display of what the solution is currently investigating. This type of information is extremely intuitive to operators, conveys where the solution is currently, and can give them confidence that the solution is not crashing/malfunctioning.  
+
+Other helpful but optional outputs include a count of how many parking slots are available and the location of a given available parking slot.
 
 \subsection{Stakeholders}
+The primary stakeholder are Parking Lot Monitors, this may be a parking lot officer, a designated security guard, or any other members part of the organizer team. They will be utilizing the solution to attain as much accurate and useful data about the latest parking lot status as they can get.
 
-\subsection{Environment}
+Furthermore, Organizers who will be purchasing the solution would like it to be cost-effective, but still useful for their use cases.
 
-\wss{Hardware and software}
+Visitors who will be parking in the parking lot are also stakeholders. The visitors would like to not be disturbed by the solution while they are driving. Furthermore, visitors may have privacy concerns and must be assured that any solution is not recording them.
 
 \section{Goals}
 
+Refer to Table \ref{table:Goals} that determine the minimum viable products for the given problem.
+
+
+\begin{table}
+\centering
+\caption {Goals for ParkingLotHawk} 
+\label{table:Goals}
+\begin{tabular}{ | m{5cm} | m{7cm} | } 
+
+  \hline
+  Goal & Importance \\ 
+  \hline
+  Ease of Use: Parking lot operators should not require technical knowledge or extensive training to operate the device.
+& The operator is likely to be an hourly employee, who changes quite frequently. They may have other duties and minimal technical education. Thus a good solution must be easy to use and easy to learn. 
+  \\ 
+  \hline
+  Cost-effective: Something durable enough to survive crashes. Cheap and simple to build.
+ & Organizers would like the solution to be cost-effective so that their budget can be spent elsewhere. Furthermore, in case the solution is damaged, they would like to be able to purchase the product again. Simplicity ensures that a new solution can be quickly built-in case of permanent damage. 
+ \\ 
+  \hline
+  Visitors are not disturbed: Ideally, the drivers should not be aware of the solution's operation. The drivers should not be affected during driving. Visitors should not be recorded. 
+ & To ensure safety, Visitors should focus all their attention on the parking lot. They should not have to adjust their driving due to the solution. Furthermore, the solution should not record the visitors, so that their privacy is not compromised.
+ \\ 
+  \hline
+  Little launch time: When the operator sends the command to launch the solution, the solution should start giving information as quickly as possible. 
+ & Operators will usually launch the solution during busy times. Thus they would like to be able to receive as much data as quickly as possible to resolve the congestion. There should therefore be a small launch/initialization time.
+ \\ 
+  \hline
+  Little to no blind spots: There is a minimal section of the parking lot that the solution cannot visualize or display information about.
+ & The Operator ideally should not be constrained in which parts of the parking lot they can and cannot know about. During busy times, every parking spot is important.
+ \\ 
+  \hline
+    Valuable data is gathered and received quickly and efficiently: Ability to visualize and gather information on multiple parking spots in real-time. When the boundary of the parking lot is detected, the drone does not investigate outside of the parking lot. 
+ & The state of the parking lot changes quickly, as vehicles enter and leave, therefore the ability to learn about the latest state of significant chunks of the parking lot as quickly as possible is beneficial. Therefore the ability to monitor multiple spots is important.
+
+However, exploring beyond the parking lot boundary will not yield valuable data. Therefore the solution should be smart enough such that it does not exit or explore beyond the parking lot boundaries.
+ \\ 
+  \hline
+  
+\end{tabular}
+\end{table}%
+
+
+
 \section{Stretch Goals}
+Stretch Goals are listed in Table \ref{table:Stretch}.
+\begin{table}
+\Centering
+\caption {Stretch Goals for ParkingLotHawk} 
+\label{table:Stretch}
+\begin{tabular}{ | m{5cm} | m{7cm} | } 
+  \hline
+  Goal & Importance \\ 
+  \hline
+  Weatherproof: Ability to operate in rainy, snowy, and other extreme weather scenarios.
+& These situations are common in Canada and are often the times when the operator would like to avoid going outside.
+
+  \\ 
+  \hline
+  Ability to land at multiple points in and around the parking lot.
+ & The operator will be able to start and stop the drone at multiple places, rather than having to always launch and land the solution at the same spot.
+ 
+ \\ 
+  \hline
+  Create an occupancy map of filled/unfilled spots in the parking lot. 
+ & If the solution was able to create and maintain a live occupancy map, the operator would not have to keep track of the occupancy themselves. The operator's understanding of the parking lot may be subject to human error or be very limited as they may have other tasks to focus on rather than observing the solution for long periods of time. The operator is also freed from walking around the parking lot. Lastly, the solution is likely to be faster than the walking speed and observation speed of an operator.
+
+ \\ 
+  \hline
+  Convey if there is a traffic jam or extremely busy area.
+ & This can help the operate prevent accidents and/or conflict between the visitors. The operator may also have been given specific instructions from the organizers to resolve such jams.
+ \\ 
+  
+ \\ 
+  \hline
+\end{tabular}
+\end{table}%
 
 \end{document}
