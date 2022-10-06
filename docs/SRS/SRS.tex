@@ -158,6 +158,8 @@ MVP & Minimum Viable Product. \\
 \hline
 SRS & Software Requirement Specifications. \\
 \hline
+DMS & Degrees/Minutes/Seconds used as GPS coordinates\\
+\hline
 \end{tabular}
 \end{center}
 \end{table}
@@ -321,11 +323,11 @@ m\_Acceleration	& Vector& m/s^2 & three-dimensional vector containing accelerati
 \hline
 m\_Gyroscope & Vector	&Rad &	 three-dimensional vector containing orientation relative to frame of the drone.\\
 \hline
-m\_Gps	& Tuple &	 GPS coordinates (degrees-minutes-seconds (DMS), height (m))&	 current GPS coordinates of the drone with height in the second tuple.\\
+m\_Gps	& Tuple &	\{DMS, m\} &	 current GPS coordinates of the drone with height in the second tuple.\\
 \hline
 m\_Barometer	& Float&	atm	 &Altitude detection using atmospheric pressure measurement\\
 \hline
-m\_DesiredUserLoc &	GPS Location&	 GPS coordinates (DMS) &	 Desired location of the aerial drone set by user.\\
+m\_DesiredUserLoc &	GPS Location& DMS &	 Desired location of the aerial drone set by user.\\
 \hline
 m\_Launch &	Boolean	 &  - &	Indicates if the operator desires the drone to begin operation and turn on all peripherals.  \\
 \hline
@@ -357,9 +359,9 @@ Controlled Variables are variables that are outputted by the system. Some are vi
  \hline
 c\_OccupancyMap &	Image &	Array of Pixels &	Map of available parking spots based on the drone’s previous paths. \\
 \hline
-c\_CurrentLoc & 	Tuple&	\{GPS coordinates (DMS) , height (m)\} & GPS coordinates are stored at the first index, height is stored in the second index.	Estimated longitudinal coordinate, lateral coordinate and height of the drone.\\
+c\_CurrentLoc & 	Tuple&	\{DMS, m\} & GPS coordinates are stored at the first index, height is stored in the second index.	Estimated longitudinal coordinate, lateral coordinate and height of the drone.\\
 \hline
-c\_PastLoc&	Vector &	1/ Degrees, minutes, and seconds (DMS)&	Trace of the drone's location in the past 60 seconds (vector of GPS locations).\\
+c\_PastLoc&	Vector &	DMS  &	Trace of the drone's location in the past 60 seconds (vector of GPS locations).\\
 \hline
 c\_MotorSpeeds &Vector&	   rad/s^2 &	 n-dimensional vector containing the motor speeds of however many motors the drone chooses to use (2 for helicopter, 4 for quadcopter, 6 for hexcopter, etc.). The vector contains speeds of each motor clockwise from front of the drone.\\
 
