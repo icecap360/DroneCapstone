@@ -75,22 +75,86 @@ Date2 & Name(s) & Description of changes\\
 \pagenumbering{arabic}
 
 \wss{You are free to modify this template.}
-%%%%%%%% --------------------------------------------DOCUMENT START --------------------------------------------
+%%%%%%%% --------------------------------------------DOCUMENT START --------------------------------------------%%%%%%%%
+
+
+
+
+%%%%%%%% --------------------------------------------INTRODUCTION --------------------------------------------%%%%%%%%
+
+
+
 \section{Introduction}
 
 \wss{You can include your definition of what a hazard is here.}
 
+
+
+
+%%%%%%%% --------------------------------------------Scope and Purpose of Hazard Analysis --------------------------------------------%%%%%%%%
 \section{Scope and Purpose of Hazard Analysis}
 
+%%%%%%%% --------------------------------------------System Boundaries and Components --------------------------------------------%%%%%%%%
 \section{System Boundaries and Components}
+The systems referenced in this document for conducting ParkingLotHawk’s hazard analysis are:
 
+\begin{enumerate}
+\item Flight operations - flight controller and firmware
+\begin{enumerate}
+    \item Inertial Measurement Unit (IMU)
+    \item Global Position System (GPS)
+    \item Compass
+    \item Barometer
+\end{enumerate}
+
+\item Vision perception
+\begin{enumerate}
+    \item Camera
+    \item Algorithm for detecting parking lots
+\end{enumerate}
+
+\item Aerial drone applications
+\begin{enumerate}
+    \item Finite state machines
+    \item Application Programming Interfaces (APIs)
+\end{enumerate}
+
+\item Path planner - creates an internal map for autonomous explore state
+\item Thrust components
+\begin{enumerate}
+    \item Motors
+    \item Propellers
+    \item Electronic Speed Controllers (ESCs)
+\end{enumerate}
+
+\item Custom-made chassis frame
+\item Power modules
+\begin{enumerate}
+    \item Battery
+    \item Charging equipment
+    \item Switches and wires
+\end{enumerate}
+
+\item Operator's PC application
+
+\end{enumerate}
+
+The system boundary in this project includes vision perception, aerial drone finite state machines, vision perception, thrust components, frame, power modules and operator’s PC application. Flight operations, drone APIs and path planner software are not controlled by ParkingLotHawk.
+
+
+
+
+%%%%%%%% --------------------------------------------Critical Assumptions --------------------------------------------%%%%%%%%
 \section{Critical Assumptions}
+The critical assumptions present in this project the software and system that restrict the elimination of hazards. For example, assumption of operator not actively sabotaging the product, or drone not being operated during inclement weather. The examples mentioned are acceptable risks the group is willing to take. 
 
 \wss{These assumptions that are made about the software or system.  You should
 minimize the number of assumptions that remove potential hazards.  For instance,
 you could assume a part will never fail, but it is generally better to include
 this potential failure mode.}
 
+
+%%%%%%%% --------------------------------------------Failure Mode and Effect Analysis --------------------------------------------%%%%%%%%
 \section{Failure Mode and Effect Analysis}
 
 
@@ -103,15 +167,15 @@ this potential failure mode.}
 \hline
  Design Component & Failure Mode & Effect of Failure & \seqsplit{Severity} & Causes of Failure & \seqsplit{Occurrence} & \seqsplit{Detection} & RPN & Recommended Action & SR & Ref \\
 \hline
-Flight Operation & IMU gives inaccurate readings. & The Drone is unable to determine angular orientation, which makes flight motion and stabilization difficult. & - &  IMU damaged during flight, magnetic interference. -  & - & - & - &  Implement Flight Controller with secondary IMU, providing diversity and redundancy. & - & - \\
+Flight Operation & IMU gives inaccurate readings. & The Drone is unable to determine angular orientation, which makes flight motion and stabilization difficult. & - &  IMU damaged during flight, magnetic interference. -  & - & - & - &  Implement Flight Controller with secondary IMU, providing diversity and redundancy. & \ref{SR_004} & - \\
 \hline
-Flight Operation & Compass gives inaccurate readings. & Drone has difficulty in determining heading in space. & - & Compass damaged during flight, magnetic interference. -  & - & - & - &  Implement Flight Controller with secondary compass, providing diversity and redundancy. & - & - \\
+Flight Operation & Compass gives inaccurate readings. & Drone has difficulty in determining heading in space. & - & Compass damaged during flight, magnetic interference. -  & - & - & - &  Implement Flight Controller with secondary compass, providing diversity and redundancy. & \ref{SR_004} & - \\
 \hline
-Flight Operation & Barometer gives an inaccurate reading. & Flight controller unable to determine altitude, creates difficulty in landing. & - & Barometer damaged during flight, UV/motor backwash interference.  & -  & - & - &   Add an ultrasonic sensor at the bottom of the drone. A sensor in such a configuration provides a secondary height estimate. Although this only works for a short range (0-2m) it is sufficient for landing. & - & -  \\
+Flight Operation & Barometer gives an inaccurate reading. & Flight controller unable to determine altitude, creates difficulty in landing. & - & Barometer damaged during flight, UV/motor backwash interference.  & -  & - & - &   Add an ultrasonic sensor at the bottom of the drone. A sensor in such a configuration provides a secondary height estimate. Although this only works for a short range (0-2m) it is sufficient for landing. & \ref{SR_005} & -  \\
 \hline
-Flight Operation & Firmware unable to make the drone hover in place. Hovering was specified as stabilizing and staying within some tolerance of a location in space for a sufficiently long time. & Drone will not be able to fly to locations or follow paths well. Drone being unable to hover means that the camera will see blurry and shaky images. & - & Flight Controller internal malfunction, inclement weather (such as high winds).  & -  & - & - &   Mention maximum wind requirement in User Manual. Report malfunction to operator and enter Malfunction state. & - & -  \\
+Flight Operation & Firmware unable to make the drone hover in place. Hovering was specified as stabilizing and staying within some tolerance of a location in space for a sufficiently long time. & Drone will not be able to fly to locations or follow paths well. Drone being unable to hover means that the camera will see blurry and shaky images. & - & Flight Controller internal malfunction, inclement weather (such as high winds).  & -  & - & - &   Mention maximum wind requirement in User Manual. Report malfunction to operator and enter Malfunction state. & \ref{SR_006}, \ref{SR_007} & -  \\
 \hline
-Flight Operation & GPS Connection is lost or weak. & The drone will have a less accurate estimate of position, and thus won't be able to perform autonomous missions or move to a specific GPS locations.  & - & GPS damaged during flight, magnetic interference. -  & - & - & - &  Implement an alternative localization method via the camera or other range finder sensor, such as SLAM or optical flow.  & - & - \\
+Flight Operation & GPS Connection is lost or weak. & The drone will have a less accurate estimate of position, and thus won't be able to perform autonomous missions or move to a specific GPS locations.  & - & GPS damaged during flight, magnetic interference. -  & - & - & - &  Implement an alternative localization method via the camera or other range finder sensor, such as SLAM or optical flow.  & \ref{SR_008} & - \\
 \hline
 \end{tabular}
 \end{center}
@@ -127,11 +191,11 @@ Flight Operation & GPS Connection is lost or weak. & The drone will have a less 
 \hline
 Design Component & Failure Mode & Effect of Failure & Severity & Causes of Failure & \seqsplit{Occurrence} & \seqsplit{Detection} & RPN & Recommended Action & SR & Ref \\
 \hline
-Visual Perception & Camera gives poor quality images or no image at all. & The primary functionality of showing the operator the parking lot cannot be accomplished. The camera cannot detect the boundaries of the parking lot, causing the drone to be unable to perform autonomous tasks. & - & Camera lens is foggy or has other obstructions, the camera is damaged during flight. -  & - & - & - &  Operator will detect the low image resolution themselves while they watch live video. Operators may choose to wait, may choose to land the drone, clean the lens, restart the drone, and/or reconfigure it to fly closer to the ground.  & - & - \\
+Visual Perception & Camera gives poor quality images or no image at all. & The primary functionality of showing the operator the parking lot cannot be accomplished. The camera cannot detect the boundaries of the parking lot, causing the drone to be unable to perform autonomous tasks. & - & Camera lens is foggy or has other obstructions, the camera is damaged during flight. -  & - & - & - &  Operator will detect the low image resolution themselves while they watch live video. Operators may choose to wait, may choose to land the drone, clean the lens, restart the drone, and/or reconfigure it to fly closer to the ground.  & \ref{SR_001} & - \\
 \hline
-Visual Perception & Drone fails to detect the parking lot. & Drone is unable to implement autonomous states, and can only implement manual movement commands.  & - & Perception algorithm performs poorly due to weather conditions or the uniqueness of the parking lot. -  & - & - & - &  Operator should notice from the live camera images that the drone is consistently failing to correctly segment the parking lot, and thus the drone is only useful for true manual movement.  & - & - \\
+Visual Perception & Drone fails to detect the parking lot. & Drone is unable to implement autonomous states, and can only implement manual movement commands.  & - & Perception algorithm performs poorly due to weather conditions or the uniqueness of the parking lot. -  & - & - & - &  Operator should notice from the live camera images that the drone is consistently failing to correctly segment the parking lot, and thus the drone is only useful for true manual movement.  & \ref{SR_006}, \ref{SR_009} & - \\
 \hline
-- & Drone fails to detect the boundaries of the parking lot. & Drone is unable to implement autonomous states, and can only implement manual movement commands. During an autonomous state, the drone may exit the parking lot and not have noticed.  & - & Perception algorithm performs poorly due to weather conditions or the uniqueness of the parking lot.  & - & - & - &  Operator should notice from the live camera images that the drone is consistently failing to correctly segment the parking lot, and thus the drone is only useful for true manual movement.  & - & - \\
+- & Drone fails to detect the boundaries of the parking lot. & Drone is unable to implement autonomous states, and can only implement manual movement commands. During an autonomous state, the drone may exit the parking lot and not have noticed.  & - & Perception algorithm performs poorly due to weather conditions or the uniqueness of the parking lot.  & - & - & - &  Operator should notice from the live camera images that the drone is consistently failing to correctly segment the parking lot, and thus the drone is only useful for true manual movement.  & \ref{SR_006}, \ref{SR_009} & - \\
 \hline
 \end{tabular}
 \end{center}
@@ -147,7 +211,7 @@ Visual Perception & Drone fails to detect the parking lot. & Drone is unable to 
 \hline
 Design Component & Failure Mode & Effect of Failure & Severity & Causes of Failure & \seqsplit{Occurrence} & \seqsplit{Detection} & RPN & Recommended Action & SR & Ref \\
 \hline
-Thrust Components, Frame & An arm of the copter is unable to perform, detected by the flight controller or noticed by the operator. & The drone has fewer active propellers than it was tuned, trained, and designed for.  This will cause difficulty in flight and stabilization. & - & The given arm has a damaged propeller, damaged motor, broken electrical disconnection between motor and ESC, or mechanical disconnection between propeller and motor. Also if one of the arms on the frame cracks to the extent of not being able to provide a rigid frame. -  & - & - & - &  Although flight will be hindered, the firmware has the capabilities to still fly the drone under most conditions. The Drone shall enter the malfunction state, trying to land at its original location. The operator, being from a non-technical background, will need to send the drone for repair. In the user manual, it should be specified that the Operator should is required to inspect the drone for damage prior to flight.  & - & - \\
+Thrust Components, Frame & An arm of the copter is unable to perform, detected by the flight controller or noticed by the operator. & The drone has fewer active propellers than it was tuned, trained, and designed for.  This will cause difficulty in flight and stabilization. & - & The given arm has a damaged propeller, damaged motor, broken electrical disconnection between motor and ESC, or mechanical disconnection between propeller and motor. Also if one of the arms on the frame cracks to the extent of not being able to provide a rigid frame. -  & - & - & - &  Although flight will be hindered, the firmware has the capabilities to still fly the drone under most conditions. The Drone shall enter the malfunction state, trying to land at its original location. The operator, being from a non-technical background, will need to send the drone for repair. In the user manual, it should be specified that the Operator should is required to inspect the drone for damage prior to flight.  & \ref{SR_002}, \ref{SR_007} & - \\
 \hline
 \end{tabular}
 \end{center}
@@ -163,9 +227,9 @@ Thrust Components, Frame & An arm of the copter is unable to perform, detected b
 \hline
 Design Component & Failure Mode & Effect of Failure & Severity & Causes of Failure & \seqsplit{Occurrence} & \seqsplit{Detection} & RPN & Recommended Action & SR & Ref \\
 \hline
-Frame & Center of frame cracked, seen by Operator. &  Drone will have difficulty in flight. Parts of Drone may fall out if crack is large enough.  & - & Center of frame damaged during flight. & - & - & - &  Enclose the central base of the drone, so that components do not fall out. In user manual, specify that the Operator is required to inspect drone for damage prior to flight. & - & - \\
+Frame & Center of frame cracked, seen by Operator. &  Drone will have difficulty in flight. Parts of Drone may fall out if crack is large enough.  & - & Center of frame damaged during flight. & - & - & - &  Enclose the central base of the drone, so that components do not fall out. In user manual, specify that the Operator is required to inspect drone for damage prior to flight. If the operator sees crack during flight, they should send the Drone into the malfunction state. & \ref{SR_001}, \ref{SR_002}  & - \\
 \hline
-Frame & Drone is very hot. &  Operator may be hurt if they touch the hot parts. Drone components may also be damaged after prolonged heat exposure. & - & Overheating components. & - & - & - &  Add heat sinks on electrical components, and specify the correct way to hold the drone in user manual. Also specify how long  the operator must wait and let the drone cool down before making any contact with it. & - & - \\
+Frame & Drone is very hot. &  Operator may be hurt if they touch the hot parts. Drone components may also be damaged after prolonged heat exposure. & - & Overheating components. & - & - & - &  Add heat sinks on electrical components, and specify the correct way to hold the drone in user manual. Also specify how long  the operator must wait and let the drone cool down before making any contact with it. & \ref{SR_010} & - \\
 \hline
 \end{tabular}
 \end{center}
@@ -181,11 +245,11 @@ Frame & Drone is very hot. &  Operator may be hurt if they touch the hot parts. 
 \hline
 Design Component & Failure Mode & Effect of Failure & Severity & Causes of Failure & \seqsplit{Occurrence} & \seqsplit{Detection} & RPN & Recommended Action & SR & Ref \\
 \hline
-Power Modules & Low Battery. &  Drone will be unable to fly for a long duration of time.  & - & Drone has been flying for a long duration. Recharge is not complete.  & - & - & - &  Once the Drone detects less than 3 minutes of battery remaining, it shall automatically land the drone at it's original launch location and inform the operator. & - & - \\
+Power Modules & Low Battery. &  Drone will be unable to fly for a long duration of time.  & - & Drone has been flying for a long duration. Recharge is not complete.  & - & - & - &  Once the Drone detects less than 3 minutes of battery remaining, it shall automatically land the drone at it's original launch location and inform the operator. & \ref{SR_003} & - \\
 \hline
-Power Modules & Battery capacity low. &  Drone will be unable to fly long enough to complete its functions. & - & Drone's battery life has deteriorated over time.  & - & - & - &  Drone should prevent flight if the battery capacity is less than 3 minutes, the Drone should convey to operator it cannot fly and reason why. The Operator will need to purchase a new battery.  & - & - \\
+Power Modules & Battery capacity low. &  Drone will be unable to fly long enough to complete its functions. & - & Drone's battery life has deteriorated over time.  & - & - & - &  Drone should prevent flight if the battery capacity is less than 3 minutes, the Drone should convey to operator it cannot fly and reason why. The Operator will need to purchase a new battery.  & \ref{SR_003} & - \\
 \hline
-Power Modules & Wire connections become loose. &  Electrical components  and system will not function correctly. & - & Wires come loose after extended time of flight or upon damage. & - & - & - &  Solder all electrical wires and attach heat shrinks or crimps to wire-to-wire connections. & - & - \\
+Power Modules & Wire connections become loose. &  Electrical components  and system will not function correctly. & - & Wires come loose after extended time of flight or upon damage. & - & - & - &  Solder all electrical wires and attach heat shrinks or crimps to wire-to-wire connections.  & - & - \\
 \hline
 \end{tabular}
 \end{center}
@@ -233,7 +297,7 @@ Path Planner (also called Autonomous Explore) & Internal explore strategy malfun
 \hline
 Design Component & Failure Mode & Effect of Failure & Severity & Causes of Failure & \seqsplit{Occurrence} & \seqsplit{Detection} & RPN & Recommended Action & SR & Ref \\
 \hline
-\seqsplit{Operator's} PC Application, Main Drone Application & Drone loses connection to Operator's PC Application, or connection has deteriorated. For example, the connection has been lost for sufficiently long, the connection is very slow, weak and/or delayed. &  Drone is unable to communicate to the operator. The drone is unable to send its data to the operator. The drone may also miss commands from the operator.  & - & The connection is poor due to weather, distance, or network interference (such as another similar radio frequency in the nearby area). Another possible cause is the Operator's PC Application is crashing due to the operator not having the computing resources (e.g. they are running too many other applications on the same PC).  & - & - & - &  Upon sufficiently poor connection detected for a sufficiently long time, the drone should enter the Weak Connection State and convey this to the user if possible. In this state, the drone flies back to its original launch location, and if during flight it regains a sufficiently good connection for a sufficiently long time it resumes normal operator. & - & - \\
+\seqsplit{Operator's} PC Application, Main Drone Application & Drone loses connection to Operator's PC Application, or connection has deteriorated. For example, the connection has been lost for sufficiently long, the connection is very slow, weak and/or delayed. &  Drone is unable to communicate to the operator. The drone is unable to send its data to the operator. The drone may also miss commands from the operator.  & - & The connection is poor due to weather, distance, or network interference (such as another similar radio frequency in the nearby area). Another possible cause is the Operator's PC Application is crashing due to the operator not having the computing resources (e.g. they are running too many other applications on the same PC).  & - & - & - &  Upon sufficiently poor connection detected for a sufficiently long time, the drone should enter the Weak Connection State and convey this to the user if possible. In this state, the drone flies back to its original launch location, and if during flight it regains a sufficiently good connection for a sufficiently long time it resumes normal operator. & \ref{SR_006}, \ref{SR_007} & - \\
 \hline
 \end{tabular}
 \end{center}
@@ -249,7 +313,7 @@ Multiple new requirements were discovered through the generation of the FMEA tab
 \label{SR_001}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall include a user controlled button that sends the product to a malfunction state.
+Description & The product shall include a user-controlled button that sends the product to a malfunction state.
  \\
 \hline
 Rationale & The requirement ensures that the operator can send the product into a malfunction state if the operator detects something wrong with the product. \\
