@@ -94,64 +94,67 @@ Date2 & Name(s) & Description of changes\\
 %%%%%%%% --------------------------------------------Scope and Purpose of Hazard Analysis --------------------------------------------%%%%%%%%
 \section{Scope and Purpose of Hazard Analysis}
 
+%%%%%%%% --------------------------------------------Scope and Purpose of Hazard Analysis --------------------------------------------%%%%%%%%
+\section{Scope and Purpose of Hazard Analysis}
+
+The purpose of the Hazard Analysis is to find, understand and finalize resolutions to the various hazards that may occur.
+
+The product, ParkingLotHawk, is an Autonomous Aerial Drone used to gather live images and data within the confines of any given outdoor parking lot. The data in drone records the situation of each parking space periodically, and the information would be sent to the user staying on the property in a timely manner. The user of such a product is the Parking Lot Operator (called Operator for short), who communicates with the Aerial Drone using an application running on their PC.
+
+The document starts by breaking the system into components, followed by identifying hazards for each component using the Failure Modes and Effects Analysis (FMEA) method, and then finally generating new safety requirements to resolve the various hazards. This method will help minimize any unsafe behavior in the system by finding any possible causes of the said failure and determining the proper response for it.
+
 %%%%%%%% --------------------------------------------System Boundaries and Components --------------------------------------------%%%%%%%%
 \section{System Boundaries and Components}
 The systems referenced in this document for conducting ParkingLotHawk’s hazard analysis are:
 
-\begin{enumerate}
-\item Flight operations - flight controller and firmware
-\begin{enumerate}
-    \item Inertial Measurement Unit (IMU)
-    \item Global Position System (GPS)
-    \item Compass
-    \item Barometer
-\end{enumerate}
+\begin{table}[!h]
+\begin{center}
+\caption {System Components Table} 
+\label{tab:SystemComp}
+\begin{tabular}{ | m{4 cm} | m{12 cm} | } 
+\hline
+Components & Description \\
+\hline
+Flight Operations & This component consists of the flight controller and firmware that identifies different measurements during use. The sensors and systems in use are the Inertial Measurement Unit (IMU), the Global Positioning System (GPS), compass for direction and barometer for atmospheric pressure identifying altitude.\\
+\hline
+Vision Perception & The Vision Perception component has a camera and an algorithm for detecting parking spots.\\
+\hline
+Aerial Drone Application & This component consists of finite state machines and Application Programming Interfaces (APIs) that were specified in the Software Requirements Specification.\\
+\hline
+Path Planner & This software component creates an internal map for autonomous exploration.\\
+\hline
+Thrust & The Thrust Component is what allows the drone to elevate and navigate aerially. The component consists of motors, propellers and  the Electronic Speed Controllers (ESCs).\\
+\hline
+Chassis Frame & The CAD designed Chassis Frame will hold all the physical pieces of the project together.\\
+\hline
+Power Modules & The Power Modules will power components within the drone such as the flight controller and motors. The component consists of a battery, charging equipment, and switches and wires.\\
+\hline
+Operator's PC Application & This component is what the operator interfaces with to get the product up and running.\\
+\hline
 
-\item Vision perception
-\begin{enumerate}
-    \item Camera
-    \item Algorithm for detecting parking lots
-\end{enumerate}
+\end{tabular}
+\end{center}
+\end{table}
 
-\item Aerial drone applications
-\begin{enumerate}
-    \item Finite state machines
-    \item Application Programming Interfaces (APIs)
-\end{enumerate}
 
-\item Path planner - creates an internal map for autonomous explore state
-\item Thrust components
-\begin{enumerate}
-    \item Motors
-    \item Propellers
-    \item Electronic Speed Controllers (ESCs)
-\end{enumerate}
+Below is  Diagram \ref{fig:SystemCompDiagram} visualizing all the system components within the project. 
 
-\item Custom-made chassis frame
-\item Power modules
-\begin{enumerate}
-    \item Battery
-    \item Charging equipment
-    \item Switches and wires
-\end{enumerate}
 
-\item Operator's PC application
-
-\end{enumerate}
-
-The system boundary in this project includes vision perception, aerial drone finite state machines, vision perception, thrust components, frame, power modules and operator’s PC application. Flight operations, drone APIs and path planner software are not controlled by ParkingLotHawk.
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\textwidth]{HA/System Components.jpg}
+    \caption{Systems Components Diagram}
+    \label{fig:SystemCompDiagram}
+\end{figure}
 
 
 
-
+\newpage
 %%%%%%%% --------------------------------------------Critical Assumptions --------------------------------------------%%%%%%%%
-\section{Critical Assumptions}
-The critical assumptions present in this project the software and system that restrict the elimination of hazards. For example, assumption of operator not actively sabotaging the product, or drone not being operated during inclement weather. The examples mentioned are acceptable risks the group is willing to take. 
 
-\wss{These assumptions that are made about the software or system.  You should
-minimize the number of assumptions that remove potential hazards.  For instance,
-you could assume a part will never fail, but it is generally better to include
-this potential failure mode.}
+
+\section{Critical Assumptions}
+There are several assumptions that help to solve and sometimes even eliminate hazards all together. Firstly, it is assumed that the Parking Lot Operator utilizing the Drone has completely read the User Manual, and that they utilize the drone in the way specified by the user Manual. For example, if the User Manual specifies weather conditions under which the drone should not be flown, it is assumed that the user then does not fly the drone in these inclement weather conditions. Secondly, it is assumed that the operator uses the drone solely for parking lot investigation, not for activities such as recreation, spying, etc.  
 
 
 %%%%%%%% --------------------------------------------Failure Mode and Effect Analysis --------------------------------------------%%%%%%%%
