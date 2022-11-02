@@ -61,6 +61,8 @@
 \toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
 \midrule
 October 19, 2022 & 1.0 & Initial Revision \\
+\midrule
+November 2, 2022 & 2.0 & Removing malfunction button requirement, changing low battery threshold. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -312,22 +314,22 @@ Design Component & Failure Mode & Effect of Failure & Severity & Causes of Failu
 \section{Safety and Security Requirements}
 Multiple new requirements were discovered through the generation of the FMEA table. Each requirement is referenced with the hazard that revealed it in the FMEA tables above.
 
-\begin{table}[!h]
-\begin{center}
-\caption {SR\_001} 
-\label{SR_001}
-\begin{tabular}{ | m{3cm} | m{11cm} | }
-\hline
-Description & The product shall include a user-controlled button that sends the product to a Malfunction state.
- \\
-\hline
-Rationale & The requirement ensures that the Operator can send the product into a Malfunction state if the Operator detects something wrong with the product. \\
-\hline
-Associated Hazard & H\_006, H\_010 \\
-\hline
-\end{tabular}
-\end{center}
-\end{table}
+% \begin{table}[!h]
+% \begin{center}
+% \caption {SR\_001} 
+% \label{SR_001}
+% \begin{tabular}{ | m{3cm} | m{11cm} | }
+% \hline
+% Description & The product shall include a user-controlled button that sends the product to a Malfunction state.
+%  \\
+% \hline
+% Rationale & The requirement ensures that the Operator can send the product into a Malfunction state if the Operator detects something wrong with the product. \\
+% \hline
+% Associated Hazard & H\_006, H\_010 \\
+% \hline
+% \end{tabular}
+% \end{center}
+% \end{table}
 
 \begin{table}[!h]
 \begin{center}
@@ -483,7 +485,7 @@ Associated Hazard & H\_011 \\
 \label{SR_011}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall automatically return to its original launch location and land once the estimated battery time is less than 3 minutes. \\
+Description & The product shall automatically return to its original launch location and land once the estimated battery time is less than 1.5 minutes. \\
 \hline
 Rationale & The requirement ensures that the product has sufficient battery left to safely return to its landing area and land, all while remaining within its specifications. \\
 \hline
