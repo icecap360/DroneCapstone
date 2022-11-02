@@ -115,7 +115,8 @@ Muhammad Khan, khanm120}
 Oct 5, 2022 & 1.0 & Team Finalized SRS\\
 
 \bottomrule
-Oct 31, 2022 & 2.0 & Split up manual move and malfunction states, added transition requirement and performance requirements accordingly with bidirectional references - did not update state machine pictures, state transition table and traceability tables. Also added USE\_005 which may require new references. Added new input, m\_CompulsiveMove. Modified height tolerance from 5\% to 21\% in accordance with 1.5m requirement for 7m (wasn't needed but is more realistic).  \\
+Oct 31, 2022 & 2.0 & Split up manual move and malfunction states, added transition requirement and performance requirements accordingly with bidirectional references - did not update state machine pictures, state transition table and traceability tables. Also added USE\_005 which may require new references. Added new input, m\_CompulsiveMove. Added hover state lock. Removed 90\% exploration requirement. 
+\\
 
 \bottomrule
 \end{tabularx}
@@ -565,9 +566,10 @@ Associated Inputs and Outputs & m\_PowerOn and c\_Connected. \\
 \label{STA_001}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall implement a Hover State. During this state, the solution shall fly and hover to height i\_MaxHoverHeight. The drone shall keep the same lateral location it is currently at.  This requirement is a refinement of the \nameref{Hover State} and is further refined by \nameref{PERF_002}, \nameref{PERF_004}, \nameref{PERF_005}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
+Description & The product shall implement a Hover State. During this state, the solution shall fly and hover to height i\_MaxHoverHeight. The drone shall keep the same lateral location it is currently at. The drone cannot transition to another flight state until it has reached a height of i\_MaxHoverHeight. This requirement is a refinement of the \nameref{Hover State} and is further refined by \nameref{PERF_002}, \nameref{PERF_004}, \nameref{PERF_005}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
 \hline
-Rationale & This state is used for when the product is waiting for further operator commands. Hover height is selected to be i\_MaxHoverHeight, so that the drone can see as much of the parking lot section as it can. This makes the transition to \nameref{Autonomous Explore State} more likely. \\
+Rationale & This state is used for when the product is waiting for further operator commands. Hover height is selected to be i\_MaxHoverHeight, so that the drone can see as much of the parking lot section as it can. This makes the transition to \nameref{Autonomous Explore State} more likely.
+The drone cannot exit the Hover state until it reaches i\_MaxHoverHeight. This feature is added to ensure that the drone moves does not move laterally until it has sufficient height. during this state. For example, if the drone is just launching from the ground, it is unsafe for the drone to transition to the \nameref{Autonomous Explore State} and move laterally (as it could collide with an object).    \\
 \hline
 Phase & II \\
 \hline
@@ -780,6 +782,8 @@ Associated Inputs and Outputs & m\_DesiredUserLoc, m\_Barometer, m\_Acceleration
 \end{tabular}
 \end{center}
 \end{table}
+
+
 \subsubsection{State Transition Requirements}
 \label{transReqs}
 The following requirements are refinements of all the states specified in Section \ref{sec:stateReqs}, and specifies the product's transitions between states. These requirements will not be changed unless the states are changed.
@@ -1083,9 +1087,9 @@ Functional Requirement & Function  \\
 \label{PERF_001}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall explore > 90\% of the detected parking lot during the \nameref{Autonomous Explore State}. This is a refinement of \nameref{STA_003}. \\
+Description & The product shall be capable of exploring upto 1400 $ m^2 $ of the detected parking lot during the \nameref{Autonomous Explore State}. This is a refinement of \nameref{STA_003}. \\
 \hline
-Rationale & The requirement ensures that \nameref{Autonomous Explore State} is able to accurately survey the majority of the parking lot in order to provide accurate information to the operator. \\
+Rationale & The requirement ensures that \nameref{Autonomous Explore State} is able to survey atleast 60 parking spots each of size 13.5 $ m^2 $, assuming 6m of parking space between rows of parking. \\
 \hline
 Phase & III \\
 \hline
@@ -1183,7 +1187,7 @@ Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_
 \label{PERF_006}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & While the product is not hovering (moving from one location to another), it shall always maintain an altitude between i\_MaxHoverHeight and i\_MinHoverHeight, within a tolerance of ±21\%. This requirement are refinements of \nameref{STA_001}, \nameref{STA_002}, \nameref{STA_011} and \nameref{STA_003}.  \\
+Description & While the product is not hovering (moving from one location to another), it shall always maintain an altitude between i\_MaxHoverHeight and i\_MinHoverHeight, within a tolerance of ±5\%. This requirement are refinements of \nameref{STA_001}, \nameref{STA_002}, \nameref{STA_011} and \nameref{STA_003}.  \\
 \hline
 Rationale & The requirement ensures that the operator specified altitude limits are respected during operation of the product. \\
 \hline
