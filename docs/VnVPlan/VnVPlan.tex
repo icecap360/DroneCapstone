@@ -97,20 +97,8 @@ November 3, 2022 & 1.0 & Initial Revision \\
 \newpage
 
 \section{Symbols, Abbreviations and Acronyms}
-
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{l l} 
-  \toprule		
-  \textbf{symbol} & \textbf{description}\\
-  \midrule 
-  T & Test\\
-  \bottomrule
-\end{tabular}\\
-
-\wss{symbols, abbreviations or acronyms --- you can simply reference the SRS
-  \citep{SRS} tables, if appropriate}
-
-\wss{Remove this section if it isn't needed}
+  
+See where \nameref{DefTable}
 
 \newpage
 
@@ -363,6 +351,7 @@ The system shall be verified by two main methods. A guided review process shall 
 
 \section{System Test Description}
 \label{systemTest}
+The proceeding section outlines detailed system tests that verify the implementation of the system.
 
 \subsection{Measuring Outputs Testing}
 
@@ -376,7 +365,7 @@ To collect time statistics, either the timer on the embedded computer can be use
 
 For all test cases, to measure location and height, the GPS location and height displayed on the Operator's PC Application can be used, except for the Flight Dynamics Tests \ref{flightdynamicsTests}, in these scenarios an external location and height measurement tool must be used. Examples to measure lateral location include adding an external and light GPS to the drone or walking underneath the drone with an external GPS (like the ones on smart phones). To measure height one may use marks on a wall, or even attach a rope to the drone.
 
-\subsection{Assumptions regarding test cases}
+\subsection{Assumptions Regarding Test Cases}
 Unless otherwise stated, the test case requires that there is enough battery to complete the test case.
 Unless the creation of special stubs is specified, the drone is assumed to be complete mechanically, electrically, and software-wise. 
 
@@ -428,7 +417,7 @@ This test is an extension of STC_001, where this test is conducted within a cont
 \hline
 Purpose of test and/or relationship to other tests &  • Assesses and verifies the flight dynamics in an indoor scenario, which won't have the gusts and winds of outdoor test cases.
 
-• Verifies the states Off, Idle, Hover, Configure and Land as well as the transitions between them. In particular, it verifies NFR requiring the drone to stay within a 1.5m radius within the hover state (\nameref{STA_000}, \nameref{STA_001}, \nameref{STA_004}, \nameref{STA_005}, \nameref{STA_006}, \nameref{TRANS_002}, \nameref{TRANS_003}, \nameref{TRANS_009}).
+• Verifies the states Off, Idle, Hover, Configure and Land as well as the transitions between them (\nameref{STA_000}, \nameref{STA_001}, \nameref{STA_004}, \nameref{STA_005}, \nameref{STA_006}, \nameref{TRANS_002}, \nameref{TRANS_003}, \nameref{TRANS_009}).
 
 • Verifies a corner case in the parking lot detection algorithm, that it correctly detects no parking lot when there is no parking lot (\nameref{GEN_001}).
 
@@ -476,7 +465,7 @@ Test case derivation & As per SRS, the smallest possible height parameters are \
 
 As per SRS, the drone should take less than 25 seconds to reach i\_MaxHoverHeight (7+-1.5 m) from the moment the drone launches. This is why the input steps specify a 25-second wait after launch.
 
-As per SRS, while in the Hover state, the drone will enter the Autonomous Explore state if it sees a parking lot. Thus, a non-parking lot area is used to prevent this transition.
+Also, if the drone sees a parking lot in the Hover state, it must enter the Autonomous Explore state. To prevent this transition, a non-parking lot area is selected.
 
 While hovering, the drone should stay within a 1.5m lateral radius, with a height within i\_MaxHoverHeight-1.5m=7-1.5=5.5m and i\_MaxHoverHeight+1.5m=7+1.5=8.5m above the ground.  
 \\ 
@@ -535,9 +524,8 @@ While hovering the drone should stay a 1.5 m radius. In terms of height, it mean
 \hline
 Purpose of test and/or relationship to other tests & This test is very similar to \nameref{tab:STC_001}, except that the height parameters are configured to be much higher. The purpose of configuring the height parameters differently is to verify that the drone can hover accurately at different heights, that the drone can land safely from different heights, and that the Configure state is actually capable of configuring the height variables (\nameref{GEN_003}, \nameref{GEN_004}).
 
-Verifies the states Off, Idle, Hover, Configure, and Land as well as the transitions between them. In particular, it verifies the NFR requiring the drone to stay within a 1.5m radius within the hover state (\nameref{STA_000}, \nameref{STA_001}, \nameref{STA_004}, \nameref{STA_005}, \nameref{STA_006}, \nameref{TRANS_002}, \nameref{TRANS_003}, \nameref{TRANS_009}). 
+Verifies the states Off, Idle, Hover, Configure, and Land as well as the transitions between them (\nameref{STA_000}, \nameref{STA_001}, \nameref{STA_004}, \nameref{STA_005}, \nameref{STA_006}, \nameref{TRANS_002}, \nameref{TRANS_003}, \nameref{TRANS_009}). 
 Verifies a corner case in the parking lot detection algorithm where it correctly detects no parking lot when there is no parking lot.
-Elucidates how the drone operates in a non-parking lot area.
 Verifies the NFR requiring the product to take off to i\_MaxHoverHeight within 25 seconds (\nameref{PERF_002}). \\ 
 \hline
 \end{tabular}
@@ -575,7 +563,8 @@ Purpose of test and/or relationship to other tests &
 \begin{itemize}
     \item Assesses the ability of the drone to move to forward as well as move rightward in a stable and efficient manner toward a specified GPS location.
     \item Helps verify the Manual Move state and transitions related to proceeding to a given location when the location is within the parking lot (\nameref{STA_002}, \nameref{TRANS_005}).
-    \item Verifies the NFRs related to lateral accuracy (\nameref{PERF_008}. 
+    \item Verifies the NFRs related to lateral accuracy (\nameref{PERF_008}). 
+    \item Verifies the NFRs related to height accuracy during movement (\nameref{PERF_006}). 
     \item Verifies the visual trace requirement (\nameref{USE_001}. 
     \item Verifies the average speed requirement (\nameref{PERF_003}. 
 \end{itemize}
@@ -785,7 +774,7 @@ Purpose of test and/or relationship to other tests & • Estimate the drone's fl
 
 • Elucidates how the drone's functionality decreases with greater distances. 
 
-• Assesses the ability of the drone to regain connection.
+• Assesses the ability of the drone to regain connection (\nameref{SR_007}).
 
 • Verifies the Communication Lost state as well as related to exiting it (\nameref{STA_010}, \nameref{TRANS_010}). 
 
@@ -804,7 +793,7 @@ Purpose of test and/or relationship to other tests & • Estimate the drone's fl
 \begin{center}
 \caption {STC\_011}
 \label{tab:STC_011}
-\begin{tabular}{ | m{3.2cm} | m{12.2cm} | } 
+\begin{tabular}{ | m{1.5cm} | m{15cm} | } 
 \hline
 ID & \nameref{tab:STC_011} \\ 
 \hline
@@ -878,9 +867,9 @@ As per SRS, the Compulsive Move state should be entered if the m\_DesiredUserLoc
  \\ 
 \hline
 Purpose of test and/or relationship to other tests & 
-• This test case is not designed to test the accuracy of flight dynamics within Compulsive Move, as the drone moves too quickly and too far to accurately measure GPS.
+• This test case is not designed to test the accuracy of flight dynamics, as the drone moves too quickly and too far to accurately measure GPS.
 
-• Assesses the accuracy of the visual perception algorithm in recognizing parking lot area (\nameref{GEN_001}).
+• Assess the accuracy of the visual perception algorithm in recognizing parking lot area (\nameref{GEN_001}).
 
 • Helps to verify the Autonomous explore state as well as the transition to it from the input m\_AutonomousExplore (\nameref{STA_003}, \nameref{TRANS_004}). 
 
@@ -901,7 +890,7 @@ Purpose of test and/or relationship to other tests &
 \begin{center}
 \caption {STC\_013}
 \label{tab:STC_013}
-\begin{tabular}{ | m{3.2cm} | m{12.2cm} | } 
+\begin{tabular}{ | m{1.5cm} | m{15cm} | } 
 \hline
 ID & \nameref{tab:STC_013} \\ 
 \hline
@@ -920,14 +909,17 @@ Test case derivation & As per SRS, while in the hover state, the drone should en
  \\ 
 \hline
 Purpose of test and/or relationship to other tests & 
-\begin{itemize}
-    \item Assesses the accuracy of the visual perception algorithm to segment the parking lot, accuracy in recognizing unoccupied parking spots, and accuracy in its generated occupancy map (c\_OccupancyMap) (\nameref{GEN_005}, \nameref{GEN_006}).
-    \item Assesses the accuracy of the path planning algorithm (does it ever explore the same area twice, does it explore the parking lot in a systematic and predictable way, etc.) (\nameref{STA_003}).
-    \item Verifies the drone’s ability to identify Parking Lot boundaries (\nameref{GEN_001}).
-    \item Helps to verify the Autonomous explore state as well as the transition to it from the Hover state (\nameref{STA_003}, \nameref{TRANS_004}).
-    \item Verifies the NFR specifying the minimum required FPS of c\_CurrentView to be 0.5 (\nameref{PERF_004}).
-    \item Verifies the NFR requiring that the drone explores up to 1400m\^2 of the parking lot assuming enough time and a small enough size of the parking lot (\nameref{PERF_001}).
-\end{itemize}
+\item Assesses the accuracy of the visual perception algorithm to segment the parking lot, accuracy in recognizing unoccupied parking spots, and accuracy in its generated occupancy map (c\_OccupancyMap) (\nameref{GEN_005}, \nameref{GEN_006}).
+
+• Assesses the accuracy of the path planning algorithm (does it ever explore the same area twice, does it explore the parking lot in a systematic and predictable way, etc.) (\nameref{STA_003}).
+
+• Verifies the drone’s ability to identify Parking Lot boundaries (\nameref{GEN_001}).
+
+• Helps to verify the Autonomous explore state as well as the transition to it from the Hover state (\nameref{STA_003}, \nameref{TRANS_004}).
+
+• Verifies the NFR specifying the minimum required FPS of c\_CurrentView to be 0.5 (\nameref{PERF_004}).
+
+• Verifies the NFR requiring that the drone explores up to 1400m\^2 of the parking lot assuming enough time and a small enough size of the parking lot (\nameref{PERF_001}).
 \\ 
 \hline
 \end{tabular}
@@ -960,7 +952,7 @@ As per SRS, the drone should remain in the hover state as it shouldn't detect an
 Purpose of test and/or relationship to other tests & 
 • Ensures that the drone does not detect streets as parking lots. This is an important use case as the drone will likely see streets in its normal operation as streets are often found near parking lots.
 
-• Verifies the ability of the drone to identify parking lots (\nameref{GEN_001}).
+• Verifies the ability of the drone to identify parking lots (\nameref{GEN_001}, \nameref{SR_009}).
 \\ 
 \hline
 \end{tabular}
@@ -971,7 +963,7 @@ Purpose of test and/or relationship to other tests &
 \begin{center}
 \caption {STC\_015}
 \label{tab:STC_015}
-\begin{tabular}{ | m{3.2cm} | m{12.2cm} | } 
+\begin{tabular}{ | m{1.5cm} | m{15cm} | } 
 \hline
 ID & \nameref{tab:STC_015} \\ 
 \hline
@@ -992,13 +984,13 @@ Test case derivation & As per SRS, the drone should process the visual input fro
 \hline
 Purpose of test and/or relationship to other tests &  • Verifies the pipeline that communicates outputs from the visual perception feature to the Operator's PC application.
 
-• Helps to gauge the accuracy and performance of the visual perception on datasets of varying weather, number of vehicles, types of vehicles, camera height, etc. By using hardcoded datasets, the perception algorithms create reliability and consistency between tests, as different versions of the algorithm can be compared on the same inputs.
+• Helps to gauge the accuracy and performance of the visual perception on datasets of varying weather, number of vehicles, types of vehicles, camera height, etc. By using hardcoded datasets, the perception algorithms create  consistency between tests, as different versions of the algorithm can be compared on the same inputs.
 
 • Verifies the ability to recognize clear boundaries (\nameref{GEN_001}).
 
 • Verifies the live updating of the c_OccupancyMap (\nameref{GEN_002}).
 
-• Verifies the ability to identify non-occupied parking spots (\nameref{Gen_005}).
+• Verifies the ability to identify non-occupied parking spots (\nameref{Gen_005}, \nameref{SR_009}).
 
 • Verifies display of non-occupied parking spots on the Operator's application (\nameref{GEN_006}).
 \\ 
@@ -1011,7 +1003,7 @@ Purpose of test and/or relationship to other tests &  • Verifies the pipeline 
 \begin{center}
 \caption {STC\_016}
 \label{tab:STC_016}
-\begin{tabular}{ | m{3.2cm} | m{12.2cm} | } 
+\begin{tabular}{ | m{1.5cm} | m{15cm} | } 
 \hline
 ID & \nameref{tab:STC_016} \\ 
 \hline
@@ -1059,6 +1051,12 @@ Purpose of test and/or relationship to other tests &  • Usage of the 3D SITL a
 \hline
 Functional Requirement & Test Case to Verify \\
 \hline
+\nameref{GEN_001} & \nameref{tab:STC_001}, \nameref{tab:STC_011}, \nameref{tab:STC_012}, \nameref{tab:STC_013}, \nameref{tab:STC_014}, \nameref{tab:STC_015}, \nameref{tab:STC_016} \\ \hline
+\nameref{GEN_002} & \nameref{tab:STC_015}, \nameref{tab:ST16} \\ \hline
+\nameref{GEN_003} & \nameref{tab:STC_001}, \nameref{tab:STC_002} \\ \hline
+\nameref{GEN_004} & \nameref{tab:STC_001}, \nameref{tab:STC_002} \\ \hline
+\nameref{GEN_005} & \nameref{tab:STC_013}, \nameref{tab:STC_016}, \nameref{tab:STC_015} \\ \hline
+\nameref{GEN_006} & \nameref{tab:STC_013}, \nameref{tab:STC_016}, \nameref{tab:STC_015} \\ \hline
 \nameref{STA_000} & \nameref{tab:STC_001}, \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
 \nameref{STA_001} & \nameref{tab:STC_001}, \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
 \nameref{STA_002} & \nameref{tab:STC_005}, \nameref{tab:STC_011} \\ \hline
@@ -1159,7 +1157,7 @@ Output & The answer to each question is listed below in corresponding order. A s
 \hline
 How test will be performed & Input section is self-explanatory. \\ 
 \hline
-Test case derivation & As per SRS, the user manual must contain certain safety specifications regarding non-inclement weather, pre-flight damage inspection, postflight wait for cooldown, orientations to hold drone, holdable states, and secrecy of password (\nameref{SR_002}, \nameref{SR_006}, \nameref{SR_010}). 
+Test case derivation & As per SRS, the user manual must contain certain safety specifications regarding non-inclement weather, pre-flight damage inspection, postflight wait for cooldown, orientations to hold drone, holdable states, and secrecy of password (\nameref{SR_002}, \nameref{SR_006}, \nameref{SR_010}, \nameref{SAFE_003}). 
  \\ 
 \hline
 \end{tabular}
@@ -1247,17 +1245,44 @@ Test case derivation & As per SRS, the drone should not disturb more then 2\% of
 \end{center}
 \end{table}
 
+\begin{table}[!h]
+\begin{center}
+\caption {STC\_022}
+\label{tab:STC_022}
+\begin{tabular}{ | m{3.2cm} | m{12.2cm} | } 
+\hline
+ID & \nameref{tab:STC_022} \\ 
+\hline
+Control & Manual \\ 
+\hline
+Initial State & Drone is any flight state. \\ 
+\hline
+Input & Assert m_SaveOutput. Attempt to save the raw visuals (c_OccupancyMap and c_CurrentView) in any folder.
+ \\ 
+\hline
+Output &  Both visuals are saved in the specified folders with specified names and reasonable similarity to what was seen on the Operator's Application. \\ 
+\hline
+How test will be performed & Input section is self-explanatory. \\ 
+\hline
+Test case derivation & As per SRS, the drone should allow the user to have the current output into a folder (\nameref{USE_002}).
+ \\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
 \clearpage
 
 
-\
 \subsection{Traceability between Test Cases and Non-Functional Requirements}
+
+Certain requirements do not have a corresponding test case. A reason is specified if this is the case. For example, if a requirement is a pass or fails determined by the parts purchased, then testing will not yield any new information as it cannot be changed by the engineers. 
 
 \begin{table}[!h]
 \begin{center}
 \caption {NFR Traceability Table}
 \label{tab:NFR_Trace}
-\begin{tabular}{ | m{8cm} | m{8cm} | } 
+\begin{tabular}{ | m{3cm} | m{12cm} | } 
 \hline
 Non-Functional Requirement & Test Case to Verify \\
 \hline
@@ -1265,28 +1290,28 @@ Non-Functional Requirement & Test Case to Verify \\
 \nameref{PERF_002} & \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
 \nameref{PERF_003} & \nameref{tab:STC_004} \\ \hline
 \nameref{PERF_004} & \nameref{tab:STC_011}, \nameref{tab:STC_013} \\ \hline
-\nameref{PERF_005} & - \\ \hline
-\nameref{PERF_006} & - \\ \hline
-\nameref{PERF_007} & - \\ \hline
+\nameref{PERF_005} & \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
+\nameref{PERF_006} & \nameref{tab:STC_004} \\ \hline
+\nameref{PERF_007} & \nameref{tab:STC_015} \\ \hline
 \nameref{PERF_008} & \nameref{tab:STC_004} \\ \hline
-\nameref{DES_001} & - \\ \hline
+\nameref{DES_001} & None, it is a pass or fail depending on components already bought. \\ \hline
 \nameref{STD_001} & \nameref{tab:STC_019} \\ \hline
-\nameref{STD_002} & - \\ \hline
-\nameref{SEC_001} & - \\ \hline
-\nameref{SEC_002} & - \\ \hline
+\nameref{STD_002} & None, it is a pass or fail depending on components already bought. \\ \hline
+\nameref{SEC_001} & None, password complexity is a simple requirement and can be tested through unit tests.\\ \hline
+\nameref{SEC_002} & None, pass or fail. \\ \hline
 \nameref{MTNC_001} & \nameref{tab:STC_020} \\ \hline
-\nameref{MTNC_001} & - \\ \hline
-\nameref{MTNC_001} & - \\ \hline
+\nameref{MTNC_002} & None, may damage expensive parts. In the interest of cost, this is not tested. \\ \hline
+\nameref{MTNC_003} & None, may damage expensive parts. In the interest of cost, this is not tested. \\ \hline
 \nameref{SAFE_001} & \nameref{tab:STC_021} \\ \hline
-\nameref{SAFE_002} & - \\ \hline
-\nameref{SAFE_003} & - \\ \hline
+\nameref{SAFE_002} & \nameref{tab:STC_002} \\ \hline
+\nameref{SAFE_003} & \nameref{tab:STC_018} \\ \hline
 \nameref{SAFE_004} & \nameref{tab:STC_021} \\ \hline
-\nameref{SAFE_005} & - \\ \hline
+\nameref{SAFE_005} & None, pass or fail dependent on components bought. \\ \hline
 \nameref{USE_001} & \nameref{tab:STC_004}, \nameref{tab:STC_011} \\ \hline
-\nameref{USE_002} & - \\ \hline
+\nameref{USE_002} & \nameref{tab:STC_022} \\ \hline
 \nameref{USE_003} & \nameref{tab:STC_006} \\ \hline
 \nameref{USE_004} & \nameref{tab:STC_017} \\ \hline
-\nameref{USE_005} & - \\ \hline
+\nameref{USE_005} & Will be accomplished in future through a unit test. \\ \hline
 \end{tabular}
 \end{center}
 \end{table}
@@ -1300,16 +1325,16 @@ Non-Functional Requirement & Test Case to Verify \\
 \hline
 \nameref{SR_002} & \nameref{tab:STC_018} \\ \hline
 \nameref{SR_003} & \nameref{tab:STC_005}, \nameref{tab:STC_006} \\ \hline
-\nameref{SR_004} & - \\ \hline
-\nameref{SR_005} & - \\ \hline
+\nameref{SR_004} & None, pass or fail determined by the components bought. \\ \hline
+\nameref{SR_005} & None, pass or fail determined by the components bought. \\ \hline
 \nameref{SR_006} & \nameref{tab:STC_018} \\ \hline
-\nameref{SR_007} & - \\ \hline
-\nameref{SR_008} & - \\ \hline
-\nameref{SR_009} & - \\ \hline
+\nameref{SR_007} & \nameref{tab:STC_010} \\ \hline
+\nameref{SR_008} & None, redundant localization without gps \\ \hline
+\nameref{SR_009} & \nameref{tab:STC_015}, \nameref{tab:STC_014} \\ \hline
 \nameref{SR_010} & \nameref{tab:STC_018} \\ \hline
 \nameref{SR_011} & \nameref{tab:STC_006} \\ \hline
 \nameref{SR_012} & \nameref{tab:STC_007} \\ \hline
-\nameref{SR_013} & - \\ \hline
+\nameref{SR_013} & None, password complexity is a simple requirement and can be tested through unit tests. \\ \hline
 \end{tabular}
 \end{center}
 \end{table}
