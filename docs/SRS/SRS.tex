@@ -353,6 +353,8 @@ m\_PowerOn&	Boolean  &	- &	Indicates if the operator desires the drone to be On 
 \hline
 m\_Land&Boolean&	-&	Indicates if the operator desires the drone to land.\\
 \hline
+m\_SaveOutput&Boolean&	-&	Opens a dialog to save the current images and maps files in a folder.\\
+\hline
  m\_CamVision &	Image&	Array of Pixels&	Latest image of the section of the parking lot currently visible to the drone.\\
 \hline
 
@@ -1557,7 +1559,7 @@ Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_
 \label{USE_002}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall allow the operator to save the current visual and raw data into a folder. This requirement is a refinement of the c\_CurrentView data. \\
+Description & Upon m\_SaveOutput becoming true, a file dialog shall open to let the operator save the current visual of c\_CurrentView and c\_OccupancyMap onto the operator's PC.  \\
 \hline
 Rationale & The requirement ensures that the operator can save the current data for future reference and analysis, and provides a digital record of its operation. \\
 \hline
