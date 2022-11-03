@@ -165,7 +165,11 @@ In the remaining portion of the document, there will be various sources of infor
 
 \wss{Reference relevant documentation.  This will definitely include your SRS
   and your other project documents (design documents, like MG, MIS, etc).  You
+<<<<<<< HEAD
   can include these even before they are written since by the time the project
+=======
+  can include these even before they are written, since by the time the project
+>>>>>>> 712ead318f136d337befb958e7a08f4ce455a40c
   is done, they will be written.}
 
 \citet{SRS}
@@ -176,6 +180,7 @@ This section outlines the various methods that the team will use to verify and v
 
 \subsection{Verification and Validation Team}
 
+<<<<<<< HEAD
 The members of the team are assigned an area of testing, where the area of testing is not their area of expertise. This ensures that the creator and tester are not the same person, which eliminates the bias that occurs when testing their own components. The assigned person to the testing area are then responsible for managing all tests in that domain. In the cases where a test covers multiple domains, the test will be conducted in a joint manner between the different domains. The assignment of the testing areas are indicated within \nameref{VnV_Team}.
   
 \begin{table}[!h]
@@ -233,6 +238,19 @@ To informally verify the other components of the SRS, guided reviews and a check
     \item Are all state names meaningful and representative of the state?
 \end{todolist}
 \end{todolist}
+=======
+\wss{Your teammates.  Maybe your supervisor.
+  You shoud do more than list names.  You should say what each person's role is
+  for the project's verification.  A table is a good way to summarize this information.}
+
+\subsection{SRS Verification Plan}
+
+\wss{List any approaches you intend to use for SRS verification.  This may include
+  ad hoc feedback from reviewers, like your classmates, or you may plan for 
+  something more rigorous/systematic.}
+
+\wss{Maybe create an SRS checklist?}
+>>>>>>> 712ead318f136d337befb958e7a08f4ce455a40c
 
 \subsection{Design Verification Plan}
 
@@ -353,6 +371,18 @@ The Verification and Validation Plan shall be verified through an informal peer 
 \item Are tests outlined specifically and clearly, such that they can be reproduced by an external party?
 \end{todolist}
 
+<<<<<<< HEAD
+=======
+\wss{Create a checklists?}
+
+\subsection{Verification and Validation Plan Verification Plan}
+
+\wss{The verification and validation plan is an artifact that should also be verified.}
+
+\wss{The review will include reviews by your classmates}
+
+\wss{Create a checklists?}
+>>>>>>> 712ead318f136d337befb958e7a08f4ce455a40c
 
 \subsection{Implementation Verification Plan}
 
@@ -363,7 +393,24 @@ The team shall also conduct code reviews of the changes before the changes are m
 
 \subsection{Automated Testing and Verification Tools}
 
+<<<<<<< HEAD
 The team shall implement a variety of tools to automate the testing and verification process. Discussed upon within the [Coding Standard Development Plan], the team shall use a common IDE within the team, with integrated linters for both Python and C++. This ensures that static analyzers and coding standards are implemented automatically by the IDE and linter. A unit testing framework shall also be used to aid in the testing of the modules. Due to the usage of ROS within the product, the team shall use GTest for C++ modules, UnitTest for Python modules, and RosTest for ROS specific modules and communication. These three frameworks directly integrate within the ROS workflow, allowing for automatic execution of these tests during the compilation of the ROS packages. To further aid in the compilation of the various ROS packages, CMake shall be used to automate and simplify the compilation process. In addition to these tools, the team shall also produce a custom testing framework to test the visual perception algorithms. The custom tool shall automate the process of feeding in hardcoded input images into the algorithm, and record the algorithm outputs within a CSV file for easy manipulation and analysis of the outputs. 
+=======
+\wss{What tools are you using for automated testing.  Likely a unit testing
+  framework and maybe a profiling tool, like ValGrind.  Other possible tools
+  include a static analyzer, make, continuous integration tools, test coverage
+  tools, etc.  Explain your plans for summarizing code coverage metrics.
+  Linters are another important class of tools.  For the programming language
+  you select, you should look at the available linters.  There may also be tools
+  that verify that coding standards have been respected, like flake9 for
+  Python.}
+
+\wss{If you have already done this in the development plan, you can point to
+that document.}
+
+\wss{The details of this section will likely evolve as you get closer to the
+  implementation.}
+>>>>>>> 712ead318f136d337befb958e7a08f4ce455a40c
 
 \subsection{Software Validation Plan}
 
@@ -387,6 +434,12 @@ The system shall be verified by two main methods. A guided review process shall 
 
 \clearpage
 
+\wss{You might want to use review sessions with the stakeholder to check that
+the requirements document captures the right requirements.  Maybe task based
+inspection?}
+
+\wss{This section might reference back to the SRS verification section.}
+
 \section{System Test Description}
 	
 \subsection{Tests for Functional Requirements}
@@ -400,6 +453,45 @@ The system shall be verified by two main methods. A guided review process shall 
 
 \subsubsection{Area of Testing1}
 
+<<<<<<< HEAD
+=======
+\wss{It would be nice to have a blurb here to explain why the subsections below
+  cover the requirements.  References to the SRS would be good here.  If a section
+  covers tests for input constraints, you should reference the data constraints
+  table in the SRS.}
+		
+\paragraph{Title for Test}
+
+\begin{enumerate}
+
+\item{test-id1\\}
+
+Control: Manual versus Automatic
+					
+Initial State: 
+					
+Input: 
+					
+Output: \wss{The expected result for the given inputs}
+
+Test Case Derivation: \wss{Justify the expected value given in the Output field}
+					
+How test will be performed: 
+					
+\item{test-id2\\}
+
+Control: Manual versus Automatic
+					
+Initial State: 
+					
+Input: 
+					
+Output: \wss{The expected result for the given inputs}
+
+Test Case Derivation: \wss{Justify the expected value given in the Output field}
+
+How test will be performed: 
+>>>>>>> 712ead318f136d337befb958e7a08f4ce455a40c
 
 \begin{table}[!h]
 \begin{center}
@@ -658,6 +750,37 @@ format for the tests given below.}
 		
 \paragraph{Title for Test}
 
+<<<<<<< HEAD
+=======
+\begin{enumerate}
+
+\item{test-id1\\}
+
+Type: Functional, Dynamic, Manual, Static etc.
+					
+Initial State: 
+					
+Input/Condition: 
+					
+Output/Result: 
+					
+How test will be performed: 
+					
+\item{test-id2\\}
+
+Type: Functional, Dynamic, Manual, Static etc.
+					
+Initial State: 
+					
+Input: 
+					
+Output: 
+					
+How test will be performed: 
+
+\end{enumerate}
+
+>>>>>>> 712ead318f136d337befb958e7a08f4ce455a40c
 \subsubsection{Area of Testing2}
 
 ...
@@ -821,6 +944,7 @@ Med_Hover_Params\labeltext{Med_Hover_Params}{Med_Hover_Params} & (i\_MinHoverHei
 \wss{This is a section that would be appropriate for some projects.}
 
 \newpage{}
+<<<<<<< HEAD
 \section{Appendix --- Reflection}
 This section reviews the roles mentioned in Table \ref{VnV_Team} and evaluates each team member on the graduate attribute of Lifelong Learning. 
 
@@ -883,5 +1007,29 @@ Operator's Application Testing \\
 \end{tabular}
 \end{center}
 \end{table}
+=======
+\section*{Appendix --- Reflection}
+
+The information in this section will be used to evaluate the team members on the
+graduate attribute of Lifelong Learning.  Please answer the following questions:
+
+\newpage{}
+\section*{Appendix --- Reflection}
+
+The information in this section will be used to evaluate the team members on the
+graduate attribute of Lifelong Learning.  Please answer the following questions:
+
+\begin{enumerate}
+  \item What knowledge and skills will the team collectively need to acquire to
+  successfully complete the verification and validation of your project?
+  Examples of possible knowledge and skills include dynamic testing knowledge,
+  static testing knowledge, specific tool usage etc.  You should look to
+  identify at least one item for each team member.
+  \item For each of the knowledge areas and skills identified in the previous
+  question, what are at least two approaches to acquiring the knowledge or
+  mastering the skill?  Of the identified approaches, which will each team
+  member pursue, and why did they make this choice?
+\end{enumerate}
+>>>>>>> 712ead318f136d337befb958e7a08f4ce455a40c
 
 \end{document}
