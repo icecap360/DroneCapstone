@@ -1,5 +1,6 @@
 \documentclass[12pt, titlepage]{article}
 
+\usepackage{longtable}
 \usepackage[utf8]{inputenc}
 \usepackage{fullpage}
 \usepackage{amsmath, mathtools}
@@ -8,6 +9,7 @@
 \usepackage{graphicx}
 \usepackage{colortbl}
 \usepackage{xr}
+\usepackage{xr-hyper}
 \usepackage{hyperref}
 \usepackage{longtable}
 \usepackage{xfrac}
@@ -55,7 +57,8 @@
 }
 \input{../Comments}
 \input{../Common}
-\externaldocument[SRS:]{../SRS}
+%\externaldocument[]{SRS}
+\externaldocument{../SRS/SRS}
 
 %%\input{../SRS/SRS}
 %\input{../HA/HA}
@@ -114,6 +117,8 @@ Date 2 & 1.1 & Notes\\
 
 \section{General Information}
 
+\nameref{SAFE_001}
+
 The VnV (Verification and Validation) Plan for the ParkingLotHawk produces a set of test cases to help verify our project and have it reviewed through a checklist to determine any inconsistencies.
 
 \wss{provide an introductory blurb and roadmap of the Verification and Validation plan}
@@ -165,11 +170,7 @@ In the remaining portion of the document, there will be various sources of infor
 
 \wss{Reference relevant documentation.  This will definitely include your SRS
   and your other project documents (design documents, like MG, MIS, etc).  You
-<<<<<<< HEAD
   can include these even before they are written since by the time the project
-=======
-  can include these even before they are written, since by the time the project
->>>>>>> 712ead318f136d337befb958e7a08f4ce455a40c
   is done, they will be written.}
 
 \citet{SRS}
@@ -180,7 +181,6 @@ This section outlines the various methods that the team will use to verify and v
 
 \subsection{Verification and Validation Team}
 
-<<<<<<< HEAD
 The members of the team are assigned an area of testing, where the area of testing is not their area of expertise. This ensures that the creator and tester are not the same person, which eliminates the bias that occurs when testing their own components. The assigned person to the testing area are then responsible for managing all tests in that domain. In the cases where a test covers multiple domains, the test will be conducted in a joint manner between the different domains. The assignment of the testing areas are indicated within \nameref{VnV_Team}.
   
 \begin{table}[!h]
@@ -238,19 +238,6 @@ To informally verify the other components of the SRS, guided reviews and a check
     \item Are all state names meaningful and representative of the state?
 \end{todolist}
 \end{todolist}
-=======
-\wss{Your teammates.  Maybe your supervisor.
-  You shoud do more than list names.  You should say what each person's role is
-  for the project's verification.  A table is a good way to summarize this information.}
-
-\subsection{SRS Verification Plan}
-
-\wss{List any approaches you intend to use for SRS verification.  This may include
-  ad hoc feedback from reviewers, like your classmates, or you may plan for 
-  something more rigorous/systematic.}
-
-\wss{Maybe create an SRS checklist?}
->>>>>>> 712ead318f136d337befb958e7a08f4ce455a40c
 
 \subsection{Design Verification Plan}
 
@@ -371,18 +358,6 @@ The Verification and Validation Plan shall be verified through an informal peer 
 \item Are tests outlined specifically and clearly, such that they can be reproduced by an external party?
 \end{todolist}
 
-<<<<<<< HEAD
-=======
-\wss{Create a checklists?}
-
-\subsection{Verification and Validation Plan Verification Plan}
-
-\wss{The verification and validation plan is an artifact that should also be verified.}
-
-\wss{The review will include reviews by your classmates}
-
-\wss{Create a checklists?}
->>>>>>> 712ead318f136d337befb958e7a08f4ce455a40c
 
 \subsection{Implementation Verification Plan}
 
@@ -393,24 +368,7 @@ The team shall also conduct code reviews of the changes before the changes are m
 
 \subsection{Automated Testing and Verification Tools}
 
-<<<<<<< HEAD
 The team shall implement a variety of tools to automate the testing and verification process. Discussed upon within the [Coding Standard Development Plan], the team shall use a common IDE within the team, with integrated linters for both Python and C++. This ensures that static analyzers and coding standards are implemented automatically by the IDE and linter. A unit testing framework shall also be used to aid in the testing of the modules. Due to the usage of ROS within the product, the team shall use GTest for C++ modules, UnitTest for Python modules, and RosTest for ROS specific modules and communication. These three frameworks directly integrate within the ROS workflow, allowing for automatic execution of these tests during the compilation of the ROS packages. To further aid in the compilation of the various ROS packages, CMake shall be used to automate and simplify the compilation process. In addition to these tools, the team shall also produce a custom testing framework to test the visual perception algorithms. The custom tool shall automate the process of feeding in hardcoded input images into the algorithm, and record the algorithm outputs within a CSV file for easy manipulation and analysis of the outputs. 
-=======
-\wss{What tools are you using for automated testing.  Likely a unit testing
-  framework and maybe a profiling tool, like ValGrind.  Other possible tools
-  include a static analyzer, make, continuous integration tools, test coverage
-  tools, etc.  Explain your plans for summarizing code coverage metrics.
-  Linters are another important class of tools.  For the programming language
-  you select, you should look at the available linters.  There may also be tools
-  that verify that coding standards have been respected, like flake9 for
-  Python.}
-
-\wss{If you have already done this in the development plan, you can point to
-that document.}
-
-\wss{The details of this section will likely evolve as you get closer to the
-  implementation.}
->>>>>>> 712ead318f136d337befb958e7a08f4ce455a40c
 
 \subsection{Software Validation Plan}
 
@@ -434,12 +392,6 @@ The system shall be verified by two main methods. A guided review process shall 
 
 \clearpage
 
-\wss{You might want to use review sessions with the stakeholder to check that
-the requirements document captures the right requirements.  Maybe task based
-inspection?}
-
-\wss{This section might reference back to the SRS verification section.}
-
 \section{System Test Description}
 	
 \subsection{Tests for Functional Requirements}
@@ -453,45 +405,6 @@ inspection?}
 
 \subsubsection{Area of Testing1}
 
-<<<<<<< HEAD
-=======
-\wss{It would be nice to have a blurb here to explain why the subsections below
-  cover the requirements.  References to the SRS would be good here.  If a section
-  covers tests for input constraints, you should reference the data constraints
-  table in the SRS.}
-		
-\paragraph{Title for Test}
-
-\begin{enumerate}
-
-\item{test-id1\\}
-
-Control: Manual versus Automatic
-					
-Initial State: 
-					
-Input: 
-					
-Output: \wss{The expected result for the given inputs}
-
-Test Case Derivation: \wss{Justify the expected value given in the Output field}
-					
-How test will be performed: 
-					
-\item{test-id2\\}
-
-Control: Manual versus Automatic
-					
-Initial State: 
-					
-Input: 
-					
-Output: \wss{The expected result for the given inputs}
-
-Test Case Derivation: \wss{Justify the expected value given in the Output field}
-
-How test will be performed: 
->>>>>>> 712ead318f136d337befb958e7a08f4ce455a40c
 
 \begin{table}[!h]
 \begin{center}
@@ -503,7 +416,7 @@ ID & \nameref{tab:STC_001} \\
 \hline
 Control & Manual \\ 
 \hline
-Initial State & The product is in its Off state.\nameref{SRS:TRANS_004} \nameref{SRS:PERF_007} \\ 
+Initial State & The product is in its Off state. \\ 
 \hline
 Input & Enter the configure state and set the hover height parameters to be the smallest values possible value \ref{Min_Hover_Params}. Afterward, launch the drone in normal operation and wait for 1 min 25 sec. \\ 
 \hline
@@ -700,7 +613,7 @@ ID & \nameref{tab:STC_006} \\
 \hline
 Control & Manual \\ 
 \hline
-Initial State & The product is in any of its flying state.   \\ 
+Initial State & The product is in any of its flying states.   \\ 
 \hline
 Input & Set m\_CompulsiveMove as false. Change m\_DesiredUserLoc to a location within the parking lot and to the diagonal front right of the drone at least 20m away.  \\ 
 \hline
@@ -731,8 +644,128 @@ Purpose of test and/or relationship to other tests &
 \end{center}
 \end{table}
 
+\begin{table}[!h]
+\begin{center}
+\caption {STC\_007}
+\label{tab:STC_007}
+\begin{tabular}{ | m{3.2cm} | m{12.2cm} | } 
+\hline
+ID & \nameref{tab:STC_007} \\ 
+\hline
+Control & Manual \\ 
+\hline
+Initial State & The product is in any of its flying states.   \\ 
+\hline
+Input & Set m\_CompulsiveMove as false. Change m\_DesiredUserLoc to a location outside the parking lot and in front of the drone.  \\ 
+\hline
+Output & The drone should enter the Manual Move State upon a change to m\_DesiredUserLoc. The drone should move forward towards the location, until it is close to the edge of the parking lot after which the drone should enter the Desired Location Error State. Upon entry to this state, it logs an error to the user in c\_Log and sets c\_UserError to Desired\_Location\_Out\_Of\_Bounds. 
 
+There should be a straight line in the visual trace of the past GPS location if the path planning algorithm is correctly optimized to take the shortest path toward the GPS location. 
 
+Monitor the FPS of the c\_CameraView output; it should be more then 0.5 FPS.  \\ 
+\hline
+How test will be performed & Input section contains enough detail. \\ 
+\hline
+Test case derivation & As per SRS, the drone should enter Manual Move whenever m\_DesiredUserLoc is changed and m\_CompulsiveMove is false. Given the GPS location being in front of the drone, it should fly forward, but when it recognizes that the requested GPS location is outside the parking lot, it should enter the Desired Location Error State. Within this state, the SRS specifies that the drone should inform the user that their movement command is not possible (through a message in c\_Log), and begin hovering in place.
+
+A visual trace of the drone's movement in the past 60 seconds should be displayed on the Operator's PC Application. It should appear as a relatively straight line toward the hover location, as the drone's path planning should make it take the shortest path. 
+As per SRS, the FPS should be more then 0.5.
+ \\ 
+\hline
+Purpose of test and/or relationship to other tests & 
+Assesses the ability of the drone to fly to forward.
+Verifies the drone’s ability to identify Parking Lot boundaries.
+Helps verify the Manual Move state and transitions related to it, specifically its ability to detect and report the error when requested location is invalid. 
+Verifies the Desired Location Error state and transitions related to it. 
+Verifies the visual trace requirement. 
+Verifies the NFR specifying minimum required FPS of c\_CurrentView to be at least 0.5.
+\\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[!h]
+\begin{center}
+\caption {STC\_008}
+\label{tab:STC_008}
+\begin{tabular}{ | m{3.2cm} | m{12.2cm} | } 
+\hline
+ID & \nameref{tab:STC_008} \\ 
+\hline
+Control & Manual \\ 
+\hline
+Initial State & The drone is on the ground of a rectangular shaped parking lot with less then 30 parking spots, is fully charged and is in its idle state.  \\ 
+\hline
+Input & Assert m\_Launch. \\ 
+\hline
+Output & The drone should first enter the Hover state, but once it begins hovering and it detects the parking lot, the drone should enter the Autonomous Explore state. Within the 3.5 minutes of guaranteed operations, the drone should have explored the full parking and completed its c\_OccupancyMap with reasonable accuracy. 
+Monitor the FPS and output of c\_CameraView output. \\ 
+\hline
+How test will be performed & Input section contains enough detail. \\ 
+\hline
+Test case derivation & As per SRS, while in the hover state, the drone should enter the Autonomous Explore state automatically once it detects a parking lot. The Autonomous Explore state specifies that the drone should explore the parking lot during this state. Assuming that the drone moves at roughly 4m/sec and sees at least 1 parking spot every frame, it is reasonable to assume that 3.5 minutes is more then enough time for the drone to explore an entire parking lot of this size.
+ \\ 
+\hline
+Purpose of test and/or relationship to other tests & 
+\begin{itemize}
+    \item Assesses the accuracy of the visual perception algorithm to segment the parking lot, accuracy in recognizing unoccupied parking spots, and accuracy in its generated occupancy map (c\_OccupancyMap).
+    \item Assesses the accuracy of the path planning algorithm (does it ever explore the same area twice, does it explore the parking lot in a systematic and predictable way, etc.).
+    \item Verifies the drone’s ability to identify Parking Lot boundaries.
+    \item Helps to verify the Autonomous explore state as well as the transition to it from the Hover state.
+    \item Verifies the NFR specifying minimum required FPS of c\_CurrentView to be 0.5.
+    \item Verifies the NFR requiring that the drone explores up to 1400m\^2 of the parking lot assuming enough time and small enough size of the parking lot.
+\end{itemize}
+\\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[!h]
+\begin{center}
+\caption {STC\_009}
+\label{tab:STC_009}
+\begin{tabular}{ | m{1.5cm} | m{15cm} | } 
+\hline
+ID & \nameref{tab:STC_009} \\ 
+\hline
+Control & Manual \\ 
+\hline
+Initial State & The height parameters are set as \ref{Min_Hover_Params}. The drone is in the Hover state, on the surface of a non-parking lot area but atleast 50m away from a parking lot.  \\ 
+\hline
+Input & Attempt to enter the Autonomous Explore state. Now move the drone to a location within the nearby parking lot utilizing the Compulsive Move state. Once the drone is in the parking lot attempt to enter the Autonomous Explore State again. \\ 
+\hline
+Output & Upon the first attempt to enter the Autonomous Explore State, the attempt should fail, and instead the drone should enter the No Parking Lot Detected State. Upon entrance to this state, c_UserError is set to No_Lot_Detected_State and an error message is logged to c_Log. Afterward, when the drone enters the Compulsive move state, c_UserError should be None, and the drone should travel to m_DesiredUserLoc. Upon the second attempt to enter the Autonomous Explore State, the attempt should succeed. \\ 
+\hline
+How test will be performed & 
+The test case can be restated in terms of the input and output variables: 
+\begin{enumerate}[topsep=0pt,itemsep=-1ex,partopsep=1ex,parsep=1ex]
+	\item Assert m_AutonomousExplore as true to request the Autonomous Explore state. Measure/analyze behavior. 
+	\item Now assert and hold m_CompulsiveMove as true, and change m_DesiredUserLoc to a location within the nearby parking lot. 
+	\item Wait until the drone is within 1.5m of the m_DesiredUserLoc
+	\item Try setting m_AutonomousExplore to true again to request entrance in the parking lot. Measure/analyze behavior.  \end{enumerate} \\
+\hline
+Test case derivation & As per SRS the Autonomous Explore state should only be entered if c_ParkingLotDetected is true. The Initial State behaviour specified above (height parameters and distance to nearby parking lot) are set in a way to ensure that the nearby parking lot is not in the field of view of the drone. This is why the first attempt to enter the Autonomous Explore fails while the second attempt succeeds. When an attempt to enter Autonomous Explore fails, the drone should enter the No Parking Lot Detected State.
+
+As per SRS, upon entrance into the No Parking Lot Detected State c_UserError should be set to No_Lot_Detected_State and an error message is should be logged to c_Log. Upon exit c_UserError should be set to None.
+
+As per SRS the Compulsive Move state should be entered if the m_DesiredUserLoc is changed and m_CompulsiveMove is true. 
+ \\ 
+\hline
+Purpose of test and/or relationship to other tests & 
+\begin{itemize}
+    \item Not that although there is a requirement regarding how the drone should move to m_DesiredUserLoc with 1.5m of accuracy within Compulsive Move, it is not verified in this testcase. The reason is that because the drone moves such long distances and it never actually hovers at m_DesiredUserLoc (as it transitions to Autonomous Explore), it makes measuring GPS location of the drone difficult.
+    \item Assesses the accuracy of the visual perception algorithm in recognizing parking lot area. 
+    \item Helps to verify the Autonomous explore state as well as the transition to it from the input m_AutonomousExplore. 
+    \item Verifies the Compulsive Move state as well as transitions related to it.
+    \item Verifies the No Parking Lot Detected Error state as well as transitions related to it.
+\end{itemize}
+\\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
 \subsection{Tests for Nonfunctional Requirements}
 
 \wss{The nonfunctional requirements for accuracy will likely just reference the
@@ -750,37 +783,6 @@ format for the tests given below.}
 		
 \paragraph{Title for Test}
 
-<<<<<<< HEAD
-=======
-\begin{enumerate}
-
-\item{test-id1\\}
-
-Type: Functional, Dynamic, Manual, Static etc.
-					
-Initial State: 
-					
-Input/Condition: 
-					
-Output/Result: 
-					
-How test will be performed: 
-					
-\item{test-id2\\}
-
-Type: Functional, Dynamic, Manual, Static etc.
-					
-Initial State: 
-					
-Input: 
-					
-Output: 
-					
-How test will be performed: 
-
-\end{enumerate}
-
->>>>>>> 712ead318f136d337befb958e7a08f4ce455a40c
 \subsubsection{Area of Testing2}
 
 ...
@@ -944,7 +946,6 @@ Med_Hover_Params\labeltext{Med_Hover_Params}{Med_Hover_Params} & (i\_MinHoverHei
 \wss{This is a section that would be appropriate for some projects.}
 
 \newpage{}
-<<<<<<< HEAD
 \section{Appendix --- Reflection}
 This section reviews the roles mentioned in Table \ref{VnV_Team} and evaluates each team member on the graduate attribute of Lifelong Learning. 
 
@@ -976,60 +977,56 @@ Operator's Application Testing & Winnie & Verifies that the Operator's applicati
 \end{center}
 \end{table}
 
-  
+\subsection{Knowledge & Skills}
+Table \ref{KnowledgeTable} covers different approaches to follow the plan from Table \ref{RequiredTesting}.
+
 \begin{table}[!h]
 \begin{center}
 \caption {Knowledge Acquisition}
-\label{RequiredTesting}
+\label{KnowledgeTable}
+
 \begin{tabular}{ | m{3cm} | m{7cm} | m{4cm} | }
+
 \hline
 Test & Approaches & Verdict \\
 \hline
 Dynamic Testing & 
-Approach 1: Previous lecture notes from McMaster's MECHTRON 3K04: Software Development. \newline Approach 2: Research online and watch tutorials such as \href{https://www.youtube.com/watch?v=ePMjdL4PE5M}{this video} on YouTube.\newline Approach 3: Explore different resources online such as \href{https://www.sciencedirect.com/topics/materials-science/dynamic-mechanical-analysis}{this}.& Fady, Muhammad \& Winnie will proceed with Approach 2 as MECHTRON 3K04 did not go in-depth with Static Testing while Zaid will proceed with  \\
+Approach 1: Previous lecture notes from McMaster's MECHTRON 3K04: Software Development. \newline Approach 2: Research online and watch tutorials such as \href{https://www.youtube.com/watch?v=ePMjdL4PE5M}{this video} on YouTube.\newline Approach 3: Research online and find resources for mechanical static testing such as \href{https://www.sciencedirect.com/topics/materials-science/dynamic-mechanical-analysis}{this}.& Fady, Muhammad \& Winnie will proceed with Approach 2 as MECHTRON 3K04 did not go in-depth with Static Testing. Zaid will proceed with Approach 3 for Mechanical Testing.  \\
 \hline
 Integration Testing & 
-Approach 1: Previous lecture notes from McMaster's MECHTRON 3K04: Software Development. \newline Approach 2: Research online resources such as \href{https://www.simplexitypd.com/blog/five-tips-for-mechatronic-system-integration}{this website}. &\\
+Approach 1: Previous lecture notes from McMaster's MECHTRON 3K04: Software Development. \newline Approach 2: Research online resources such as \href{https://www.simplexitypd.com/blog/five-tips-for-mechatronic-system-integration}{this website}. & Muhammad will proceed with Approach 2 to get more knowledge with Integration Testing as the MECHTRON 3K04 course did not get in-depth with the subject. \\
 \hline
 Static Testing & 
-Approach 1: Previous lecture notes from McMaster's MECHTRON 3K04: Software Development \newline Approach 2: Research online and find resources for mechanical static testing such as \href{https://musculoskeletalkey.com/6-static-dynamic-and-fatigue-mechanical-testing/}{this website}. &\\
+Approach 1: Previous lecture notes from McMaster's MECHTRON 3K04: Software Development \newline Approach 2: Research online and find resources for static testing such as \href{https://www.guru99.com/testing-review.html}{this website}. & Fady, Muhammad \& Winnie will proceed with Approach 1 as Static Testing was done extensively in the MECHTRON 3K04 Pacemaker project.\\
 \hline
- Visual Perception and Path Planning Testing & Approach 1: Watch McMaster's Google Developer's Club \href{https://www.youtube.com/watch?v=Zrw5eCfnSOM}{video} on YouTube to learn more about the OpenCV library complementing ENG 1D04: Engineering Computation.  \newline Approach 2: Use OpenCV \href{https://docs.opencv.org/4.x/d9/df8/tutorial_root.html}{tutorial documentation}.\\
+ Visual Perception and Path Planning Testing & Approach 1: Watch McMaster's Google Developer's Club \href{https://www.youtube.com/watch?v=Zrw5eCfnSOM}{video} on YouTube to learn more about the OpenCV library complementing ENG 1D04: Engineering Computation.  \newline Approach 2: Use OpenCV \href{https://docs.opencv.org/4.x/d9/df8/tutorial_root.html}{tutorial documentation}. & Fady will proceed with Approach 1 as the tutorial was done at McMaster by McMaster students going through the fundamentals of OpenCV.\\
 \hline
 Drone Finite State Machine (FSM) and Communication Testing & 
-Approach 1: Previous lecture notes from McMaster's MECHTRON 3K04: Software Development \newline Approach 2: Use \href{http://wiki.ros.org/smach}{ROS.org documentation} on ROS' library SMACH to learn more about the FSM implementation. &\\
+Approach 1: Previous lecture notes from McMaster's MECHTRON 3K04: Software Development \newline Approach 2: Use \href{http://wiki.ros.org/smach}{ROS.org documentation} on ROS' library SMACH to learn more about the FSM implementation. & Muhammad will proceed with Approach 2 to get familiar with the SMACH library which will be more relevant for drone development.\\
 \hline
-Mechanical Testing & Approach 1: Previous lecture notes from McMaster's ENG 1C03: Engineering Design \& Graphics \newline Approach 2: Watch \href{https://www.youtube.com/watch?v=YmMDhzXitn0}{SolidWorks' basic tutorial}.&\\  
+\end{tabular}
+\end{center}
+\end{table}
+
+  
+\begin{table}[!h]
+\begin{center}
+\label{RequiredTesting}
+
+\begin{tabular}{ | m{3cm} | m{7cm} | m{4cm} | }
+
 \hline
-Operator's Application Testing \\
+Test & Approaches & Verdict \\
+
 \hline
+Mechanical Testing & Approach 1: Previous lecture notes from McMaster's ENG 1C03: Engineering Design \& Graphics \newline Approach 2: Watch \href{https://www.youtube.com/watch?v=YmMDhzXitn0}{SolidWorks' basic tutorial}.& Zaid will use Approach 2 to get familiar with SolidWorks.\\  
+\hline
+Operator's Application Testing & Previous lecture notes from McMaster's MECHTRON 1D04: Engineering Computation  to understand the language of the application. \newline Approach 2: Use \href{https://docs.python.org/3/tutorial/}{Python Documentation} and other online resources to understand Python syntax. & Winnie will proceed with Approach 1 as ENG 1D04 had covered Python extensively.\\
+\hline
+
 
 \end{tabular}
 \end{center}
 \end{table}
-=======
-\section*{Appendix --- Reflection}
-
-The information in this section will be used to evaluate the team members on the
-graduate attribute of Lifelong Learning.  Please answer the following questions:
-
-\newpage{}
-\section*{Appendix --- Reflection}
-
-The information in this section will be used to evaluate the team members on the
-graduate attribute of Lifelong Learning.  Please answer the following questions:
-
-\begin{enumerate}
-  \item What knowledge and skills will the team collectively need to acquire to
-  successfully complete the verification and validation of your project?
-  Examples of possible knowledge and skills include dynamic testing knowledge,
-  static testing knowledge, specific tool usage etc.  You should look to
-  identify at least one item for each team member.
-  \item For each of the knowledge areas and skills identified in the previous
-  question, what are at least two approaches to acquiring the knowledge or
-  mastering the skill?  Of the identified approaches, which will each team
-  member pursue, and why did they make this choice?
-\end{enumerate}
->>>>>>> 712ead318f136d337befb958e7a08f4ce455a40c
 
 \end{document}
