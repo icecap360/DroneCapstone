@@ -1,8 +1,41 @@
 \documentclass[12pt, titlepage]{article}
 
+\usepackage[utf8]{inputenc}
+\usepackage{fullpage}
+\usepackage{amsmath, mathtools}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{colortbl}
+\usepackage{xr}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{xfrac}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{pdflscape}
+\usepackage{fixltx2e}
+\usepackage{afterpage}
+\usepackage{seqsplit}
+\usepackage{underscore}
+\usepackage{lscape}
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{hyperref}
+\usepackage{nameref}
+\usepackage{enumitem}
+
+
+% checklist
+\newlist{todolist}{itemize}{3}
+\setlist[todolist]{label=$\square$}
+
+
 \hypersetup{
     colorlinks,
     citecolor=blue,
@@ -11,14 +44,26 @@
     urlcolor=blue
 }
 \usepackage[round]{natbib}
+\MakeRobust{\ref}% avoid expanding it when in a textual label
 
+\makeatletter
+\newcommand{\labeltext}[2]{%
+  \@bsphack
+  \csname phantomsection\endcsname % in case hyperref is used
+  \def\@currentlabel{#1}{\label{#2}}%
+  \@esphack
+}
 \input{../Comments}
 \input{../Common}
+\externaldocument[SRS:]{../SRS}
+
+%%\input{../SRS/SRS}
+%\input{../HA/HA}
 
 \begin{document}
 
 \title{Project Title: System Verification and Validation Plan for \progname{}} 
-\author{Author Name}
+\author{\authname}
 \date{\today}
 	
 \maketitle
@@ -58,24 +103,55 @@ Date 2 & 1.1 & Notes\\
   \bottomrule
 \end{tabular}\\
 
-\wss{symbols, abbreviations or acronyms -- you can simply reference the SRS
+\wss{symbols, abbreviations or acronyms --- you can simply reference the SRS
   \citep{SRS} tables, if appropriate}
+
+\wss{Remove this section if it isn't needed}
 
 \newpage
 
 \pagenumbering{arabic}
 
-This document ... \wss{provide an introductory blurb and roadmap of the
-  Verification and Validation plan}
-
 \section{General Information}
+
+The VnV (Verification and Validation) Plan for the ParkingLotHawk produces a set of test cases to help verify our project and have it reviewed through a checklist to determine any inconsistencies.
+
+\wss{provide an introductory blurb and roadmap of the Verification and Validation plan}
 
 \subsection{Summary}
 
-\wss{Say what software is being tested.  Give its name and a brief overview of
-  its general functions.}
+The project involves the operation of a drone through manual and automated instructions within a parking lot, thus involving a variety of tests that focus on the physical and virtual constraints of the project. To achieve the optimal solution to the project, there will be a variety of test cases that will be used by the team in the process of building the drone and creating the intended software for its operation. These test cases involve the use of static test, dynamic test, unit test and stress test. The following format will be used for the previously mentioned testing techniques to help during the process of testing:
+
+\begin{center}
+\begin{tabular}{|m{3cm} m{11cm}|}
+\hline &\\
+     \textbf{Title:} & The description for the test \\&\\
+     \textbf{Test ID:} & Test number \\&\\
+     \textbf{Control:} & Drone operation state; manual and automatic \\&\\
+     \textbf{Initial State:} & The starting point for the test \\&\\
+     \textbf{Input:} & The variables to include in the test case \\&\\
+     \textbf{Output:} & The result that should be achieved \\&\\
+     \textbf{How test will be performed:} & The procedures taken for the duration of the test \\&\\
+     \textbf{Test case derivation:} & The possible errors that will be included in the test cases \\&\\
+     \textbf{Purpose of test:} & The reason why the test was performed and whether it fits the intended purpose \\&\\
+\hline
+\end{tabular}
+\end{center}
+
+\wss{Say what software is being tested.  Give its name and a brief overview of its general functions.}
 
 \subsection{Objectives}
+
+There are also multiple objectives to be accomplished in the project for the proper operation of the drone to allow it to meet its set criteria. The following objectives will mainly focus on the most important qualities of the objectives:
+
+\begin{itemize}
+    \item Software Algorithm Correctness: The drone should be able to operate according to its specifications, and the application to be used by the operators should be able to accurately relay the commands to the drone.
+    \item Hardware Correctness: The components of the drone function properly according to their intended purpose and with minimal or no errors.
+    \item State Machine Implementation: Include control events for the various components of the drone in order to operate those specific parts individually.
+    \item Operator PC and Drone Communications: The components on the drone can accurately communicate with the operator application and cover the entire parking lot during the entire process that the drone is functioning.
+    \item Safety Features: The drone has a backup or failsafe code in the situation where any of its parts are malfunctioning or prior to it.
+    \item Ease of Use: The operator should be able to properly understand how to operate the drone from the application, under the circumstances that we assume they only have basic knowledge of operating computers.
+\end{itemize}
 
 \wss{State what is intended to be accomplished.  The objective will be around
   the qualities that are most important for your project.  You might have
@@ -85,68 +161,231 @@ This document ... \wss{provide an introductory blurb and roadmap of the
 
 \subsection{Relevant Documentation}
 
+In the remaining portion of the document, there will be various sources of information that will help verify the process for the project. The major source will include the reference of the SRS document, while the minority of the documents will involve code files and design documents.
+
 \wss{Reference relevant documentation.  This will definitely include your SRS
-  and your other project documents (MG, MIS, etc).  You can include these even
-  before they are written, since by the time the project is done, they will be
-  written.}
+  and your other project documents (design documents, like MG, MIS, etc).  You
+  can include these even before they are written since by the time the project
+  is done, they will be written.}
 
 \citet{SRS}
 
 \section{Plan}
 
-\wss{Introduce this section.   You can provide a roadmap of the sections to
-  come.}
+This section outlines the various methods that the team will use to verify and validate the components of the system. This includes verifying the SRS, design, VnV plan, and implementation. Automated testing and verification tools will also be presented to aid in the iterative verification process. Finally, methods for validating that the system solves the problem will be presented.
 
 \subsection{Verification and Validation Team}
 
-\wss{You, your classmates and the course instructor.  Maybe your supervisor.
-  You shoud do more than list names.  You should say what each person's role is
-  for the project.  A table is a good way to summarize this information.}
+The members of the team are assigned an area of testing, where the area of testing is not their area of expertise. This ensures that the creator and tester are not the same person, which eliminates the bias that occurs when testing their own components. The assigned person to the testing area are then responsible for managing all tests in that domain. In the cases where a test covers multiple domains, the test will be conducted in a joint manner between the different domains. The assignment of the testing areas are indicated within \nameref{VnV_Team}.
+  
+\begin{table}[!h]
+\begin{center}
+\caption {Verification and Validation Team}
+\label{VnV_Team}
+\begin{tabular}{ | m{3cm} | m{3cm} | m{8cm} | }
+\hline
+Role & Name & Description \\
+\hline
+ Visual Perception and Path Planning & Fady & Verifies that the visual perception and autonomous exploration algorithm is performing within specifications. \\
+\hline
+Drone Finite State Machine (FSM) and Communication & Ali & Verifies that all communication between the drone components and the drone to the Operator's application are working correctly. \\
+\hline
+Mechanical Testing & Zaid & Verifies that all physical components and the dynamics are working within specifications. \\
+\hline
+Operator's Application & Winnie & Verifies that the Operator's application and user manual meet the specifications outlined.
+\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\clearpage
 
 \subsection{SRS Verification Plan}
 
-\wss{List any approaches you intend to use for SRS verification.  This may just
-  be ad hoc feedback from reviewers, like your classmates, or you may have
-  something more rigorous/systematic in mind..}
+To verify the SRS, both formal and informal processes will be conducted. To test the completeness of the Finite State Machine (FSM), a formal decision table shall be created and maintained. This process ensures that all transitions and external stimuli are accounted for, in addition to identifying any states that cannot be reached or cannot be exited. The initial decision table has already been created within the SRS, located in [here]. To verify that the decision table is accurate as the project progresses, this table will be updated with any changes to the FSM. 
 
-\wss{Remember you have an SRS checklist}
+To informally verify the other components of the SRS, guided reviews and a checklist shall be conducted. The guided review will consist of the team explaining the Functional Requirements to a technical external party, and the external party will list any potential NFRs that are related to the FR. The team shall then ensure that the NFR is present within the SRS. Furthermore, the team shall have other capstone groups review the SRS using the provided rubric as guidelines for the review. The last method is to conduct a checklist, conducted either internally within the team or by an external party. The checklist is as follows: 
+
+\begin{todolist}
+\label{SRS_Checklist}
+\item For each requirement within the SRS, are the following met?
+\begin{todolist}
+    \item Does the requirement address a specific goal?
+    \item Is the requirement unique? 
+    \item Is the requirement abstract?
+    \item Is the requirement traceable?
+    \item Is the requirement complete?
+    \item Is the requirement measurable?
+    \item Are there no inputs that are not used in the determination of the output? 
+    \item Does each output use at least one input, and are all required inputs listed?
+\end{todolist}
+\item Does the Finite State Machine comply with the following?
+\begin{todolist}
+    \item Are all states unique?
+    \item Are all states complete, and should not be combined or split into multiple states?
+    \item Are all error states included?
+    \begin{todolist}
+        \item Are all data exceptions accounted for?
+        \item Are error logging and recovery mechanisms present?
+    \end{todolist}
+    \item Are all transitions mutually exclusive?
+    \item Are all state names meaningful and representative of the state?
+\end{todolist}
+\end{todolist}
 
 \subsection{Design Verification Plan}
 
-\wss{Plans for design verification}
+The team plans to verify the design through structured review processes and a checklist. The review shall consist of the team explaining the product and design to an external party, and providing the external party with the FRs. They will then ensure that all the FRs are met, by using the checklist as a reference. The checklist is as follows, with additional detail on the requirements available in the [SRS]: 
 
-\wss{The review will include reviews by your classmates}
+\begin{todolist}
+\label{Design1_Checklist}
+\item Does the design implement all the general function requirements listed below?
+\begin{todolist}
+    \item The product shall be able to recognize Clear Boundaries.
+    \item The product shall provide live update of c_CurrentLoc, c_CurrentView and c_OccupancyMap during all normal and non-configurational operation states.
+    \item The product shall allow the operator to configure the i\_MinHoverHeight, i\_MaxHoverHeight, and i\_DesiredHoverHeight.
+    \item The condition i\_MinHoverHeight <= i\_DesiredHoverHeight <= i\_MaxHoverHeight shall always be true.
+    \item The product shall be able to identify non-occupied parking spots.
+    \item The product shall be shall highlight non-occupied parking slots on the operator's display (update c_CurrentView).
+\end{todolist}
+\item Does the design implement all the state implementation requirements listed below?
+\begin{todolist}
+    \item The product shall implement an Idle state.
+    \item The product shall implement a Hover State.
+    \item The product shall implement a Manual Move State.
+    \item The product shall implement an Autonomous Explore State.
+    \item The product shall implement a Configure state.
+    \item The product shall implement an Off state.
+    \item The product shall implement a Land state.
+    \item The product shall implement a Desired Location Error state.
+    \item The product shall implement a No Parking Lot Detected Error state.
+    \item The product shall implement a Malfunction state.
+    \item The product shall implement a Communication Lost state.
+    \item The product shall implement a Compulsive Move State.
+\end{todolist}
+\item Does the design implement all the state transition requirements listed below?
+\begin{todolist}
+    \item Upon the m\_PowerOn becoming false, the drone shall enter the Off state.
+    \item Upon the m\_PowerOn becoming true, the drone shall enter the Idle state.
+    \item Upon the m\_Launch becoming true, the drone shall enter the Hover state if the i\_Mode was set to normal, and enters the Configure state if the i\_Mode was set to configure.
+    \item If in the Hover state, and c\_ParkingLotDetected is equal to true, the product shall enter the Autonomous Explore state and explore the detected lot.
+    \item Once the user enters or changes m\_DesiredUserLoc and m\_CompulsiveMove is asserted as false, the drone shall automatically enter the Manual Move state.
+    \item If while in the Manual Move state and the product determines that m\_DesiredUserLoc is outside parking lot boundaries, the product shall enter the Desired Location Error state.
+    \item When m\_AutonomousExplore is set to true and c\_ParkingLotDetected is equal to true, the product shall enter the Autonomous Explore state.
+    \item When m\_AutonomousExplore is set to true but c\_ParkingLotDetected is equal to false, the product shall enter the No Parking Lot Detected Error state.
+    \item Upon m\_Land being true, the product shall enter the Land state.
+    \item If c\_Connected becomes false for more than 5 seconds, or signal strength (dBm) has lost 80\% of its typical value at any point during operation, then the product shall enter the Communication Lost state.
+    \item If while in the Communication Lost State, c\_Connected becomes true for more than 5 seconds, or signal strength (dBm) has returned to 50\% of its typical value at any point during operation, then the product shall enter the Hover state.
+    \item Once the user enters or changes m\_DesiredUserLoc and m\_CompulsiveMove is asserted as true, the drone shall automatically enter the Compulsive Move state.
+\end{todolist}
+\end{todolist}
 
-\wss{Remember you have MG and MIS checklists}
+Internally within the team, a more detailed checklist shall be conducted that includes all the requirements listed within the SRS. To exclude any biases from the creator of the modules, the creator and tester will not be the same when conducting this review. Therefore, the members listed within section [xx] will be responsible for reviewing the requirements within their section. This ensures that all the requirements are accounted for within the design. The full checklist consists of the checklist above, in addition to the following: 
+
+\begin{todolist}
+\label{Design2_Checklist}
+\item Does the design implement all the performance requirements listed below?
+\begin{todolist}
+    \item The product shall explore > 90\% of the detected parking lot during the Autonomous Explore State.
+    \item The product shall takeoff to i\_MaxHoverHeight and land from i\_MaxHoverHeight within 25 seconds.
+    \item The product shall move to a specified location with an average speed exceeding 4km/hour.
+    \item The product shall transmit all data to the operator at a rate exceeding 0.5 frames per second.
+    \item The product shall maintain a longitudinal and lateral position within a 1.5m radius during the Hover State.
+    \item While the product is not hovering (moving from one location to another), it shall always maintain an altitude between i\_MaxHoverHeight and i\_MinHoverHeight, within a tolerance of ±5\%.
+    \item The product shall be operable within requirements within non-inclement weather.
+    \item The product shall maintain a longitudinal and lateral position within a 1.5m radius once the product has reached m\_DesiredUserLoc while in the Manual Move State or Compulsive Move State.
+\end{todolist}
+\item Does the design implement all the design constraints listed below?
+\begin{todolist}
+    \item The product shall cost less than \$750 to manufacture.
+\end{todolist}
+\item Does the design implement all the standards and compliance requirements listed below?
+\begin{todolist}
+    \item The product shall weigh a total of less than 25kg.
+    \item The product shall use radio communication only within the 2.4 GHz or 900 MHz range.
+\end{todolist}
+\item Does the design implement all the security requirements listed below?
+\begin{todolist}
+    \item The operator's application shall only be launched by a user with authorized access.
+    \item The product shall not upload any gathered data to any external parties.
+\end{todolist}
+\item Does the design implement all the maintainability requirements listed below?
+\begin{todolist}
+    \item The product shall be fully recharged within 1 hour.
+    \item The product shall be able to sustain a fall of greater than 1m without sustaining damage that affects operation performance.
+    \item The product shall be mechanically waterproof, to the point it can sustain a light drizzle for 1 minute of operation while still performing within the requirements.
+\end{todolist}
+\item Does the design implement all the safety requirements listed below?
+\begin{todolist}
+    \item The product shall not influence or interact with dynamic actors positioned in the parking lot.
+    \item The product shall not allow the operator to set i\_MaxHoverHeight, i\_MinHoverHeight, or i\_DesiredHoverHeight to be below 7m.
+    \item The product shall not require the operator to physically manipulate the product in any way in any state outside of Off State.
+    \item The product shall not cause distractions or negatively impact greater than 2\% of the visitors in the parking lot.
+    \item The product shall include a mechanical Off switch to the product.
+\end{todolist}
+\item Does the design implement all the usability requirements listed below?
+\begin{todolist}
+    \item The product shall provide a visual trace of its location for the past 60 seconds +- 1 second.
+    \item The product shall allow the operator to save the current visual and raw data into a folder.
+    \item The product shall be able to operate and provide data to the operator for > 5 minutes without the need to recharge.
+    \item The product shall require less than 2 hours of training for the operator to use.
+    \item The product shall display the current state to the Operator's PC Application.
+\end{todolist}
+\end{todolist}
+
+\subsection{Verification and Validation Plan Verification Plan}
+
+The Verification and Validation Plan shall be verified through an informal peer review process and a checklist. The peer review shall be conducted by another technical Capstone group and will use the provided rubric as a guideline. The checklist can then be conducted either internally within the team, or by an external party. The checklist is as follows, and ensures that all components of the VnV Plan are present: 
+
+\begin{todolist}
+\label{VnV_Checklist}
+\item Are methods outlined to verify the SRS and the requirements within it?
+\begin{todolist}
+    \item Are all requirements covered by system tests?
+\end{todolist}
+\item Are methods outlined to verify the design?
+\item Are methods outlined to verify the implementation of the design?
+\item Are automated testing and verification tools clearly outlined and feasible?
+\item Are methods outlined to validate the design and ensure that it solves the problem statement?
+\item Are all methods outlined in the VnV Plan feasible, given the current resources available for VnV?
+\item Is there traceability between the test plans and the requirements?
+\item Are tests outlined specifically and clearly, such that they can be reproduced by an external party?
+\end{todolist}
+
 
 \subsection{Implementation Verification Plan}
 
-\wss{You should at least point to the tests listed in this document and the unit
-  testing plan.}
+The implementation shall be verified primarily by the tests outlined within sections [xx] and [xx]. These sections include a combination of static, dynamic, and stress tests to ensure that the system is meeting the requirements of the system. Furthermore, the team shall conduct a code walkthrough for the FSM implementation. Conducted within the team, the implementor of the FSM shall provide the code used, and explain the state and transitions implemented. Using just the code, the team shall then recreate the entire FSM model as shown within the SRS at [here]. This process ensures that the implementation of the FSM matches the required FSM exactly.  
 
-\wss{In this section you would also give any details of any plans for static verification of
-  the implementation.  Potential techniques include code walkthroughs, code
-  inspection, static analyzers, etc.}
+The team shall also conduct code reviews of the changes before the changes are merged into the master branch within GitHub. This ensures that a peer review process is implemented as part of the GitHub management system and that the changes are correct. In addition to the code walkthroughs, automated testing and verification tools shall also be used to verify the implementation of the system, as outlined within Section [4.6]. 
+
 
 \subsection{Automated Testing and Verification Tools}
 
-\wss{What tools are you using for automated testing.  Likely a unit testing
-  framework and maybe a profiling tool, like ValGrind.  Other possible tools
-  include a static analyzer, make, continuous integration tools, test coverage
-  tools, etc.  Explain your plans for summarizing code coverage metrics.
-  Linters are another important class of tools.  For the programming language
-  you select, you should look at the available linters.  There may also be tools
-  that verify that coding standards have been respected, like flake9 for
-  Python.}
-
-\wss{The details of this section will likely evolve as you get closer to the
-  implementation.}
+The team shall implement a variety of tools to automate the testing and verification process. Discussed upon within the [Coding Standard Development Plan], the team shall use a common IDE within the team, with integrated linters for both Python and C++. This ensures that static analyzers and coding standards are implemented automatically by the IDE and linter. A unit testing framework shall also be used to aid in the testing of the modules. Due to the usage of ROS within the product, the team shall use GTest for C++ modules, UnitTest for Python modules, and RosTest for ROS specific modules and communication. These three frameworks directly integrate within the ROS workflow, allowing for automatic execution of these tests during the compilation of the ROS packages. To further aid in the compilation of the various ROS packages, CMake shall be used to automate and simplify the compilation process. In addition to these tools, the team shall also produce a custom testing framework to test the visual perception algorithms. The custom tool shall automate the process of feeding in hardcoded input images into the algorithm, and record the algorithm outputs within a CSV file for easy manipulation and analysis of the outputs. 
 
 \subsection{Software Validation Plan}
 
-\wss{If there is any external data that can be used for validation, you should
-  point to it here.  If there are no plans for validation, you should state that
-  here.}
+The system shall be verified by two main methods. A guided review process shall be conducted by an external party, where the team provides and explains the FRs to the external party. They will then determine what the problem statement is, without the actual problem statement being provided by the team. This ensures that the SRS solves the given problem. To verify that the SRS has been met, the [srs verification] will be used. To further test the functionality of the visual perception, open source datasets shall be used, in addition to the testing methods outlined within section [4.6]. Two open source datasets will be used: the Blanderbuss dataset and the CNRPark dataset. Sample images of these datasets are shown within Figures \ref{BlanderbussSample} and \ref{CNRParkSample}. These datasets will then verify the performance of the system with regards to the parking lot detection and occupancy in a variety of different conditions.  
+
+\begin{figure}[h!]
+  \begin{center} 
+  \caption{Blanderbuss Dataset Sample}
+  \label{BlanderbussSample}
+        \includegraphics[width=1\textwidth]{VnVPlan/BlanderbussDataset.png}
+  \end{center}
+\end{figure}
+
+\begin{figure}[h!]
+  \begin{center} 
+  \caption{CNRPark Dataset Sample}
+  \label{CNRParkSample}
+        \includegraphics[width=1\textwidth]{VnVPlan/CNRParkDataset.png}
+  \end{center}
+\end{figure}
+
+\clearpage
 
 \section{System Test Description}
 	
@@ -157,93 +396,267 @@ This document ... \wss{provide an introductory blurb and roadmap of the
   level of document structure can be removed.}
 
 \wss{Include a blurb here to explain why the subsections below
-  cover the requirements.  References to the SRS would be good.}
+  cover the requirements.  References to the SRS would be good here.}
 
 \subsubsection{Area of Testing1}
 
-\wss{It would be nice to have a blurb here to explain why the subsections below
-  cover the requirements.  References to the SRS would be good.  If a section
-  covers tests for input constraints, you should reference the data constraints
-  table in the SRS.}
-		
-\paragraph{Title for Test}
 
-\begin{enumerate}
-
-\item{test-id1\\}
-
-Control: Manual versus Automatic
-					
-Initial State: 
-					
-Input: 
-					
-Output: \wss{The expected result for the given inputs}
-
-Test Case Derivation: \wss{Justify the expected value given in the Output field}
-					
-How test will be performed: 
-					
-\item{test-id2\\}
-
-Control: Manual versus Automatic
-					
-Initial State: 
-					
-Input: 
-					
-Output: \wss{The expected result for the given inputs}
-
-Test Case Derivation: \wss{Justify the expected value given in the Output field}
-
-How test will be performed: 
-
+\begin{table}[!h]
+\begin{center}
+\caption {STC\_001}
+\label{tab:STC_001}
+\begin{tabular}{ | m{1.5cm} | m{15cm} | } 
+\hline
+ID & \nameref{tab:STC_001} \\ 
+\hline
+Control & Manual \\ 
+\hline
+Initial State & The product is in its Off state.\nameref{SRS:TRANS_004} \nameref{SRS:PERF_007} \\ 
+\hline
+Input & Enter the configure state and set the hover height parameters to be the smallest values possible value \ref{Min_Hover_Params}. Afterward, launch the drone in normal operation and wait for 1 min 25 sec. \\ 
+\hline
+Output & From the moment of launch, it should take less than 25 seconds to reach and hover within 7+-1.5 m. While hovering, the drone should laterally stay within a 1.5 m radius of the launch location, and it should stay within 5.5m and 8.5m above the ground at all times. \\ 
+\hline
+How the test will be performed & 
+The first step of the test, configuring height parameters, is accomplished by:
+\begin{enumerate}[topsep=0pt,itemsep=-1ex,partopsep=1ex,parsep=1ex]
+    \item Setting the input i\_Mode as Configure and turning the power switch of the drone to On.
+    \item Assert m\_Launch, so the drone enters the Configure state.
+    \item Setting the height parameters in the Operator's PC Application to \ref{Min_Hover_Params}.
 \end{enumerate}
+The second step of the drone, having the drone enter and stay within the hover state, is accomplished by:
+\begin{enumerate}[topsep=0pt,itemsep=-1ex,partopsep=1ex,parsep=1ex]
+	\item Turning the power switch on the drone off.Then Setting i\_Mode as Normal and turning the power switch on, so the drone enters  Idle state.
+	\item Placing the drone in a non-parking lot area. 
+	\item Asserting m\_Launch as true, then wait for 25 sec.
+	\item Wait for 1 min. During this wait measure the output variables.
+\end{enumerate}
+Once the output variables have been measured and the test is complete:
+Assert m_Land to true, so that drone will enter the land state.\\ 
+\hline
+Test case derivation & As per SRS, the smallest possible height parameters are \ref{Min_Hover_Params}. 
 
-\subsubsection{Area of Testing2}
+As per SRS, the drone should take less than 25 seconds to reach i\_MaxHoverHeight (7+-1.5 m) from the moment the drone launches. This is why the input steps specify a 25-second wait after launch.
 
-...
+As per SRS, while in the Hover state, the drone will enter the Autonomous Explore state if it sees a parking lot. The purpose of placing the drone in a non-parking lot area was to keep the drone in the Hover state.
+
+While hovering the drone should stay within a 1.5 m radius. In terms of height, it means that the drone should hover within i\_MaxHoverHeight-1.5m=7-1.5=5.5m and i\_MaxHoverHeight+1.5m=7+1.5=8.5m above the ground.  
+\\ 
+\hline
+Purpose of test and/or relationship to other tests & This verifies the configure state can change flight parameters in accordance with the restrictions specified in the SRS. 
+Elucidates how the drone operates in a non-parking lot area.
+Verifies that the drone's flight dynamics are accurate, to the point that it can fly at the minimum height while maintaining minimum height safety requirements.
+Verifies the states Off, Idle, Hover, Configure and Land as well as the transitions between them. In particular, it verifies NFR requiring the drone to stay within a 1.5m radius within the hover state. 
+Verifies a corner case in the parking lot detection algorithm, that it correctly detects no parking lot when there is no parking lot.
+Verifies the NFR requiring the product to takeoff to i\_MaxHoverHeight within 25 seconds. \\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[!h]
+\begin{center}
+\caption {STC\_002}
+\label{tab:STC_002}
+\begin{tabular}{ | m{1.5cm} | m{15cm} | } 
+\hline
+ID & \nameref{tab:STC_002}  \\ 
+\hline
+Control & Manual\\ 
+\hline
+Initial State & The product is in its Off state.
+ \\ 
+\hline
+Input & Enter the configure state and set the hover height parameters to be \ref{Med_Hover_Params}. Afterward, launch the drone in normal operation wait for 1 min 25 sec. \\ 
+\hline
+Output & The drone should take less than 25 seconds to reach and hover within 7+-1.5 m from the moment the drone launches. While hovering, the drone should laterally stay within a 1.5 m radius of the launch location, and it should stay within 18.5m and 21.5m above the ground at all times. 
+ \\ 
+\hline
+How test will be performed &
+The first step of the test, configuring height parameters, is accomplished by:
+\begin{enumerate}[topsep=0pt,itemsep=-1ex,partopsep=1ex,parsep=1ex]
+    \item Setting the input i\_Mode as Configure and turning the power switch of the drone to On.
+    \item Assert m\_Launch, so the drone enters the Configure state.
+    \item Setting the height parameters in the Operator's PC Application to \ref{Med_Hover_Params}.
+\end{enumerate}
+The second step of the drone, having the drone enter and stay within the hover state, is accomplished by:
+\begin{enumerate}[topsep=0pt,itemsep=-1ex,partopsep=1ex,parsep=1ex]
+	\item Turning the power switch on the drone off.Then Setting i\_Mode as Normal and turning the power switch on, so the drone enters  Idle state.
+	\item Placing the drone in a non-parking lot area. 
+	\item Asserting m\_Launch as true, then wait for 25 sec.
+	\item Wait for 1 min. During this wait measure the output variables.
+\end{enumerate}
+Once the output variables have been measured and the test is complete:
+Assert m_Land to true, so that drone will enter the land state.\\ 
+\hline
+Test case derivation & As per SRS, the drone should take less then 25 seconds to reach i\_MaxHoverHeight (20+-1.5 m) from the moment the drone launches. This is why the input steps specify a 25 second wait after launch.
+
+As per SRS, while in the Hover state, the drone will enter the Autonomous Explore state if it sees a parking lot. The purpose of placing the drone in a non-parking lot area was to keep the drone in the Hover state.
+
+While hovering the drone should stay a 1.5 m radius. In terms of height, it means that the drone should hover within i\_MaxHoverHeight-1.5m=20-1.5=18.5m and i\_MaxHoverHeight+1.5m=20+1.5=21.5m above the ground.  \\ 
+\hline
+Purpose of test and/or relationship to other tests & This test is very similar to test case 1, except that the height parameters are configured to be much higher. The purpose of configuring the height parameters differently is to verify that the drone can hover accurately at different heights, that the drone can land safely from different heights, and that the Configure state is actually capable of configuring the height variables.
+
+Verifies the states Off, Idle, Hover, Configure and Land as well as the transitions between them. In particular, it verifies NFR requiring the drone to staying within a 1.5m radius within the hover state. 
+Verifies a corner case in the parking lot detection algorithm, that it correctly detects no parking lot when there is no parking lot.
+Elucidates how the drone operates in a non-parking lot area.
+Verifies the NFR requiring the product to takeoff to i\_MaxHoverHeight within 25 seconds. \\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\begin{table}[!h]
+\begin{center}
+\caption {STC\_003}
+\label{tab:STC_003}
+\begin{tabular}{ | m{3.2cm} | m{12.2cm} | } 
+\hline
+ID & \nameref{tab:STC_003} \\ 
+\hline
+Control & Manual \\ 
+\hline
+Initial State & The product is in the Idle state. \\ 
+\hline
+Input & Record the remaining battery stated on the Operator's PC Application. Disconnect the battery from the drone and connect it to the battery charger and record the remaining battery levels it detects. \\ 
+\hline
+Output & Battery levels stated on the Operator's Application should match the battery levels stated on the battery charger. \\ 
+\hline
+How test will be performed & Input section contains enough detail. \\ 
+\hline
+Test case derivation & As per HA, the drone should display the remaining battery on the Operator's PC Application. \\ 
+\hline
+Purpose of test and/or relationship to other tests & Verification that the display of the remaining battery on the Operator's PC Application is accurate. \\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[!h]
+\begin{center}
+\caption {STC\_004}
+\label{tab:STC_004}
+\begin{tabular}{ | m{3.2cm} | m{12.2cm} | } 
+\hline
+ID & \nameref{tab:STC_004} \\ 
+\hline
+Control & Manual \\ 
+\hline
+Initial State & The product is in its Idle state. Drone battery is fully charged. \\ 
+\hline
+Input & To launch the drone, assert m\_Launch as true. Let the drone operate in any flying state. \\ 
+\hline
+Output & Observe the battery levels displayed on the Operator’s Application fall with time. It should fly in normal operation for at least 3.5 minutes.
+At some point the battery will be running very low (less then 1.5 minutes of flight left) and the drone will automatically enter the Malfunction state. In this state an error message will be logged to c\_Log, the c\_HealthStatus is set to Unhealthy, and the drone returns to the launch location. \\ 
+\hline
+How test will be performed & Regarding the initial state, verifying that the battery capacity is full can be accomplished by using the battery's charger. Input steps are self explanatory. \\ 
+\hline
+Test case derivation & As per SRS, the Malfunction state must send an error message to c\_Log, change the c\_HealthStatus is set to Unhealthy, and the drone returns to the launch location.
+As per HA, the drone must enter the Malfunction state and land itself when the battery left is detected as low (less then 1.5 minutes). As per SRS, the drone must have a total battery capacity of lasting at least 5 minutes, leading to at least 3.5 minutes of flight.
+As per HA, the drone must display the amount of battery remaining to the operator. 
+ \\ 
+\hline
+Purpose of test and/or relationship to other tests & 
+\begin{itemize}
+    \item Verification of the low battery transition to the malfunction state. 
+    \item Verification of the operation of the malfunction state and transition into it.
+    \item Verification of the NFR requiring flight time to be at least 5 minutes. 
+    \item Verification of the FR requiring the drone to display remaining battery life to the operator. 
+\end{itemize}
+\\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[!h]
+\begin{center}
+\caption {STC\_005}
+\label{tab:STC_005}
+\begin{tabular}{ | m{3.2cm} | m{12.2cm} | } 
+\hline
+ID & \nameref{tab:STC_005} \\ 
+\hline
+Control & Manual \\ 
+\hline
+Initial State & The product is in its Idle state. Drone has less then 3 minutes of battery remaining.  \\ 
+\hline
+Input & Attempt to launch the drone via setting m\_Launch as true. \\ 
+\hline
+Output & Drone should not launch, and instead a descriptive error should be logged into the variable c\_Log.  \\ 
+\hline
+How test will be performed & Input section contains enough detail. \\ 
+\hline
+Test case derivation & As per HA, the drone should not fly unless there is more the 3 minutes of battery remaining.
+ \\ 
+\hline
+Purpose of test and/or relationship to other tests & Verification of the FR requiring the drone to not fly unless their sufficient battery is available. 
+\\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[!h]
+\begin{center}
+\caption {STC\_006}
+\label{tab:STC_006}
+\begin{tabular}{ | m{3.2cm} | m{12.2cm} | } 
+\hline
+ID & \nameref{tab:STC_006} \\ 
+\hline
+Control & Manual \\ 
+\hline
+Initial State & The product is in any of its flying state.   \\ 
+\hline
+Input & Set m\_CompulsiveMove as false. Change m\_DesiredUserLoc to a location within the parking lot and to the diagonal front right of the drone at least 20m away.  \\ 
+\hline
+Output & The drone should enter the Manual Move state upon a change to m\_DesiredUserLoc. The drone should move to and stay within 1.5m radially of the specified location. 
+The user should also see a visual trace of the drone's movement; it should be a roughly straight line (shortest path).
+Measure the time takes to reach the specified GPS location and calculate average speed and ensure it is more then 4 m/sec.  \\ 
+\hline
+How test will be performed & Input section contains enough detail. \\ 
+\hline
+Test case derivation & As per SRS, the drone should enter Manual Move state whenever m\_DesiredUserLoc is changed and m\_CompulsiveMove is false. In this state the drone should travel to m\_DesiredUserLoc and hover with an accuracy of 1.5m. 
+
+A visual trace of the drone's movement in the past 60 seconds should be displayed on the Operator's PC Application. It should appear as a relatively straight diagonal line toward the hover location, as the drone's path planning should make it take the shortest path. 
+
+Using the time taken, the average speed of the drone can be calculated as distance/time. As per the SRS, it should be at least 4 m/sec. 
+ \\ 
+\hline
+Purpose of test and/or relationship to other tests & 
+\begin{itemize}
+    \item Assesses the ability of the drone to move to forward as well as move rightward in a stable and efficient manner toward a specified GPS location.
+    \item Helps verify the Manual Move state and transitions related to proceeding to a given location when the location is within the parking lot.
+    \item Verifies the NFRs related to lateral accuracy. 
+    \item Verifies the visual trace requirement. 
+    \item Verifies the average speed requirement. 
+\end{itemize}
+\\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
 
 \subsection{Tests for Nonfunctional Requirements}
 
 \wss{The nonfunctional requirements for accuracy will likely just reference the
   appropriate functional tests from above.  The test cases should mention
-  reporting the relative error for these tests.}
+  reporting the relative error for these tests.  Not all projects will
+  necessarily have nonfunctional requirements related to accuracy}
 
 \wss{Tests related to usability could include conducting a usability test and
-  survey.}
+  survey.  The survey will be in the Appendix.}
+
+\wss{Static tests, review, inspections, and walkthroughs, will not follow the
+format for the tests given below.}
 
 \subsubsection{Area of Testing1}
 		
 \paragraph{Title for Test}
-
-\begin{enumerate}
-
-\item{test-id1\\}
-
-Type: 
-					
-Initial State: 
-					
-Input/Condition: 
-					
-Output/Result: 
-					
-How test will be performed: 
-					
-\item{test-id2\\}
-
-Type: Functional, Dynamic, Manual, Static etc.
-					
-Initial State: 
-					
-Input: 
-					
-Output: 
-					
-How test will be performed: 
-
-\end{enumerate}
 
 \subsubsection{Area of Testing2}
 
@@ -256,14 +669,14 @@ How test will be performed:
 
 \section{Unit Test Description}
 
-\wss{Reference your MIS and explain your overall philosophy for test case
-  selection.}  
-\wss{This section should not be filled in until after the MIS has
-  been completed.}
+\wss{Reference your MIS (detailed design document) and explain your overall
+  philosophy for test case selection.}  
+\wss{This section should not be filled in until after the MIS (detailed design
+  document) has been completed.}
 
 \subsection{Unit Testing Scope}
 
-\wss{What modules are outside of the scope.  If there are modules that are
+\wss{What modules are outside of the scope?  If there are modules that are
   developed by someone else, then you would say here if you aren't planning on
   verifying them.  There may also be modules that are part of your software, but
   have a lower priority for verification than others.  If this is the case,
@@ -282,15 +695,11 @@ How test will be performed:
   perspective and from a white box perspective.  Explain to the reader how the
   tests were selected.}
 
-\begin{enumerate}
-
 \item{test-id1\\}
 
 Type: \wss{Functional, Dynamic, Manual, Automatic, Static etc. Most will
-  be automatic}
-					
-Initial State: 
-					
+  be automatic}		
+Initial State: 				
 Input: 
 					
 Output: \wss{The expected result for the given inputs}
@@ -316,8 +725,6 @@ How test will be performed:
 
 \item{...\\}
     
-\end{enumerate}
-
 \subsubsection{Module 2}
 
 ...
@@ -385,8 +792,96 @@ This is where you can place additional information.
 The definition of the test cases will call for SYMBOLIC\_CONSTANTS.
 Their values are defined in this section for easy maintenance.
 
-\subsection{Usability Survey Questions?}
+\MakeRobust{\ref}% avoid expanding it when in a textual label
 
+\makeatletter
+\newcommand{\labeltext}[2]{%
+  \@bsphack
+  \csname phantomsection\endcsname % in case hyperref is used
+  \def\@currentlabel{#1}{\label{#2}}%
+  \@esphack
+}
+\makeatother
+\begin{table}[!h]
+\begin{center}
+\caption {Symbolic Constants}
+\label{tab:symbolic_constants}
+\begin{tabular}{ | m{5cm} | m{8cm} | } 
+\hline
+ID & \nameref{tab:symbolic_constants} \\ 
+\hline
+Min_Hover_Params\labeltext{Min_Hover_Params}{Min_Hover_Params} & (i\_MinHoverHeight=7, i\_-MaxHoverHeight=7, i\_DesiredHoverHeight=7) \\ 
+\hline
+Med_Hover_Params\labeltext{Med_Hover_Params}{Med_Hover_Params} & (i\_MinHoverHeight=20, i\_-MaxHoverHeight=20, i\_DesiredHoverHeight=20) \\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+\subsection{Usability Survey Questions?}
 \wss{This is a section that would be appropriate for some projects.}
+
+\newpage{}
+\section{Appendix --- Reflection}
+This section reviews the roles mentioned in Table \ref{VnV_Team} and evaluates each team member on the graduate attribute of Lifelong Learning. 
+
+  
+\begin{table}[!h]
+\begin{center}
+\caption {Required Testing}
+\label{RequiredTesting}
+\begin{tabular}{ | m{3cm} | m{3cm} | m{8cm} | }
+\hline
+Test & Responsibility & Rationale\\
+\hline
+Dynamic Testing & Fady, Muhammad, Zaid \& Winnie & Dynamic testing is vital, especially for flying a drone. Dynamic testing is executing test cases in variable environments to analyze how the system behaves.\\
+\hline
+Integration Testing & Muhammad & Integration testing is important as it will test different units, modules, or components of the drone as a combined entity.\\
+\hline
+Static Testing & Fady, Muhammad \& Winnie & Static testing involves matching the requirements from the SRS to the code written. Static testing also involves looking into code format and errors. \\
+\hline
+ Visual Perception and Path Planning Testing & Fady & Verifies that the visual perception and autonomous exploration algorithm is performing within specifications. \\
+\hline
+Drone Finite State Machine (FSM) and Communication Testing & Ali & Verifies that all communication between the drone components and the drone to the Operator's application is working correctly. \\
+\hline
+Mechanical Testing & Zaid & Verifies that all physical components and the dynamics are working within specifications. \\
+\hline
+Operator's Application Testing & Winnie & Verifies that the Operator's application and user manual meet the specifications outlined.
+\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+  
+\begin{table}[!h]
+\begin{center}
+\caption {Knowledge Acquisition}
+\label{RequiredTesting}
+\begin{tabular}{ | m{3cm} | m{7cm} | m{4cm} | }
+\hline
+Test & Approaches & Verdict \\
+\hline
+Dynamic Testing & 
+Approach 1: Previous lecture notes from McMaster's MECHTRON 3K04: Software Development. \newline Approach 2: Research online and watch tutorials such as \href{https://www.youtube.com/watch?v=ePMjdL4PE5M}{this video} on YouTube.\newline Approach 3: Explore different resources online such as \href{https://www.sciencedirect.com/topics/materials-science/dynamic-mechanical-analysis}{this}.& Fady, Muhammad \& Winnie will proceed with Approach 2 as MECHTRON 3K04 did not go in-depth with Static Testing while Zaid will proceed with  \\
+\hline
+Integration Testing & 
+Approach 1: Previous lecture notes from McMaster's MECHTRON 3K04: Software Development. \newline Approach 2: Research online resources such as \href{https://www.simplexitypd.com/blog/five-tips-for-mechatronic-system-integration}{this website}. &\\
+\hline
+Static Testing & 
+Approach 1: Previous lecture notes from McMaster's MECHTRON 3K04: Software Development \newline Approach 2: Research online and find resources for mechanical static testing such as \href{https://musculoskeletalkey.com/6-static-dynamic-and-fatigue-mechanical-testing/}{this website}. &\\
+\hline
+ Visual Perception and Path Planning Testing & Approach 1: Watch McMaster's Google Developer's Club \href{https://www.youtube.com/watch?v=Zrw5eCfnSOM}{video} on YouTube to learn more about the OpenCV library complementing ENG 1D04: Engineering Computation.  \newline Approach 2: Use OpenCV \href{https://docs.opencv.org/4.x/d9/df8/tutorial_root.html}{tutorial documentation}.\\
+\hline
+Drone Finite State Machine (FSM) and Communication Testing & 
+Approach 1: Previous lecture notes from McMaster's MECHTRON 3K04: Software Development \newline Approach 2: Use \href{http://wiki.ros.org/smach}{ROS.org documentation} on ROS' library SMACH to learn more about the FSM implementation. &\\
+\hline
+Mechanical Testing & Approach 1: Previous lecture notes from McMaster's ENG 1C03: Engineering Design \& Graphics \newline Approach 2: Watch \href{https://www.youtube.com/watch?v=YmMDhzXitn0}{SolidWorks' basic tutorial}.&\\  
+\hline
+Operator's Application Testing \\
+\hline
+
+\end{tabular}
+\end{center}
+\end{table}
 
 \end{document}
