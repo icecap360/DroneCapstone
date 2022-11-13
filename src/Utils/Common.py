@@ -1,6 +1,6 @@
 
-PORT = 3006
-buffSize=4096
+App_PORT = 3006
+App_buffSize=4096
 
 def LogError(msg):
     print(msg +'!')

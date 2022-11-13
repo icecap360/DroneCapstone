@@ -5,6 +5,7 @@ import json
 import Utils.Common as Common
 import random 
 
+
 class BaseSocket:
     def __init__(self, conn, buffSize=4096) -> None:
         self.conn = conn
@@ -94,6 +95,25 @@ class BaseSocket:
         Common.LogDebug("Received msg "+ str(msg))
         self.processingMsg = False
         return msg
+
+class OperatorSocket(BaseSocket):
+    def __init__(self) -> None:
+        HOST = 'navio'#"127.0.0.1"  # The server's hostname or IP address
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect((HOST, Common.App_PORT))
+        super().__init__( self.sock, buffSize=Common.App_buffSize)
+
+class DroneSocket(BaseSocket) :
+    def __init__(self) -> None:
+        HOST = "" #empty to accept any client
+        # the drone runs the server socket
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # SOCK_STREAM is the socket type for TCP
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # https://stackoverflow.com/questions/4465959/python-errno-98-address-already-in-use
+        self.sock.bind((HOST, Common.App_PORT))
+        self.sock.listen(5) # maximum of 5 connections
+        conn, self.addr = self.sock.accept() # blocks execution, addr contains adress of the client
+        super().__init__( conn, buffSize=Common.App_buffSize)
+
 
 ''' Extra Code
     def __GetAndProcessPacket(self):

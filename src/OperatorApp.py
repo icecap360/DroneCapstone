@@ -1,4 +1,4 @@
-import OpAppSocket, Utils
+import Utils
 import sys, time, cv2
 from multiprocessing import Process
 
@@ -21,9 +21,9 @@ if __name__=='__main__':
     p_camera.start()
     #p_camera.join()
 
-    ss = OpAppSocket.OpAppSocket()
-    ss.sendMessage({'RED'})
-    time.sleep(5)
-    print("RECEIVED:", ss.getMessage())
-    ss.close()
+    # ss = Utils.OperatorSocket()
+    # ss.sendMessage({'RED'})
+    # time.sleep(5)
+    # print("RECEIVED:", ss.getMessage())
+    # ss.close()
 
