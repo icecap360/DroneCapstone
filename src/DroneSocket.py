@@ -18,8 +18,8 @@ class DroneSocket(Utils.BaseSocket) :
 if __name__=='__main__':
     sys.path.append("..") # Adds higher directory to python modules path.
     ss = DroneSocket()
-    ss.sendRandomDict()
     print("RECEIVED:", ss.getMessage())
+    ss.sendMessage({'Complete':'Yes' })
     ss.close()
 
 
