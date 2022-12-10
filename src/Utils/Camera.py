@@ -1,7 +1,7 @@
 from multiprocessing import Process
 import cv2
 import queue, threading, time
-import Utils.Common as Common
+#import Utils.Common as Common
 
 class Camera:
     def __init__(self):
@@ -14,8 +14,10 @@ class Camera:
         
     def createCap(self):
         self.cap_receive = cv2.VideoCapture('udpsrc port=9000 caps="application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264" ! rtph264depay ! avdec_h264 ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
+        
+        print('Yeah')
         if not self.cap_receive.isOpened():
-            Common.LogError('VideoCapture not opened')
+            #Common.LogError('VideoCapture not opened')
             raise Exception('Video Capture failed to opened')
         
         self.thread = threading.Thread(target=self._backendReader)
@@ -27,7 +29,7 @@ class Camera:
         while True:
             ret, frame = self.cap_receive.read()
             if not ret:
-                Common.LogError('ret is not Okay')
+                #Common.LogError('ret is not Okay')
                 continue
             if not self.q.empty():
                 try:

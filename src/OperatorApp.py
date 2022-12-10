@@ -5,6 +5,7 @@ from multiprocessing import Process
 def DisplayCameraView():
     DroneCamera = Utils.Camera()
     DroneCamera.createCap()
+
     try:
         while True:
             DroneCamera.read()
@@ -15,15 +16,19 @@ def DisplayCameraView():
             print("Keyboard Interrupt")
 
 if __name__=='__main__':
-    sys.path.append("..") # Adds higher directory to python modules path.
-    
-    p_camera = Process(target=DisplayCameraView)
-    p_camera.start()
-    #p_camera.join()
+    try:    
+        #sys.path.append("..") # Adds higher directory to python modules path.
+        #DisplayCameraView()
+        #p_camera = Process(target=DisplayCameraView)
+        #p_camera.start()
+        #p_camera.join()
 
-    # ss = Utils.OperatorSocket()
-    # ss.sendMessage({'RED'})
-    # time.sleep(5)
-    # print("RECEIVED:", ss.getMessage())
-    # ss.close()
+        ss = Utils.OperatorSocket()
+        ss.init()
+        while True:
+            data = ss.getMessage()
+            if data:
+                print(data)
+    except KeyboardInterrupt:
+        ss.close()
 
