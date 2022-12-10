@@ -17,7 +17,6 @@ class Camera:
         if not self.cap_receive.isOpened():
             Common.LogError('VideoCapture not opened')
             raise Exception('Video Capture failed to opened')
-        
         self.thread = threading.Thread(target=self._backendReader)
         self.thread.daemon = True
         self.thread.start()
@@ -47,5 +46,4 @@ if __name__ == '__main__':
                 break
     except KeyboardInterrupt:
             print("Keyboard Interrupt")
-    
     cv2.destroyAllWindows()
