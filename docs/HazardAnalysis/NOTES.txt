@@ -1,0 +1,10 @@
+THE FOLLOWING REQ IS NOT USEFUL!!!
+" Table 11: SR_001
+Description The product shall include a user-controlled button that sends the product to a Malfunction state.
+Rationale
+The requirement ensures that the Operator can send the product into
+a Malfunction state if the Operator detects something wrong with the
+product.
+Associated Hazard H_006, H_010 "
+
+It makes no sense. You already have the m_Land button, the only thing the malfunction state adds is log message and c_Healthy==false. 
