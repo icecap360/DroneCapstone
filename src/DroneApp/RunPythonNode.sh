@@ -1,5 +1,5 @@
 #! /bin/sh
-cd /home/pi/DroneCapstone/src/DroneApp/src/drone_app/src
+cd /home/operator/DroneCapstone/src/DroneApp/src/drone_app/src
 chmod +x *
-cd /home/pi/DroneCapstone/src/DroneApp
-rosrun drone_app Test_Comm.py
+cd /home/operator/DroneCapstone/src/DroneApp
+rosrun drone_app TestCommVM.py

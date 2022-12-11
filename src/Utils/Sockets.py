@@ -224,11 +224,23 @@ class DroneSocket(BaseSocket) :
         HOST = "" #empty to accept any client
         self.sock.bind((HOST, Common.App_PORT))
         self.sock.listen(500) # maximum of 500 connections, so I think we can lose and regain connection 500 times
+        Common.LogMessage('Waiting for connections')
+        
+        conn = None
         while True:
-            try:
-                conn, self.addr = self.sock.accept() # blocks execution, addr contains adress of the client
+            readable, _, _ = select.select([self.sock], [], [])
+            sleep(0.5)
+            if len(readable) >0 and readable[0] is self.sock:
+                conn, self.addr = self.sock.accept()
                 break
-            except:
-                pass
+        
+        # blocking call
+        # while True:
+        #     try:
+        #         conn, self.addr = self.sock.accept() # blocks execution, addr contains adress of the client
+        #     break
+        # except:
+        #     pass
+
         super().__init__( conn, buffSize=Common.App_buffSize)
         super().connect()
