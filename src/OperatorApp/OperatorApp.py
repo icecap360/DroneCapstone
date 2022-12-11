@@ -25,8 +25,10 @@ if __name__=='__main__':
         #p_camera.start()
         #p_camera.join()
 
-        ss = Utils.OperatorSocket()
+        ss = Utils.OperatorSocket(HOST="192.168.56.101")
         ss.init()
+        ss.sendMessageSync({'Type':'Launch','Mode':'Normal'})
+        print('Message sent')
         while True:
             data = ss.getMessage()
             if data:
