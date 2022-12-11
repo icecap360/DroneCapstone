@@ -4,11 +4,11 @@ from math import pi, sin, cos
 from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest, CommandTOL, CommandTOLRequest
 from ArduInfoReader import ArduInfoReader
 from BasicStates import Idle
-from OpAppInterface import OpAppInterface
+
 import json
 
 class StateMachine:
-    def __init__(self, opAppInterface: OpAppInterface):
+    def __init__(self, opAppInterface):
         self.nodeName = "DroneApp"
         self.opAppInterface = opAppInterface
         self.paramFile = 'Params.json'
@@ -35,7 +35,7 @@ class StateMachine:
     def process(self):
         self.State = self.State.Process()
         
-    def SetupRosNode(self):
+    def init(self):
         rospy.init_node(self.nodeName)
 
         self.arduInfoReader = ArduInfoReader()
@@ -61,6 +61,8 @@ class StateMachine:
 
         self.State = Idle(self)
 
+        self.opAppInterface.init()
+
     def saveHomeLoc(self):
         pose = self.arduInfoReader.getPose()
         self.initHoverPoseGlob = CommandTOL()
@@ -72,6 +74,31 @@ class StateMachine:
         self.initHoverPose.pose.position.x = 0
         self.initHoverPose.pose.position.y = 0
         self.initHoverPose.pose.position.z = self.maxHoverHeight
+
+    def callService_TypeCommand(self, req, client):
+        service_call = client.call(req).success
+        while(service_call != True):
+            service_call = client.call(req).success
+            rospy.sleep(0.5)
+    
+    
+    # def callService_TypeModeSent(self, req, client):
+    #     service_call = client.call(req).mode_sent
+    #     while(service_call != True):
+    #         service_call = client.call(req).mode_sent
+    #         rospy.sleep(0.5)
+    def sleep(self, sec:float):
+        rospy.sleep(sec)
+
+    def setMode(self, modeReq:str):
+        mode = SetModeRequest()
+        mode.custom_mode = modeReq
+        service_call = self.setModeClient.call(mode).mode_sent
+        while(service_call != True):
+            service_call = self.setModeClient.call(mode).mode_sent
+            rospy.sleep(1.0)
+        rospy.loginfo(modeReq + " entered")
+        rospy.sleep(2)
 
     def TestCircularMotion(self):
         rospy.loginfo("Initializing...")
@@ -153,7 +180,7 @@ class StateMachine:
 if __name__ == '__main__':
     sm = StateMachine(OpAppInterface())
     print('a')
-    sm.SetupRosNode()
+    sm.init()
     print('b')
     sm.process()
     print('c')

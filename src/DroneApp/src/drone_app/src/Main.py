@@ -5,7 +5,7 @@ from OpAppInterface import OpAppInterface
 
 if __name__ == "__main__":
     stateMachine = StateMachine(OpAppInterface())
-    stateMachine.SetupRosNode()
+    stateMachine.init()
 
     #fly in circle testcase
     stateMachine.TestCircularMotion()

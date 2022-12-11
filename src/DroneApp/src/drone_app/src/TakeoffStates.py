@@ -2,9 +2,10 @@ import rospy
 from AbstractStates import State
 from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest, CommandTOL, CommandTOLRequest
 
-class Launch(State):
+
+class Takeoff(State):
     def __init__(self,context):
-        super().__init__(context, 'Launch')
+        super().__init__(context, 'Takeoff')
     
     def Init(self) -> State:
         rospy.loginfo("Initializing...")
@@ -23,21 +24,12 @@ class Launch(State):
             self.context.localPosPub.publish(self.context.initHoverPose)
             self.context.rate.sleep()
 
-        guided_mode = SetModeRequest()
-        guided_mode.custom_mode = 'GUIDED'
-        service_call = self.context.setModeClient.call(guided_mode).mode_sent
-        while(service_call != True):
-            service_call = self.context.setModeClient.call(guided_mode).mode_sent
-            rospy.sleep(1.0)
-        rospy.loginfo("GUIDED enabled")
+        self.context.setMode('GUIDED')
         rospy.sleep(2)
 
         arm_cmd = CommandBoolRequest()
         arm_cmd.value = True
-        service_call = self.context.armingClient.call(arm_cmd).success
-        while(service_call != True):
-            service_call = self.context.armingClient.call(arm_cmd).success
-            rospy.sleep(1.0)
+        self.context.callService_TypeCommand(arm_cmd, self.context.armingClient)
         rospy.loginfo("Vehicle armed")
         
         takeoff_cmd = CommandTOLRequest()
@@ -46,10 +38,7 @@ class Launch(State):
         takeoff_cmd.yaw = 0.0
         takeoff_cmd.min_pitch  = 0.0
         takeoff_cmd.altitude = self.context.initHoverPoseGlob.altitude
-        service_call = self.context.takeoffClient.call(takeoff_cmd).success
-        while(service_call != True):
-            service_call = self.context.takeoffClient.call(takeoff_cmd).success
-            rospy.sleep(1.0)
+        self.context.callService_TypeCommand(takeoff_cmd, self.context.takeoffClient)
         rospy.loginfo("Taking off")
         rospy.sleep(10)
 
@@ -59,5 +48,15 @@ class Launch(State):
         return super().Init()
     
     def During(self) -> State:
-        rospy.loginfo('launch during')
-        pass
+        return Hover(self.context)
+
+class Hover(State):
+    def __init__(self,context):
+        super().__init__(context, 'Hover')
+    
+    def Init(self) -> State:
+        self.context.setMode('GUIDED')
+        return super().Init()
+    
+    def During(self) -> State:        
+        return self

@@ -1,20 +1,23 @@
 #! /usr/bin/env python3
 
+import sys
+sys.path.append('/home/operator/DroneCapstone/src')
 from StateMachine import StateMachine
-from OpAppInterface import OpAppInterface
+import Utils.Sockets as Sockets
 
 if __name__ == "__main__":
-    stateMachine = StateMachine(OpAppInterface())
-    stateMachine.SetupRosNode()
+    stateMachine = StateMachine(Sockets.DroneSocket())
+    stateMachine.init()
 
     #fly in circle testcase
-    stateMachine.TestCircularMotion()
+    #stateMachine.TestCircularMotion()
 
-    #test launch (sitl only right now)
-    # stateMachine.process()
-    # stateMachine.opAppInterface.addCommand({'Type':'Launch','Mode':'Normal'})
-    # stateMachine.process()
-    # stateMachine.process()
+    #test launch 
+    while True:
+        stateMachine.process()
+        print(stateMachine.State)
+        stateMachine.sleep(2)
+
 
     #test configure 
     # stateMachine.process()

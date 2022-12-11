@@ -29,3 +29,6 @@ class State(ABC):
         if not self.ranInit:
             return self.Init()
         return self.During()
+    
+    def __str__(self):
+        return self.name

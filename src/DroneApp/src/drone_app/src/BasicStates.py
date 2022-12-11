@@ -1,7 +1,7 @@
 import rospy
 from abc import ABC
 from AbstractStates import State
-from LaunchState import Launch
+from TakeoffStates import Takeoff
 import json
 
 class Configure(State):
@@ -27,11 +27,11 @@ class Idle(State):
         return super().Init()
     
     def During(self) -> State:        
-        command = self.context.opAppInterface.getNextCommand()
+        command = self.context.opAppInterface.getMessage()
 
         if command != None:
             if command['Type'] == 'Launch' and command['Mode'] != 'Configure':
-                return Launch(self.context)
+                return Takeoff(self.context)
             elif command['Type'] == 'Launch' and command['Mode'] == 'Configure':
                 return Configure(self.context, command['MinHoverHeight'], 
                     command['DesiredHoverHeight'], command['MaxHoverHeight'])
