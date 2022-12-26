@@ -3,6 +3,7 @@ from geometry_msgs.msg import PoseStamped
 from mavros_msgs.msg import State
 from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest, CommandTOL, CommandTOLRequest
 from sensor_msgs.msg import NavSatFix
+from diagnostic_msgs.msg import DiagnosticArray
 from pygeodesy.geoids import GeoidPGM 
 from threading import Semaphore
 
@@ -27,9 +28,13 @@ class ArduInfoReader:
         self.global_pose = NavSatFix()
         self.sem_global_pose = Semaphore()
 
+        self.diagnostics = DiagnosticArray()
+        self.sem_diagnostic = Semaphore()
+
         # Subscribe to topics at the end!
         self.state_sub = rospy.Subscriber("/mavros/state", State, callback = self.state_cb)
         self.global_pose_sub = rospy.Subscriber("/mavros/global_position/global", NavSatFix, callback = self.global_pose_cb)
+        self.diagnostic_sub = rospy.Subscriber("/diagnostics", DiagnosticArray, callback = self.diagnostic_cb)
         
     def convertToAMSL(self,lat, lon, height) -> float:
         return height - self._egm96.height(lat, lon)
@@ -44,7 +49,11 @@ class ArduInfoReader:
         msg.altitude = self.convertToAMSL(msg.latitude, msg.longitude, msg.altitude) 
         self.global_pose = msg
         self.sem_global_pose.release()
-    
+    def diagnostic_cb(self, msg):
+        self.sem_diagnostic.acquire()
+        self.diagnostics = msg
+        self.sem_diagnostic.release()
+
     def getState(self) -> State:
         self.sem_state.acquire()
         t = self.state
@@ -54,6 +63,22 @@ class ArduInfoReader:
         self.sem_global_pose.acquire()
         t = self.global_pose
         self.sem_global_pose.release()
+        return t
+    def getDiagnostics(self):
+        # True is normal
+        self.sem_diagnostic.acquire()
+        t = self.diagnostics.status
+        self.sem_diagnostic.release()
+        return t
+    def getHealthStatus(self):
+        # True is normal
+        # In SITL, the z/altitude control and x/y position control seem to always be false, I dont know why, so I dont know if this is right
+        self.sem_diagnostic.acquire()
+        t = True
+        for diag in self.diagnostics.status:
+            if diag.level == 2:
+                t = False
+        self.sem_diagnostic.release()
         return t
 
     

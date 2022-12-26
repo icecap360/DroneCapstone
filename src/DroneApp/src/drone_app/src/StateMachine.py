@@ -1,7 +1,7 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
 from math import pi, sin, cos
-from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest, CommandTOL, CommandTOLRequest
+from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest, CommandTOL, CommandTOLRequest, ParamSet
 from ArduInfoReader import ArduInfoReader
 from BasicStates import Idle
 
@@ -53,13 +53,16 @@ class StateMachine:
         rospy.wait_for_service('/mavros/cmd/takeoff')
         self.takeoffClient = rospy.ServiceProxy('/mavros/cmd/takeoff', CommandTOL)
 
-        rospy.wait_for_service('//mavros/cmd/land')
+        rospy.wait_for_service('/mavros/cmd/land')
         self.landClient = rospy.ServiceProxy('/mavros/cmd/land', CommandTOL)
+
+        rospy.wait_for_service('/mavros/param/set')
+        self.paramSetClient = rospy.ServiceProxy('/mavros/param/set', ParamSet)
 
         # Setpoint publishing MUST be faster than 2Hz
         self.rate = rospy.Rate(20)
 
-        self.State = Idle(self)
+        self.State = Idle(self,{})
 
         self.opAppInterface.init()
 
@@ -179,11 +182,7 @@ class StateMachine:
 
 if __name__ == '__main__':
     sm = StateMachine(OpAppInterface())
-    print('a')
     sm.init()
-    print('b')
     sm.process()
-    print('c')
     sm.opAppInterface.addCommand({'Type':'Launch','Mode':'Normal'})
-    print('d')
     sm.process()

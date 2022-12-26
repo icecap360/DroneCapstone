@@ -15,7 +15,7 @@ if __name__ == "__main__":
     #test launch 
     while True:
         stateMachine.process()
-        print(stateMachine.State)
+        print(stateMachine.State, stateMachine.arduInfoReader.getHealthStatus())
         stateMachine.sleep(2)
 
 
