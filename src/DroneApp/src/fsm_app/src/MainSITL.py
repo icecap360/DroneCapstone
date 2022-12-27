@@ -13,10 +13,13 @@ if __name__ == "__main__":
     #stateMachine.TestCircularMotion()
 
     #test launch 
-    while True:
-        stateMachine.process()
-        print(stateMachine.State, stateMachine.arduInfoReader.getHealthStatus())
-        stateMachine.sleep(2)
+    try:
+        while True:
+            stateMachine.process()
+            print('Current State:',stateMachine.State)
+            stateMachine.sleep(0.2)
+    except KeyboardInterrupt:
+        print('Keyboard expection')
 
 
     #test configure 
@@ -31,5 +34,3 @@ if __name__ == "__main__":
     # stateMachine.process()
     # stateMachine.process()
 
-
-    

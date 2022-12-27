@@ -1,15 +1,16 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
 from math import pi, sin, cos
+from std_msgs.msg import String
 from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest, CommandTOL, CommandTOLRequest, ParamSet
-from ArduInfoReader import ArduInfoReader
+from TopicReader import TopicReader
 from BasicStates import Idle
-
 import json
+
 
 class StateMachine:
     def __init__(self, opAppInterface):
-        self.nodeName = "DroneApp"
+        self.nodeName = "fsm_app"
         self.opAppInterface = opAppInterface
         self.paramFile = 'Params.json'
         self.readParams()
@@ -33,17 +34,19 @@ class StateMachine:
                 ))
 
     def process(self):
-        self.State = self.State.Process()
+        self.State = self.State.process()
+        self.currStatePub.publish(str(self.State))
         
     def init(self):
         rospy.init_node(self.nodeName)
 
-        self.arduInfoReader = ArduInfoReader()
+        self.topicReader = TopicReader()
         #state_sub = rospy.Subscriber("/mavros/state", State, callback = state_cb)
         #global_pose_sub = rospy.Subscriber("/mavros/global_position/global", NavSatFix, callback = global_pose_cb)
-
-        self.localPosPub = rospy.Publisher("mavros/setpoint_position/local", PoseStamped, queue_size=10)
         
+        self.currStatePub = rospy.Publisher("/fsm_app/drone_state", String, queue_size=10)
+        self.desPosePub = rospy.Publisher("/fsm_desired_pose/desired_pose", PoseStamped, queue_size=10)
+
         rospy.wait_for_service("/mavros/cmd/arming")
         self.armingClient = rospy.ServiceProxy("mavros/cmd/arming", CommandBool)    
 
@@ -67,7 +70,7 @@ class StateMachine:
         self.opAppInterface.init()
 
     def saveHomeLoc(self):
-        pose = self.arduInfoReader.getPose()
+        pose = self.topicReader.getPose()
         self.initHoverPoseGlob = CommandTOL()
         self.initHoverPoseGlob.latitude = pose.latitude
         self.initHoverPoseGlob.longitude = pose.longitude
@@ -82,7 +85,7 @@ class StateMachine:
         service_call = client.call(req).success
         while(service_call != True):
             service_call = client.call(req).success
-            rospy.sleep(0.5)
+            rospy.sleep(1)
     
     
     # def callService_TypeModeSent(self, req, client):
@@ -104,10 +107,12 @@ class StateMachine:
         rospy.sleep(2)
 
     def TestCircularMotion(self):
-        rospy.loginfo("Initializing...")
+        rospy.loginfo("initializing...")
         # Wait for Flight Controller connection
-        while(not rospy.is_shutdown() and not self.arduInfoReader.getState().connected):
+        while(not rospy.is_shutdown() and not self.topicReader.getState().connected):
             self.rate.sleep()
+        
+        localPosPub = rospy.Publisher("mavros/setpoint_position/local", PoseStamped, queue_size=10)
 
         rospy.loginfo("Connected...")
 
@@ -117,7 +122,7 @@ class StateMachine:
         for i in range(100):   
             if(rospy.is_shutdown()):
                 break
-            self.localPosPub.publish(self.initHoverPose)
+            localPosPub.publish(self.initHoverPose)
             self.rate.sleep()
 
         guided_mode = SetModeRequest()
@@ -151,7 +156,7 @@ class StateMachine:
         rospy.sleep(10)
 
         # Wait while drone is increasing in height 
-        while self.arduInfoReader.getPose().altitude < 9.5:
+        while self.topicReader.getPose().altitude < 9.5:
             rospy.sleep(1.0)
         
         # In larger systems, it is often useful to create a new thread which will be in charge of periodically publishing the setpoints.
@@ -163,7 +168,7 @@ class StateMachine:
             desPose.pose.position.x = 10*sin(2.0*pi*0.001*(rospy.get_time()-time_start));
             desPose.pose.position.y = 10*cos(2.0*pi*0.001*(rospy.get_time()-time_start));
             desPose.header.stamp = rospy.Time.now()
-            self.localPosPub.publish(desPose)
+            localPosPub.publish(desPose)
             self.rate.sleep()
 
         land_cmd = CommandTOLRequest()
