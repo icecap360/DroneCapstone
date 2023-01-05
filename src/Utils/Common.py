@@ -1,6 +1,7 @@
 from threading import Lock
 from collections import deque 
-
+from enum import Enum
+ 
 App_PORT = 3002
 App_buffSize=4096
 
@@ -42,3 +43,13 @@ class SharedQueue(SharedVal):
         self._lock.acquire()
         self.val.append(data)
         self._lock.release()
+
+class UserErrorCode(Enum):
+    NONE = 1
+    DESIRED_LOCATION_INVALID = 2 
+    NO_LOT_DETECTED = 3
+
+class HealthStatusCode(Enum):
+    HEALTHY = 1
+    COMMUNICATION_LOST = 2 
+    UNHEALTHY = 3

@@ -6,7 +6,7 @@ from multiprocessing import Process
 
 def DisplayCameraView():
     DroneCamera = Utils.Camera()
-    DroneCamera.createCap()
+    DroneCamera.init()
 
     try:
         while True:
@@ -28,6 +28,13 @@ if __name__=='__main__':
         ss = Utils.OperatorSocket(HOST="192.168.56.101")
         ss.init()
         ss.sendMessageSync({'Type':'Launch','Mode':'Normal'})
+        x = input()
+        while x != '-1':
+            print('processing ', x)
+            #ss.sendMessageSync({'Type':'AutonomousMove','X':float(x),'Y':float(x), 'w':float(0)})
+            ss.sendMessageSync({'Type':'AutonomousExplore'})
+            x = input()
+        ss.sendMessageSync({'Type':'Land'})
         print('Message sent')
         while True:
             data = ss.getMessage()

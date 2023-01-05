@@ -12,7 +12,7 @@ class Camera:
     def read(self):
         self.image = self.q.get()
         
-    def createCap(self):
+    def init(self):
         self.cap_receive = cv2.VideoCapture('udpsrc port=9000 caps="application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264" ! rtph264depay ! avdec_h264 ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
         if not self.cap_receive.isOpened():
             Common.LogError('VideoCapture not opened')
@@ -37,7 +37,7 @@ class Camera:
 
 if __name__ == '__main__':
     DroneCamera = Camera()
-    DroneCamera.createCap()
+    DroneCamera.init()
     try:
         while True:
             DroneCamera.read()

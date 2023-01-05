@@ -28,7 +28,7 @@ class BaseSocket(ABC):
 
     @abstractmethod
     def connect(self):
-        self.isConnected_b.set(False)
+        self.isConnected_b.set(True)
         Common.LogMessage('Connect succeeded')
     def reconnect(self):
         self.isConnected_b.set(False)
