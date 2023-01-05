@@ -3,17 +3,21 @@ from geometry_msgs.msg import PoseStamped
 from math import pi, sin, cos
 from std_msgs.msg import String
 from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest, CommandTOL, CommandTOLRequest, ParamSet
-from TopicReader import TopicReader
+from TopicInterface import TopicInterface
+from ServiceInterface import ServiceInterface
 from BasicStates import Idle
 import json
+from Utils.Common import UserErrorCode, HealthStatusCode
+from rospy_message_converter import message_converter
 
-
-class StateMachine:
+class OperationManager:
     def __init__(self, opAppInterface):
         self.nodeName = "fsm_app"
         self.opAppInterface = opAppInterface
         self.paramFile = 'Params.json'
         self.readParams()
+        self.userError = UserErrorCode.NONE
+        self.healthStatus = HealthStatusCode.HEALTHY
 
     def readParams(self):
         with open(self.paramFile) as json_file:
@@ -34,19 +38,64 @@ class StateMachine:
                 ))
 
     def process(self):
-        self.State = self.State.process()
-        self.currStatePub.publish(str(self.State))
+        self.FSMState.process()
+        self.FSMState = self.FSMState.transitionNextState()
+        if self.healthStatus != HealthStatusCode.COMMUNICATION_LOST:
+            self.sendHeartbeat()
+        self.topicInterface.currStatePub.publish(str(self.FSMState))
         
     def init(self):
         rospy.init_node(self.nodeName)
 
-        self.topicReader = TopicReader()
+        self.topicInterface = TopicInterface()
+        self.servInterface = ServiceInterface()
         #state_sub = rospy.Subscriber("/mavros/state", State, callback = state_cb)
         #global_pose_sub = rospy.Subscriber("/mavros/global_position/global", NavSatFix, callback = global_pose_cb)
-        
-        self.currStatePub = rospy.Publisher("/fsm_app/drone_state", String, queue_size=10)
-        self.desPosePub = rospy.Publisher("/fsm_desired_pose/desired_pose", PoseStamped, queue_size=10)
 
+        # Setpoint publishing MUST be faster than 2Hz
+        self.rate = rospy.Rate(20)
+
+        self.FSMState = Idle(self,{})
+
+        self.opAppInterface.init()
+    def sendHeartbeat(self):
+        self.opAppInterface.sendMessageAsync( {
+            'Type':'Hearbeat',
+            'State':str(self.FSMState),
+            'Ardupilot State':self.topicInterface.getState().mode,
+            'Occupancy Map':message_converter.convert_ros_message_to_dictionary(
+                self.topicInterface.getOccupancyMap()
+            ),
+            'Relative Altitude':self.topicInterface.getRelAlt(),
+            'Armed':self.topicInterface.getState().armed,
+            'Latitude':self.topicInterface.getPose().latitude,
+            'Longitude':self.topicInterface.getPose().longitude,
+            'Local Position X':self.topicInterface.getLocalPose().pose.position.x,
+            'Local Position Y':self.topicInterface.getLocalPose().pose.position.x,
+            'Battery Percentage':self.topicInterface.getBatteryInfo().percentage,
+            'User Error':self.userError.value,
+            'Health Status':self.healthStatus.value
+        })
+    def saveHomeLoc(self):
+        pose = self.topicInterface.getPose()
+        self.homeHoverPoseGlob = CommandTOL()
+        self.homeHoverPoseGlob.latitude = pose.latitude
+        self.homeHoverPoseGlob.longitude = pose.longitude
+        self.homeHoverPoseGlob.altitude = self.maxHoverHeight
+
+        self.initHoverPose = PoseStamped()
+        self.initHoverPose.pose.position.x = 0
+        self.initHoverPose.pose.position.y = 0
+        self.initHoverPose.pose.position.z = self.maxHoverHeight
+
+    def sleep(self, sec:float):
+        rospy.sleep(sec)
+
+    def TestCircularMotion(self):
+        rospy.loginfo("initializing...")
+        # Wait for Flight Controller connection
+        while(not rospy.is_shutdown() and not self.topicInterface.getState().connected):
+            self.rate.sleep()
         rospy.wait_for_service("/mavros/cmd/arming")
         self.armingClient = rospy.ServiceProxy("mavros/cmd/arming", CommandBool)    
 
@@ -61,57 +110,7 @@ class StateMachine:
 
         rospy.wait_for_service('/mavros/param/set')
         self.paramSetClient = rospy.ServiceProxy('/mavros/param/set', ParamSet)
-
-        # Setpoint publishing MUST be faster than 2Hz
-        self.rate = rospy.Rate(20)
-
-        self.State = Idle(self,{})
-
-        self.opAppInterface.init()
-
-    def saveHomeLoc(self):
-        pose = self.topicReader.getPose()
-        self.initHoverPoseGlob = CommandTOL()
-        self.initHoverPoseGlob.latitude = pose.latitude
-        self.initHoverPoseGlob.longitude = pose.longitude
-        self.initHoverPoseGlob.altitude = self.maxHoverHeight
-
-        self.initHoverPose = PoseStamped()
-        self.initHoverPose.pose.position.x = 0
-        self.initHoverPose.pose.position.y = 0
-        self.initHoverPose.pose.position.z = self.maxHoverHeight
-
-    def callService_TypeCommand(self, req, client):
-        service_call = client.call(req).success
-        while(service_call != True):
-            service_call = client.call(req).success
-            rospy.sleep(1)
     
-    
-    # def callService_TypeModeSent(self, req, client):
-    #     service_call = client.call(req).mode_sent
-    #     while(service_call != True):
-    #         service_call = client.call(req).mode_sent
-    #         rospy.sleep(0.5)
-    def sleep(self, sec:float):
-        rospy.sleep(sec)
-
-    def setMode(self, modeReq:str):
-        mode = SetModeRequest()
-        mode.custom_mode = modeReq
-        service_call = self.setModeClient.call(mode).mode_sent
-        while(service_call != True):
-            service_call = self.setModeClient.call(mode).mode_sent
-            rospy.sleep(1.0)
-        rospy.loginfo(modeReq + " entered")
-        rospy.sleep(2)
-
-    def TestCircularMotion(self):
-        rospy.loginfo("initializing...")
-        # Wait for Flight Controller connection
-        while(not rospy.is_shutdown() and not self.topicReader.getState().connected):
-            self.rate.sleep()
-        
         localPosPub = rospy.Publisher("mavros/setpoint_position/local", PoseStamped, queue_size=10)
 
         rospy.loginfo("Connected...")
@@ -143,11 +142,11 @@ class StateMachine:
         rospy.loginfo("Vehicle armed")
         
         takeoff_cmd = CommandTOLRequest()
-        takeoff_cmd.latitude = self.initHoverPoseGlob.latitude
-        takeoff_cmd.longitude = self.initHoverPoseGlob.longitude
+        takeoff_cmd.latitude = self.homeHoverPoseGlob.latitude
+        takeoff_cmd.longitude = self.homeHoverPoseGlob.longitude
         takeoff_cmd.yaw = 0.0
         takeoff_cmd.min_pitch  = 0.0
-        takeoff_cmd.altitude = self.initHoverPoseGlob.altitude
+        takeoff_cmd.altitude = self.homeHoverPoseGlob.altitude
         service_call = self.takeoffClient.call(takeoff_cmd).success
         while(service_call != True):
             service_call = self.takeoffClient.call(takeoff_cmd).success
@@ -156,7 +155,7 @@ class StateMachine:
         rospy.sleep(10)
 
         # Wait while drone is increasing in height 
-        while self.topicReader.getPose().altitude < 9.5:
+        while self.topicInterface.getPose().altitude < 9.5:
             rospy.sleep(1.0)
         
         # In larger systems, it is often useful to create a new thread which will be in charge of periodically publishing the setpoints.
@@ -172,8 +171,8 @@ class StateMachine:
             self.rate.sleep()
 
         land_cmd = CommandTOLRequest()
-        land_cmd.latitude = self.initHoverPoseGlob.latitude
-        land_cmd.longitude = self.initHoverPoseGlob.longitude
+        land_cmd.latitude = self.homeHoverPoseGlob.latitude
+        land_cmd.longitude = self.homeHoverPoseGlob.longitude
         land_cmd.yaw = 0.0
         land_cmd.min_pitch  = 0.0
         land_cmd.altitude = 0
@@ -186,7 +185,7 @@ class StateMachine:
         
 
 if __name__ == '__main__':
-    sm = StateMachine(OpAppInterface())
+    sm = OperationManager(OpAppInterface())
     sm.init()
     sm.process()
     sm.opAppInterface.addCommand({'Type':'Launch','Mode':'Normal'})

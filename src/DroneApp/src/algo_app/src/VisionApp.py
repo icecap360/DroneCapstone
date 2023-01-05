@@ -14,5 +14,6 @@ class VisionApp:
         pass
     def process(self):
         # image processing code goes here  
+        self.parkLotDetected = True
         pass
 

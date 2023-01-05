@@ -1,7 +1,6 @@
 import rospy
 from abc import ABC
 from AbstractState import State
-from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest, CommandTOL, CommandTOLRequest, ParamSet, ParamSetRequest     
 from rospy_message_converter import message_converter
 import json
 from Utils.Common import *
@@ -9,8 +8,12 @@ from geometry_msgs.msg import PoseStamped
 
 class FlightState(State):
     # abstract state, created to prevent code duplication for flight states
-    def processUserCommand(self, command) -> State:
-        # default way to process user commands
+    def evalNewState(self):
+        if not self.context.opAppInterface.isConnected():
+            return CommunicationLost(self.context, {})
+        if self.context.topicInterface.getBatteryInfo().percentage < 0.2:
+            return Land(self.context, {})
+        command = self.context.opAppInterface.getMessage()
         if command != None:
             if command['Type'] == 'Land':
                 return Land(self.context,{})
@@ -21,9 +24,9 @@ class FlightState(State):
             elif command['Type'] == 'AutonomousExplore':
                 return AutonomousExplore(self.context, command)
             else:
-                return self
+                return None
         else:
-            return self 
+            return None 
 
 class Configure(State):
     def __init__(self,context, command,name='Configure'):
@@ -31,193 +34,204 @@ class Configure(State):
         self.desiredHoverHeight = float(command['DesiredHoverHeight'])
         self.maxHoverHeight = float(command['MaxHoverHeight'])
         super().__init__(context,command, name)
-    def init(self) -> State:
+    def init(self):
         self.context.setAndSaveParams(self.minHoverHeight, 
             self.desiredHoverHeight, 
             self.maxHoverHeight)
-        return super().init()
-    def during(self) -> State:
-        rospy.loginfo('launch during')
-        pass
+        super().init()
+    def evalNewState(self):
+        # this is a permanent state
+        return None
 
 class Idle(State):
     def __init__(self,context, command,name='Idle'):
         super().__init__(context, command, name)
-    def init(self) -> State:
-        return super().init()
-    def during(self) -> State:        
+    def init(self):
+        super().init()
+    def evalNewState(self):
+        print(self.context.opAppInterface.isConnected())
+        if not self.context.opAppInterface.isConnected():
+            return None
         command = self.context.opAppInterface.getMessage()
         if command != None:
-            if command['Type'] == 'Launch' and command['Mode'] != 'Configure':
+            if (command['Type'] == 'Launch' and command['Mode'] != 'Configure' and 
+                    self.context.topicInterface.getBatteryInfo().percentage > 0.2):
                 return Takeoff(self.context,{})
             elif command['Type'] == 'Launch' and command['Mode'] == 'Configure':
                 return Configure(self.context, command)
             else:
-                return self
+                return None
         else:
-            return self
+            return None
 
 class Malfunction(State):
     def __init__(self, context, command, name='Malfunction'):
         super().__init__(context, command, name)
-    
-    def init(self) -> State:
-        rtl_alt_cmd = ParamSetRequest()
-        rtl_alt_cmd.param_id = 'RTL_ALT'
-        rtl_alt_cmd.value.integer = 700 
-        rtl_alt_cmd.value.real = 0.0
-        self.context.callService_TypeCommand(rtl_alt_cmd, self.context.paramSetClient)
-        self.context.setMode('RTL')
-
-        data_dict = message_converter.convert_ros_message_to_dictionary(self.context.topicReader.getDiagnostics())
+    def init(self):
+        self.context.servInterface.setRtlAlt(700)
+        self.context.servInterface.setMode('RTL')
+        data_dict = message_converter.convert_ros_message_to_dictionary(self.context.topicInterface.getDiagnostics())
         with open('Logs\\ErrorDiagnostic.txt', 'w') as writer:
             writer.write(str(data_dict))
         LogError('MALFUNCTION:\n'+str(data_dict))
-        return super().init()
+        super().init()
+    def exit(self):
+        self.context.servInterface.setArm(False)
+        rospy.loginfo("Vehicle disarmed")
+    def evalNewState(self):
+        if self.context.topicInterface.getRelAlt() < 0.2:
+            return Idle(self.context, {})
+        return None
 
-    def during(self) -> State:
-        if self.context.topicReader.getPose().altitude < 0.2:
-            arm_cmd = CommandBoolRequest()
-            arm_cmd.value = False
-            self.context.callService_TypeCommand(arm_cmd, self.context.armingClient)
+class CommunicationLost(State):
+    def __init__(self, context, command, name='CommunicationLost'):
+        super().__init__(context, command, name)
+    def init(self):
+        self.context.healthStatus = HealthStatusCode.COMMUNICATION_LOST
+        self.context.servInterface.setRtlAlt(700)
+        self.context.servInterface.setMode('RTL')
+        super().init()
+    def exit(self):
+        if self.context.opAppInterface.isConnected():
+            # Drone has regained connection
+            self.context.healthStatus = HealthStatusCode.HEALTHY
+        else:
+            # Drone is landing
+            self.context.servInterface.setArm(False)
             rospy.loginfo("Vehicle disarmed")
-        return self   
+    def evalNewState(self):
+        if self.context.opAppInterface.isConnected():
+            return Hover(self.context, {})
+        elif self.context.topicInterface.getRelAlt() < 0.2:
+            return Idle(self.context, {})
+        return None
 
 class Hover(FlightState):
     def __init__(self,context, command,name='Hover'):
         super().__init__(context, command, name)
-    def init(self) -> State:
-        self.context.setMode('GUIDED')
-        self.context.desPosePub.publish(self.context.topicReader.getLocalPose())
-        return super().init()
-    def during(self) -> State:
-        #if not self.context.topicReader.getHealthStatus():
+    def init(self):
+        self.context.servInterface.setMode('GUIDED')
+        self.context.topicInterface.desPosePub.publish(self.context.topicInterface.getLocalPose())
+        super().init()
+    def evalNewState(self):
+        #if not self.context.topicInterface.getHealthStatus():
         #    return Malfunction(self.context)
-        command = self.context.opAppInterface.getMessage()
-        return self.processUserCommand(command) 
+        return super().evalNewState()
 
 class DesiredLocationError(Hover): # reusing code by inheiritng from Hover
     def __init__(self,context, command,name='DesiredLocationError'):
         super().__init__(context, command, name)
+    def init(self):
+        self.context.userError = UserErrorCode.DESIRED_LOCATION_INVALID
+        super().init()
+    def exit(self):
+        self.context.userError = UserErrorCode.NONE
 
 class NoParkingLotDetected(Hover): # reusing code by inheiritng from Hover
     def __init__(self,context, command,name='NoParkingLotDetected'):
         super().__init__(context, command, name)
+    def init(self):
+        self.context.userError = UserErrorCode.NO_LOT_DETECTED
+        super().init()
+    def exit(self):
+        self.context.userError = UserErrorCode.NONE
 
 class AutonomousExplore(FlightState):
     def __init__(self,context, command,name='AutonomousExplore'):
         super().__init__(context, command, name)
-    def init(self) -> State:
-        self.context.setMode('GUIDED')
-        return super().init()
-    def during(self) -> State:
-        #if not self.context.topicReader.getHealthStatus():
+    def init(self):
+        self.context.servInterface.setMode('GUIDED')
+        super().init()
+    def evalNewState(self):
+        #if not self.context.topicInterface.getHealthStatus():
         #    return Malfunction(self.context)
-        if not self.context.topicReader.getParkLotDetected():
+        if not self.context.topicInterface.getParkLotDetected():
             return NoParkingLotDetected(self.context, {})
-        command = self.context.opAppInterface.getMessage()
-        return self.processUserCommand(command)
+        return super().evalNewState()
 
 class Land(State):
     def __init__(self,context, command,name='Land'):
         super().__init__(context, command, name)
-    def init(self) -> State:
-        rtl_alt_cmd = ParamSetRequest()
-        rtl_alt_cmd.param_id = 'RTL_ALT'
-        rtl_alt_cmd.value.integer = 700 
-        rtl_alt_cmd.value.real = 0.0
-        self.context.callService_TypeCommand(rtl_alt_cmd, self.context.paramSetClient)
-        self.context.setMode('RTL')
-        return super().init()
-    def during(self) -> State:        
-        if self.context.topicReader.getPose().altitude > 0.2:
-            return self
-        else:
-            arm_cmd = CommandBoolRequest()
-            arm_cmd.value = False
-            self.context.callService_TypeCommand(arm_cmd, self.context.armingClient)
-            rospy.loginfo("Vehicle disarmed")
+    def init(self):
+        self.context.servInterface.setRtlAlt(700)
+        self.context.servInterface.setMode('RTL')
+        super().init()
+    def evalNewState(self):
+        if self.context.topicInterface.getRelAlt() < 0.2:
             return Idle(self.context,{})
+        return None
+    def exit(self):
+        self.context.servInterface.setArm(False)
+        rospy.loginfo("Vehicle disarmed")
 
 class CompulsiveMove(FlightState):
     def __init__(self,context, command,name='CompulsiveMove'):
         self.X, self.Y, self.W = float(command['X']), float(command['Y']), float(command['w'])
         super().__init__(context, command, name)
-    def init(self) -> State:
-        self.context.setMode('GUIDED')
+    def init(self):
+        self.context.servInterface.setMode('GUIDED')
         desPose = PoseStamped()
         desPose.pose.position.z = self.context.desiredHoverHeight
         desPose.pose.position.x, desPose.pose.position.y = self.X, self.Y
-        desPose.pose.orientation.w = self.w
+        desPose.pose.orientation.w = self.W
         desPose.header.stamp = rospy.Time.now()
-        self.context.desPosePub.publish(desPose)
-        return super().init()
-    def during(self) -> State:
-        #if not self.context.topicReader.getHealthStatus():
+        self.context.topicInterface.desPosePub.publish(desPose)
+        super().init()
+    def evalNewState(self):
+        #if not self.context.topicInterface.getHealthStatus():
         #    return Malfunction(self.context)
-        command = self.context.opAppInterface.getMessage()
-        return self.processUserCommand(command)
+        return super().evalNewState()
 
 class AutonomousMove(FlightState):
     def __init__(self,context, command,name='AutonomousMove'):
         self.X, self.Y, self.W = float(command['X']), float(command['Y']), float(command['w'])
         super().__init__(context, command, name)
-    def init(self) -> State:
-        self.context.setMode('GUIDED')
+    def init(self):
+        self.context.servInterface.setMode('GUIDED')
         desPose = PoseStamped()
         desPose.pose.position.z = self.context.desiredHoverHeight
         desPose.pose.position.x, desPose.pose.position.y = self.X, self.Y
-        desPose.pose.orientation.w = self.w
+        desPose.pose.orientation.w = self.W
         desPose.header.stamp = rospy.Time.now()
-        self.context.desPosePub.publish(desPose)
-        return super().init()
-    def during(self) -> State:
-        #if not self.context.topicReader.getHealthStatus():
+        self.context.topicInterface.desPosePub.publish(desPose)
+        super().init()
+    def evalNewState(self):
+        #if not self.context.topicInterface.getHealthStatus():
         #    return Malfunction(self.context)
-        if not self.context.topicReader.getDesLocInbound():
+        if not self.context.topicInterface.getDesLocInbound():
             return DesiredLocationError(self.context, {})
-        command = self.context.opAppInterface.getMessage()
-        return self.processUserCommand(command)
+        return super().evalNewState()
 
 class Takeoff(State):
     def __init__(self,context, command,name='Takeoff'):
         super().__init__(context, command, name)
-    
-    def init(self) -> State:
+    def init(self):
         rospy.loginfo("initializing...")
         # Wait for Flight Controller connection
-        while(not rospy.is_shutdown() and not self.context.topicReader.getState().connected):
+        while(not rospy.is_shutdown() and not self.context.topicInterface.getState().connected):
             self.context.rate.sleep()
 
         rospy.loginfo("Connected...")
-
         self.context.saveHomeLoc()
-
-        self.context.setMode('GUIDED')
+        self.context.servInterface.setMode('GUIDED')
         rospy.sleep(4)
+        super().init()
 
-        arm_cmd = CommandBoolRequest()
-        arm_cmd.value = True
-        self.context.callService_TypeCommand(arm_cmd, self.context.armingClient)
-        rospy.loginfo("Vehicle armed")
-        
-        takeoff_cmd = CommandTOLRequest()
-        takeoff_cmd.latitude = self.context.initHoverPoseGlob.latitude
-        takeoff_cmd.longitude = self.context.initHoverPoseGlob.longitude
-        takeoff_cmd.yaw = 0.0
-        takeoff_cmd.min_pitch  = 0.0
-        takeoff_cmd.altitude = self.context.initHoverPoseGlob.altitude
-        self.context.callService_TypeCommand(takeoff_cmd, self.context.takeoffClient)
-        rospy.loginfo("Taking off")
-        rospy.sleep(10)
-
-        return super().init()
+    def during(self):
+        if not self.context.topicInterface.getState().armed:
+            self.context.servInterface.setArm(True)
+            rospy.loginfo("Vehicle armed")
+            rospy.sleep(2)
+            self.context.servInterface.sendTakeoffCmd(self.context.homeHoverPoseGlob)
+            rospy.loginfo("Taking off")
+            rospy.sleep(10)
     
-    def during(self) -> State:
-        #if not self.context.topicReader.getHealthStatus():
+    def evalNewState(self):
+        if not self.context.opAppInterface.isConnected():
+            return CommunicationLost(self.context, {})
+        #if not self.context.topicInterface.getHealthStatus():
         #    return Malfunction(self.context)
-        
-        if self.context.topicReader.getPose().altitude < self.context.initHoverPoseGlob.altitude - 0.5:
-            return self
+        if self.context.topicInterface.getRelAlt() < self.context.homeHoverPoseGlob.altitude - 0.5:
+            return None
         else:
             return Hover(self.context,{})

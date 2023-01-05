@@ -1,32 +1,32 @@
 #! /usr/bin/env python3
 
-from StateMachine import StateMachine
+from OperationManager import OperationManager
 from OpAppInterface import OpAppInterface
 
 if __name__ == "__main__":
-    stateMachine = StateMachine(OpAppInterface())
-    stateMachine.init()
+    operationManager = OperationManager(OpAppInterface())
+    operationManager.init()
 
     #fly in circle testcase
-    stateMachine.TestCircularMotion()
+    operationManager.TestCircularMotion()
 
     #test launch (sitl only right now)
-    # stateMachine.process()
-    # stateMachine.opAppInterface.addCommand({'Type':'Launch','Mode':'Normal'})
-    # stateMachine.process()
-    # stateMachine.process()
+    # operationManager.process()
+    # operationManager.opAppInterface.addCommand({'Type':'Launch','Mode':'Normal'})
+    # operationManager.process()
+    # operationManager.process()
 
     #test configure 
-    # stateMachine.process()
-    # stateMachine.opAppInterface.addCommand({
+    # operationManager.process()
+    # operationManager.opAppInterface.addCommand({
     #     'Type':'Launch',
     #     'Mode':'Configure', 
     #     'MinHoverHeight':8,
     #     'DesiredHoverHeight':10,
     #     'MaxHoverHeight':12,
     #     })
-    # stateMachine.process()
-    # stateMachine.process()
+    # operationManager.process()
+    # operationManager.process()
 
 
     

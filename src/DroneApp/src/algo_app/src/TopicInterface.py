@@ -3,8 +3,10 @@ from std_msgs.msg import String
 from geometry_msgs.msg import PoseStamped
 from mavros_msgs.msg import State
 from threading import Semaphore
-
-class TopicReader:
+from algo_app.msg import OccupancyMap 
+from std_msgs.msg import Bool
+from geometry_msgs.msg import PoseStamped
+class TopicInterface:
     '''
     This class is supposed to read from topics that come from the FCU and other nodes
 
@@ -28,6 +30,13 @@ class TopicReader:
         self.local_pose = PoseStamped()
         self.sem_local_pose = Semaphore()
         self.local_pose_sub = rospy.Subscriber("/mavros/local_position/pose", PoseStamped, callback = self.local_pose_cb)
+        
+        self.parkLotDetectedPub = rospy.Publisher('/algo_app/parking_lot_detected', Bool, queue_size=10)
+        self.parkLotDetectedPub.publish(False) #initialize to Talse
+        self.desLocInboundPub = rospy.Publisher('/algo_app/desired_loc_inbound', Bool, queue_size=10)
+        self.desLocInboundPub.publish(True) # initialize to True
+        self.localPosPub = rospy.Publisher("/mavros/setpoint_position/local", PoseStamped, queue_size=10)
+        self.occupancyMapPub = rospy.Publisher("/algo_app/occupancy_map", OccupancyMap, queue_size=10)
 
     def drone_state_cb(self, msg):
         self.sem_drone_state.acquire()

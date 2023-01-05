@@ -2,35 +2,35 @@
 
 import sys
 sys.path.append('/home/operator/DroneCapstone/src')
-from StateMachine import StateMachine
+from OperationManager import OperationManager
 import Utils.Sockets as Sockets
 
 if __name__ == "__main__":
-    stateMachine = StateMachine(Sockets.DroneSocket())
-    stateMachine.init()
+    operationManager = OperationManager(Sockets.DroneSocket())
+    operationManager.init()
 
     #fly in circle testcase
-    #stateMachine.TestCircularMotion()
+    #operationManager.TestCircularMotion()
 
     #test launch 
     try:
         while True:
-            stateMachine.process()
-            print('Current State:',stateMachine.State)
-            stateMachine.sleep(0.2)
+            operationManager.process()
+            print('Current State:',operationManager.FSMState)
+            operationManager.sleep(0.2)
     except KeyboardInterrupt:
         print('Keyboard expection')
 
 
     #test configure 
-    # stateMachine.process()
-    # stateMachine.opAppInterface.addCommand({
+    # operationManager.process()
+    # operationManager.opAppInterface.addCommand({
     #     'Type':'Launch',
     #     'Mode':'Configure', 
     #     'MinHoverHeight':8,
     #     'DesiredHoverHeight':10,
     #     'MaxHoverHeight':12,
     #     })
-    # stateMachine.process()
-    # stateMachine.process()
+    # operationManager.process()
+    # operationManager.process()
 

@@ -2,13 +2,14 @@ import rospy
 from geometry_msgs.msg import PoseStamped
 from mavros_msgs.msg import State
 from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest, CommandTOL, CommandTOLRequest
-from sensor_msgs.msg import NavSatFix
+from sensor_msgs.msg import NavSatFix, BatteryState
 from diagnostic_msgs.msg import DiagnosticArray
-from std_msgs.msg import String, Bool
+from std_msgs.msg import String, Bool, Float64
 from pygeodesy.geoids import GeoidPGM 
 from threading import Semaphore
+from algo_app.msg import OccupancyMap
 
-class TopicReader:
+class TopicInterface:
     '''
     This class is supposed to read from topics that come from the FCU and other nodes
 
@@ -21,6 +22,9 @@ class TopicReader:
     '''
     
     def __init__(self):
+        self.currStatePub = rospy.Publisher("/fsm_app/drone_state", String, queue_size=10)
+        self.desPosePub = rospy.Publisher("/fsm_desired_pose/desired_pose", PoseStamped, queue_size=10)
+
         self._egm96 = GeoidPGM('/usr/share/GeographicLib/geoids/egm96-5.pgm', kind=-3)
 
         self.state = State()
@@ -41,13 +45,24 @@ class TopicReader:
         self.local_pose = PoseStamped()
         self.sem_local_pose = Semaphore()
 
+        self.battery = BatteryState()
+        self.sem_battery = Semaphore()
+
+        self.occupancy_map = OccupancyMap()
+        self.sem_occupancy_map = Semaphore()
+
+        self.rel_alt = Float64()
+        self.sem_rel_alt = Semaphore()
         # Subscribe to topics at the end!
         self.state_sub = rospy.Subscriber("/mavros/state", State, callback = self.state_cb)
         self.global_pose_sub = rospy.Subscriber("/mavros/global_position/global", NavSatFix, callback = self.global_pose_cb)
         self.diagnostic_sub = rospy.Subscriber("/diagnostics", DiagnosticArray, callback = self.diagnostic_cb)
-        self.park_lot_det_sub = rospy.Subscriber("/path_plan_app/parking_lot_detected", Bool, callback = self.park_lot_det_cb)
-        self.des_loc_inbound_sub = rospy.Subscriber("/path_plan_app/desired_loc_inbound", Bool, callback = self.des_loc_inbound_cb)
+        self.park_lot_det_sub = rospy.Subscriber("/algo_app/parking_lot_detected", Bool, callback = self.park_lot_det_cb)
+        self.des_loc_inbound_sub = rospy.Subscriber("/algo_app/desired_loc_inbound", Bool, callback = self.des_loc_inbound_cb)
+        self.occupancy_map_sub = rospy.Subscriber("/algo_app/occupancy_map", OccupancyMap, callback = self.occupancy_map_cb)
         self.local_pose_sub = rospy.Subscriber("/mavros/local_position/pose", PoseStamped, callback = self.local_pose_cb)
+        self.battery_pub = rospy.Subscriber("/mavros/battery", BatteryState, callback = self.battery_cb)
+        self.rel_alt_pub = rospy.Subscriber("/mavros/global_position/rel_alt", Float64, callback = self.rel_alt_cb)
 
 
     def convertToAMSL(self,lat, lon, height) -> float:
@@ -79,7 +94,18 @@ class TopicReader:
         self.sem_local_pose.acquire()
         self.local_pose = msg
         self.sem_local_pose.release()
-    
+    def battery_cb(self, msg):
+        self.sem_battery.acquire()
+        self.battery = msg
+        self.sem_battery.release()
+    def rel_alt_cb(self, msg):
+        self.sem_rel_alt.acquire()
+        self.rel_alt = msg
+        self.sem_rel_alt.release()
+    def occupancy_map_cb(self, msg):
+        self.sem_occupancy_map.acquire()
+        self.occupancy_map = msg
+        self.sem_occupancy_map.release()
     def getState(self) -> State:
         self.sem_state.acquire()
         t = self.state
@@ -121,4 +147,18 @@ class TopicReader:
         t = self.local_pose
         self.sem_local_pose.release()
         return t
-    
+    def getBatteryInfo(self) -> BatteryState:
+        self.sem_battery.acquire()
+        t = self.battery
+        self.sem_battery.release()
+        return t
+    def getRelAlt(self):
+        self.sem_rel_alt.acquire()
+        t = self.rel_alt.data
+        self.sem_rel_alt.release()
+        return t
+    def getOccupancyMap(self):
+        self.sem_occupancy_map.acquire()
+        t = self.occupancy_map
+        self.sem_occupancy_map.release()
+        return t

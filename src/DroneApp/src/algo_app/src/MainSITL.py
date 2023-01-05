@@ -3,11 +3,11 @@ import sys
 sys.path.append('/home/operator/DroneCapstone/src')
 import rospy
 from std_msgs.msg import String
-from PathPlanApp import PathPlanApp
+from AlgorithmApp import AlgorithmApp
 
 if __name__ == "__main__":
-    pathPlanApp = PathPlanApp()
-    pathPlanApp.init()
+    algorithmApp = AlgorithmApp()
+    algorithmApp.init()
 
     #fly in circle testcase
     #stateMachine.TestCircularMotion()
@@ -15,7 +15,7 @@ if __name__ == "__main__":
     #test launch 
     try:
         while True:
-            pathPlanApp.process()
-            #pathPlanApp.rate.sleep(1)
+            algorithmApp.process()
+            #algorithmApp.rate.sleep(1)
     except KeyboardInterrupt:
         print('Keyboard expection')
