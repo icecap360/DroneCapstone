@@ -119,7 +119,7 @@ class TopicInterface:
     def getDiagnostics(self):
         # True is normal
         self.sem_diagnostic.acquire()
-        t = self.diagnostics.status
+        t = self.diagnostics
         self.sem_diagnostic.release()
         return t
     def getParkLotDetected(self):

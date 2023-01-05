@@ -71,7 +71,7 @@ class Malfunction(State):
         self.context.servInterface.setRtlAlt(700)
         self.context.servInterface.setMode('RTL')
         data_dict = message_converter.convert_ros_message_to_dictionary(self.context.topicInterface.getDiagnostics())
-        with open('Logs\\ErrorDiagnostic.txt', 'w') as writer:
+        with open('Logs/ErrorDiagnostic.txt', 'w') as writer:
             writer.write(str(data_dict))
         LogError('MALFUNCTION:\n'+str(data_dict))
         super().init()
