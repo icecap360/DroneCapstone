@@ -1,17 +1,24 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QLineEdit, QGridLayout
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QApplication, QWidget
 import sys
 import UserInterface #import the setup code for the app
 
-class DroneApp(QtWidgets.QMainWindow, UserInterface.Ui_MainWindow): #the method for the main app
+class DroneApp(QtWidgets.QMainWindow, UserInterface.Ui_MainWindow1): #the method for the main app
     def __init__(self, parent=None):
         super(DroneApp, self).__init__(parent)
+        self.setupUi(self)
+        self.camocc = CamOccApp()
+        self.camocc.show()
+        
+class CamOccApp(QtWidgets.QMainWindow, UserInterface.Ui_MainWindow2): #the method for the sub app
+    def __init__(self, parent=None, child=None):
+        super().__init__()
         self.setupUi(self)
 
 def main():
     app = QApplication(sys.argv)
-    form = DroneApp()
-    form.show()
+    drone = DroneApp()
+    drone.show()
     app.exec_()
 
 if __name__ == '__main__':

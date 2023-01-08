@@ -11,12 +11,12 @@
 from PyQt5 import QtCore, QtGui, QtWidgets, QtWebEngineWidgets #pip install  PyQtWebEngine
 
 import io
-#install folium via pip install folium
-import folium                         
+
+import folium #pip install folium
 from folium.plugins import *          
 
 
-class Ui_MainWindow(object): #setup for the main app; setup window frame settings, add widgets, set layouts
+class Ui_MainWindow1(object): #setup for the main app; setup window frame settings, add widgets, set layouts
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.setEnabled(True)
@@ -130,7 +130,6 @@ class Ui_MainWindow(object): #setup for the main app; setup window frame setting
         self.pushButton_6.setObjectName("pushButton_6")        
         self.pushButton_7 = QtWidgets.QPushButton(self.widget_1)
         self.pushButton_7.setObjectName("pushButton_7")        
-        
 
         self.horizontalLayout_2.addWidget(self.label_7)        
         self.horizontalLayout_2.addWidget(self.pushButton_2a)        
@@ -149,13 +148,12 @@ class Ui_MainWindow(object): #setup for the main app; setup window frame setting
         self.verticalLayout_3.addWidget(self.pushButton_7)
         
         self.verticalLayout_2.addWidget(self.pushButton_1)
-        self.verticalLayout_2.addWidget(self.widget_1)
-        
+        self.verticalLayout_2.addWidget(self.widget_1)        
         self.widget_1.setEnabled(False)
 
         self.gridLayout_1.addLayout(self.verticalLayout_2, 1, 0, 1, 1)
         
-        #folium start
+        ##folium start
         coordinate = (37.8199286, -122.4782551)                                      
         m = folium.Map(                                                              
         	tiles='https://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}',
@@ -177,7 +175,7 @@ class Ui_MainWindow(object): #setup for the main app; setup window frame setting
         self.webView = QtWebEngineWidgets.QWebEngineView(self.centralwidget)         
         self.webView.setHtml(data.getvalue().decode())                               
         self.gridLayout_1.addWidget(self.webView, 1, 1, 2, 1)                        
-        #folium end
+        ##folium end
 
         self.gridLayout_1.setColumnStretch(1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -188,9 +186,6 @@ class Ui_MainWindow(object): #setup for the main app; setup window frame setting
         self.pushButton_1.clicked.connect(self.enwi)
         self.pushButton_2a.clicked.connect(self.configuration)
         self.pushButton_2b.clicked.connect(lambda:self.configuration(True))
-        
-        self.camocc = Ui_MainWindow2()
-        self.camocc.show()
         
     def enwi(self):
         self.widget_1.setEnabled(True)
@@ -210,7 +205,7 @@ class Ui_MainWindow(object): #setup for the main app; setup window frame setting
 
     def retranslateUi(self, MainWindow): #setup values for the given widgets and window
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "OperatorWindow"))
         self.label_1.setText(_translate("MainWindow", "Logo"))
         self.label_2.setText(_translate("MainWindow", "Connection:"))
         self.label_3.setText(_translate("MainWindow", "Drone State:"))
@@ -234,13 +229,9 @@ class Ui_MainWindow(object): #setup for the main app; setup window frame setting
         self.pushButton_7.setText(_translate("MainWindow", "Land"))
 
 #Subapp for displaying Camera and Parking Lot Occupancy with slider in between      
-class Ui_MainWindow2(QtWidgets.QMainWindow, object):
-    def __init__(self, parent = None):
-        super(Ui_MainWindow2, self).__init__(parent)
-        self.setupUi(self)
-        
+class Ui_MainWindow2(object):       
     def setupUi(self, MainWindow):
-        MainWindow.setObjectName("C & O")
+        MainWindow.setObjectName("MainWindow")
         MainWindow.setEnabled(True)
         MainWindow.resize(800,400)
         
@@ -268,7 +259,7 @@ class Ui_MainWindow2(QtWidgets.QMainWindow, object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "CamWindow"))
         self.pushButton_1.setText(_translate("MainWindow", "PushButton"))
         self.pushButton_2.setText(_translate("MainWindow", "PushButton"))
 
