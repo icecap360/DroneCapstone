@@ -9,36 +9,61 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets, QtWebEngineWidgets #pip install  PyQtWebEngine
+from PyQt5.QtCore import *
 
 import io
-
+import time
+import logging
 import folium #pip install folium
-from folium.plugins import *          
+from folium.plugins import *
+
+class aThread(QThread): #enable background processing
+    updt_chk = pyqtSignal(int)
+    def run(self):
+        x = 0
+        while True:
+            time.sleep(2)
+            self.updt_chk.emit(x)
+            x+=1
+            if x > 3:
+                x = 0
+        
+
+class QTextEditLogger(logging.Handler): #update log file in logs textbox
+    def __init__(self, parent):
+        super().__init__()
+        self.widget = QtWidgets.QPlainTextEdit(parent)
+        self.widget.setReadOnly(True)
+
+    def emit(self, record):
+        msg = self.format(record)
+        self.widget.appendPlainText(msg)
+        self.widget.moveCursor(QtGui.QTextCursor.End)
 
 
 class Ui_MainWindow1(object): #setup for the main app; setup window frame settings, add widgets, set layouts
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.setEnabled(True)
-        
+
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.centralwidget.setObjectName("centralwidget")
-        
+
         self.gridLayout_1 = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout_1.setObjectName("gridLayout_1")
-        
+
         self.horizontalLayout_1 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_1.setObjectName("horizontalLayout_1")
-        
+
         self.label_1 = QtWidgets.QLabel(self.centralwidget)
         self.label_1.setObjectName("label_1")
         self.label_2 = QtWidgets.QLabel(self.centralwidget)
         self.label_2.setObjectName("label_2")
         self.progressBar = QtWidgets.QProgressBar(self.centralwidget)
         self.progressBar.setProperty("value", 24)
-        self.progressBar.setObjectName("progressBar")        
-        
+        self.progressBar.setObjectName("progressBar")
+
         self.formLayout_1 = QtWidgets.QFormLayout()
         self.formLayout_1.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.formLayout_1.setObjectName("formLayout_1")
@@ -48,7 +73,7 @@ class Ui_MainWindow1(object): #setup for the main app; setup window frame settin
         self.formLayout_3 = QtWidgets.QFormLayout()
         self.formLayout_3.setFormAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.formLayout_3.setObjectName("formLayout_3")
-        
+
         self.label_3 = QtWidgets.QLabel(self.centralwidget)
         self.label_3.setObjectName("label_3")
         self.label_3t = QtWidgets.QLabel(self.centralwidget)
@@ -70,111 +95,122 @@ class Ui_MainWindow1(object): #setup for the main app; setup window frame settin
         self.horizontalLayout_1.addWidget(self.label_2)
         self.horizontalLayout_1.addLayout(self.formLayout_1)
         self.horizontalLayout_1.addLayout(self.formLayout_2)
-        self.horizontalLayout_1.addLayout(self.formLayout_3)        
-        self.horizontalLayout_1.addWidget(self.progressBar)        
+        self.horizontalLayout_1.addLayout(self.formLayout_3)
+        self.horizontalLayout_1.addWidget(self.progressBar)
         self.gridLayout_1.addLayout(self.horizontalLayout_1, 0, 0, 1, 2)
-        
+
         self.verticalLayout_1 = QtWidgets.QVBoxLayout()
         self.verticalLayout_1.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
         self.verticalLayout_1.setObjectName("verticalLayout_1")
-        
+
         self.label_6 = QtWidgets.QLabel(self.centralwidget)
         self.label_6.setObjectName("label_6")
-        self.textEdit = QtWidgets.QTextEdit(self.centralwidget)
+        logTextBox = QTextEditLogger(self.centralwidget)
+        self.textEdit = logTextBox.widget
         self.textEdit.setReadOnly(True)
         self.textEdit.setObjectName("textEdit")
 
-        self.verticalLayout_1.addWidget(self.label_6)        
-        self.verticalLayout_1.addWidget(self.textEdit)        
+        self.verticalLayout_1.addWidget(self.label_6)
+        self.verticalLayout_1.addWidget(self.textEdit)
         self.gridLayout_1.addLayout(self.verticalLayout_1, 2, 0, 1, 1)
-        
+
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.widget_1 = QtWidgets.QWidget(self.centralwidget)
-        self.widget_1.setObjectName("widget_1")
-        self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.widget_1)
-        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        # self.widget_1 = QtWidgets.QWidget(self.centralwidget)
+        # self.widget_1.setObjectName("widget_1")
+        # self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.widget_1)
+        # self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.verticalLayout_2.setSpacing(0)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.formLayout_4 = QtWidgets.QFormLayout()
         self.formLayout_4.setObjectName("formLayout_4")
-        
+
         self.pushButton_1 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_1.setObjectName("pushButton_1")
-        self.label_7 = QtWidgets.QLabel(self.widget_1)
+        self.label_7 = QtWidgets.QLabel(self.centralwidget)
         self.label_7.setObjectName("label_7")
-        self.pushButton_2a = QtWidgets.QPushButton(self.widget_1)
+        self.pushButton_2a = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_2a.setObjectName("pushButton_2a")
-        self.pushButton_2b = QtWidgets.QPushButton(self.widget_1)
+        self.pushButton_2b = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_2b.setObjectName("pushButton_2b")
-        self.label_8a = QtWidgets.QLabel(self.widget_1)
+        self.label_8a = QtWidgets.QLabel(self.centralwidget)
         self.label_8a.setObjectName("label_8a")
-        self.label_8b = QtWidgets.QLabel(self.widget_1)
+        self.label_8b = QtWidgets.QLabel(self.centralwidget)
         self.label_8b.setObjectName("label_8b")
-        self.label_8c = QtWidgets.QLabel(self.widget_1)
+        self.label_8c = QtWidgets.QLabel(self.centralwidget)
         self.label_8c.setObjectName("label_8c")
-        self.spinBox_1 = QtWidgets.QSpinBox(self.widget_1)
+        self.spinBox_1 = QtWidgets.QSpinBox(self.centralwidget)
         self.spinBox_1.setObjectName("spinBox_1")
-        self.spinBox_2 = QtWidgets.QSpinBox(self.widget_1)
+        self.spinBox_2 = QtWidgets.QSpinBox(self.centralwidget)
         self.spinBox_2.setObjectName("spinBox_2")
-        self.spinBox_3 = QtWidgets.QSpinBox(self.widget_1)
+        self.spinBox_3 = QtWidgets.QSpinBox(self.centralwidget)
         self.spinBox_3.setObjectName("spinBox_3")
-        self.pushButton_3 = QtWidgets.QPushButton(self.widget_1)
-        self.pushButton_3.setObjectName("pushButton_3")        
-        self.pushButton_4 = QtWidgets.QPushButton(self.widget_1)
-        self.pushButton_4.setObjectName("pushButton_4")        
-        self.pushButton_5 = QtWidgets.QPushButton(self.widget_1)
-        self.pushButton_5.setObjectName("pushButton_5")        
-        self.pushButton_6 = QtWidgets.QPushButton(self.widget_1)
-        self.pushButton_6.setObjectName("pushButton_6")        
-        self.pushButton_7 = QtWidgets.QPushButton(self.widget_1)
-        self.pushButton_7.setObjectName("pushButton_7")        
+        self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_3.setObjectName("pushButton_3")
+        self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_4.setObjectName("pushButton_4")
+        self.pushButton_5 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_5.setObjectName("pushButton_5")
+        self.pushButton_6 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_6.setObjectName("pushButton_6")
+        self.pushButton_7 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_7.setObjectName("pushButton_7")
 
-        self.horizontalLayout_2.addWidget(self.label_7)        
-        self.horizontalLayout_2.addWidget(self.pushButton_2a)        
+        self.horizontalLayout_2.addWidget(self.label_7)
+        self.horizontalLayout_2.addWidget(self.pushButton_2a)
         self.horizontalLayout_2.addWidget(self.pushButton_2b)
-        
+
         self.formLayout_4.addRow(self.label_8a,self.spinBox_1)
         self.formLayout_4.addRow(self.label_8b,self.spinBox_2)
         self.formLayout_4.addRow(self.label_8c,self.spinBox_3)
 
-        self.verticalLayout_3.addLayout(self.horizontalLayout_2)        
-        self.verticalLayout_3.addLayout(self.formLayout_4)
-        self.verticalLayout_3.addWidget(self.pushButton_3)
-        self.verticalLayout_3.addWidget(self.pushButton_4)
-        self.verticalLayout_3.addWidget(self.pushButton_5)
-        self.verticalLayout_3.addWidget(self.pushButton_6)
-        self.verticalLayout_3.addWidget(self.pushButton_7)
-        
         self.verticalLayout_2.addWidget(self.pushButton_1)
-        self.verticalLayout_2.addWidget(self.widget_1)        
-        self.widget_1.setEnabled(False)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_2)
+        self.verticalLayout_2.addLayout(self.formLayout_4)
+        self.verticalLayout_2.addWidget(self.pushButton_3)
+        self.verticalLayout_2.addWidget(self.pushButton_4)
+        self.verticalLayout_2.addWidget(self.pushButton_5)
+        self.verticalLayout_2.addWidget(self.pushButton_6)
+        self.verticalLayout_2.addWidget(self.pushButton_7)
+
+        # self.verticalLayout_2.addWidget(self.widget_1)
+        # self.widget_1.setEnabled(False)
 
         self.gridLayout_1.addLayout(self.verticalLayout_2, 1, 0, 1, 1)
         
+        ##logging start
+        logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        logging.getLogger().addHandler(logTextBox)
+        logging.getLogger().setLevel(logging.DEBUG)
+        threads = aThread()
+        threads.start()
+        threads.finished.connect(self.close)
+        threads.updt_chk.connect(self.msg)
+        ##logging end
+
         ##folium start
-        coordinate = (37.8199286, -122.4782551)                                      
-        m = folium.Map(                                                              
+        coordinate = (37.8199286, -122.4782551)
+        m = folium.Map(
         	tiles='https://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}',
-            attr='Google Satellite Map',                                             
-        	zoom_start=13,                                                           
-            max_zoom=22,                                                             
-            location=coordinate                                                      
-        )                                                                            
-                                                                                     
-        folium.Marker(location=coordinate,popup='start').add_to(m)                   
-        fmtr = "function(num) {return L.Util.formatNum(num, 3) + ' º ';};"           
-        MousePosition(position='topright', separator=' | ', prefix="Mouse:",         
-        lat_formatter=fmtr, lng_formatter=fmtr).add_to(m)                            
-                                                                                     
-        # save map data to data object                                               
-        data = io.BytesIO()                                                          
-        m.save(data, close_file=False)                                               
-                                                                                     
-        self.webView = QtWebEngineWidgets.QWebEngineView(self.centralwidget)         
-        self.webView.setHtml(data.getvalue().decode())                               
-        self.gridLayout_1.addWidget(self.webView, 1, 1, 2, 1)                        
+            attr='Google Satellite Map',
+            zoom_start=13,
+            max_zoom=22,
+            location=coordinate
+        )
+
+        folium.Marker(location=coordinate,popup='start').add_to(m)
+        fmtr = "function(num) {return L.Util.formatNum(num, 3) + ' º ';};"
+        MousePosition(position='topright', separator=' | ', prefix="Mouse:",
+        lat_formatter=fmtr, lng_formatter=fmtr).add_to(m)
+
+        # save map data to data object
+        data = io.BytesIO()
+        m.save(data, close_file=False)
+
+        self.webView = QtWebEngineWidgets.QWebEngineView(self.centralwidget)
+        self.webView.setHtml(data.getvalue().decode())
+        self.gridLayout_1.addWidget(self.webView, 1, 1, 2, 1)
         ##folium end
 
         self.gridLayout_1.setColumnStretch(1, 1)
@@ -182,26 +218,36 @@ class Ui_MainWindow1(object): #setup for the main app; setup window frame settin
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-        
-        self.pushButton_1.clicked.connect(self.enwi)
-        self.pushButton_2a.clicked.connect(self.configuration)
-        self.pushButton_2b.clicked.connect(lambda:self.configuration(True))
-        
-    def enwi(self):
-        self.widget_1.setEnabled(True)
-        self.configuration(False)
-    
-    def configuration(self, check):
-        self.pushButton_2a.setEnabled(check)
-        self.pushButton_2b.setEnabled(not check)
-        self.pushButton_3.setEnabled(check)
-        self.pushButton_4.setEnabled(check)
-        self.pushButton_5.setEnabled(check)
-        self.pushButton_6.setEnabled(check)
-        self.pushButton_7.setEnabled(check)
-        self.spinBox_1.setEnabled(not check)
-        self.spinBox_2.setEnabled(not check)
-        self.spinBox_3.setEnabled(not check)       
+
+        # self.pushButton_1.clicked.connect(self.enwi)
+        # self.pushButton_2a.clicked.connect(self.configuration)
+        # self.pushButton_2b.clicked.connect(lambda:self.configuration(True))       
+
+    def msg(self, val):
+        if val == 0:
+            logging.debug('damn, a bug')
+        elif val == 1:
+            logging.info('something to remember')
+        elif val == 2:
+            logging.warning('that\'s not right')
+        else:
+            logging.error('foobar')
+
+    # def enwi(self):
+        # self.widget_1.setEnabled(True)
+        # self.configuration(False)
+
+    # def configuration(self, check):
+        # self.pushButton_2a.setEnabled(check)
+        # self.pushButton_2b.setEnabled(not check)
+        # self.pushButton_3.setEnabled(check)
+        # self.pushButton_4.setEnabled(check)
+        # self.pushButton_5.setEnabled(check)
+        # self.pushButton_6.setEnabled(check)
+        # self.pushButton_7.setEnabled(check)
+        # self.spinBox_1.setEnabled(not check)
+        # self.spinBox_2.setEnabled(not check)
+        # self.spinBox_3.setEnabled(not check)
 
     def retranslateUi(self, MainWindow): #setup values for the given widgets and window
         _translate = QtCore.QCoreApplication.translate
@@ -228,29 +274,29 @@ class Ui_MainWindow1(object): #setup for the main app; setup window frame settin
         self.pushButton_6.setText(_translate("MainWindow", "Autonomous Move"))
         self.pushButton_7.setText(_translate("MainWindow", "Land"))
 
-#Subapp for displaying Camera and Parking Lot Occupancy with slider in between      
-class Ui_MainWindow2(object):       
+#Subapp for displaying Camera and Parking Lot Occupancy with slider in between
+class Ui_MainWindow2(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.setEnabled(True)
         MainWindow.resize(800,400)
-        
+
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        
+
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        
+
         self.splitter = QtWidgets.QSplitter(self.centralwidget)
         self.splitter.setChildrenCollapsible(False)
         self.splitter.setObjectName("splitter")
         MainWindow.setStyle(QtWidgets.QStyleFactory.create('Cleanlooks'))
-        
+
         self.pushButton_1 = QtWidgets.QPushButton(self.splitter)
         self.pushButton_1.setObjectName("pushButton_1")
         self.pushButton_2 = QtWidgets.QPushButton(self.splitter)
         self.pushButton_2.setObjectName("pushButton_2")
-        
+
         self.horizontalLayout.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
 
