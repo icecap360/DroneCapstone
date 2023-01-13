@@ -40,8 +40,7 @@ class Configure(State):
             self.maxHoverHeight)
         super().init()
     def evalNewState(self):
-        # this is a permanent state
-        return None
+        return Idle(self.context, {})
 
 class Idle(State):
     def __init__(self,context, command,name='Idle'):
@@ -49,18 +48,14 @@ class Idle(State):
     def init(self):
         super().init()
     def evalNewState(self):
-        print(self.context.opAppInterface.isConnected())
         if not self.context.opAppInterface.isConnected():
             return None
         command = self.context.opAppInterface.getMessage()
-        if command != None:
-            if (command['Type'] == 'Launch' and command['Mode'] != 'Configure' and 
-                    self.context.topicInterface.getBatteryInfo().percentage > 0.2):
-                return Takeoff(self.context,{})
-            elif command['Type'] == 'Launch' and command['Mode'] == 'Configure':
-                return Configure(self.context, command)
-            else:
-                return None
+        if (command != None and command['Type'] == 'Arm' and
+                self.context.topicInterface.getBatteryInfo().percentage > 0.2):
+            return Arm(self.context,{})
+        elif command != None and command['Type'] == 'Configure':
+            return Configure(self.context, command)
         else:
             return None
 
@@ -79,7 +74,7 @@ class Malfunction(State):
         self.context.servInterface.setArm(False)
         rospy.loginfo("Vehicle disarmed")
     def evalNewState(self):
-        if self.context.topicInterface.getRelAlt() < 0.2:
+        if not self.context.topicInterface.getState().armed:
             return Idle(self.context, {})
         return None
 
@@ -102,7 +97,7 @@ class CommunicationLost(State):
     def evalNewState(self):
         if self.context.opAppInterface.isConnected():
             return Hover(self.context, {})
-        elif self.context.topicInterface.getRelAlt() < 0.2:
+        elif not self.context.topicInterface.getState().armed:
             return Idle(self.context, {})
         return None
 
@@ -157,7 +152,7 @@ class Land(State):
         self.context.servInterface.setMode('RTL')
         super().init()
     def evalNewState(self):
-        if self.context.topicInterface.getRelAlt() < 0.2:
+        if not self.context.topicInterface.getState().armed:
             return Idle(self.context,{})
         return None
     def exit(self):
@@ -202,36 +197,55 @@ class AutonomousMove(FlightState):
             return DesiredLocationError(self.context, {})
         return super().evalNewState()
 
-class Takeoff(State):
-    def __init__(self,context, command,name='Takeoff'):
+class Arm(State):
+    def __init__(self,context, command,name='Arm'):
         super().__init__(context, command, name)
     def init(self):
         rospy.loginfo("initializing...")
         # Wait for Flight Controller connection
         while(not rospy.is_shutdown() and not self.context.topicInterface.getState().connected):
             self.context.rate.sleep()
-
         rospy.loginfo("Connected...")
         self.context.saveHomeLoc()
         self.context.servInterface.setMode('GUIDED')
         rospy.sleep(4)
+        self.context.servInterface.setArm(True)
+        rospy.loginfo("Vehicle armed")
+        rospy.sleep(2)
         super().init()
-
     def during(self):
         if not self.context.topicInterface.getState().armed:
+            rospy.loginfo("Vehicle disarmed, rearming")
             self.context.servInterface.setArm(True)
             rospy.loginfo("Vehicle armed")
             rospy.sleep(2)
-            self.context.servInterface.sendTakeoffCmd(self.context.homeHoverPoseGlob)
-            rospy.loginfo("Taking off")
-            rospy.sleep(10)
-    
     def evalNewState(self):
         if not self.context.opAppInterface.isConnected():
             return CommunicationLost(self.context, {})
         #if not self.context.topicInterface.getHealthStatus():
         #    return Malfunction(self.context)
-        if self.context.topicInterface.getRelAlt() < self.context.homeHoverPoseGlob.altitude - 0.5:
-            return None
+        command = self.context.opAppInterface.getMessage()
+        if command != None and command['Type'] == 'Takeoff':
+            return Takeoff(self.context,{})
         else:
+            return None
+
+class Takeoff(State):
+    def __init__(self,context, command,name='Takeoff'):
+        super().__init__(context, command, name)
+    def init(self):
+        self.context.servInterface.sendTakeoffCmd(self.context.homeHoverPoseGlob)
+        rospy.loginfo("Taking off")
+        rospy.sleep(8)
+        super().init()
+    def evalNewState(self):
+        if not self.context.opAppInterface.isConnected():
+            return CommunicationLost(self.context, {})
+        #if not self.context.topicInterface.getHealthStatus():
+        #    return Malfunction(self.context)
+        if not self.context.topicInterface.getState().armed:
+            return Arm(self.conext, {})
+        elif self.context.topicInterface.getRelAlt() > self.context.homeHoverPoseGlob.altitude - 0.5:
             return Hover(self.context,{})
+        else:
+            return None
