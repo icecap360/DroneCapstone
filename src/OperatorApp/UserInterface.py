@@ -116,13 +116,6 @@ class Ui_MainWindow1(object): #setup for the main app; setup window frame settin
 
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        # self.widget_1 = QtWidgets.QWidget(self.centralwidget)
-        # self.widget_1.setObjectName("widget_1")
-        # self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.widget_1)
-        # self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        self.verticalLayout_2.setSpacing(0)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.formLayout_4 = QtWidgets.QFormLayout()
         self.formLayout_4.setObjectName("formLayout_4")
 
@@ -130,10 +123,6 @@ class Ui_MainWindow1(object): #setup for the main app; setup window frame settin
         self.pushButton_1.setObjectName("pushButton_1")
         self.label_7 = QtWidgets.QLabel(self.centralwidget)
         self.label_7.setObjectName("label_7")
-        self.pushButton_2a = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_2a.setObjectName("pushButton_2a")
-        self.pushButton_2b = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_2b.setObjectName("pushButton_2b")
         self.label_8a = QtWidgets.QLabel(self.centralwidget)
         self.label_8a.setObjectName("label_8a")
         self.label_8b = QtWidgets.QLabel(self.centralwidget)
@@ -146,6 +135,10 @@ class Ui_MainWindow1(object): #setup for the main app; setup window frame settin
         self.spinBox_2.setObjectName("spinBox_2")
         self.spinBox_3 = QtWidgets.QSpinBox(self.centralwidget)
         self.spinBox_3.setObjectName("spinBox_3")
+        self.pushButton_2a = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_2a.setObjectName("pushButton_2a")
+        self.pushButton_2b = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_2b.setObjectName("pushButton_2b")
         self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_3.setObjectName("pushButton_3")
         self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
@@ -157,25 +150,19 @@ class Ui_MainWindow1(object): #setup for the main app; setup window frame settin
         self.pushButton_7 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_7.setObjectName("pushButton_7")
 
-        self.horizontalLayout_2.addWidget(self.label_7)
-        self.horizontalLayout_2.addWidget(self.pushButton_2a)
-        self.horizontalLayout_2.addWidget(self.pushButton_2b)
-
         self.formLayout_4.addRow(self.label_8a,self.spinBox_1)
         self.formLayout_4.addRow(self.label_8b,self.spinBox_2)
         self.formLayout_4.addRow(self.label_8c,self.spinBox_3)
 
         self.verticalLayout_2.addWidget(self.pushButton_1)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.verticalLayout_2.addLayout(self.formLayout_4)
+        self.verticalLayout_2.addWidget(self.pushButton_2a)
         self.verticalLayout_2.addWidget(self.pushButton_3)
+        self.verticalLayout_2.addWidget(self.pushButton_2b)
         self.verticalLayout_2.addWidget(self.pushButton_4)
         self.verticalLayout_2.addWidget(self.pushButton_5)
         self.verticalLayout_2.addWidget(self.pushButton_6)
         self.verticalLayout_2.addWidget(self.pushButton_7)
-
-        # self.verticalLayout_2.addWidget(self.widget_1)
-        # self.widget_1.setEnabled(False)
 
         self.gridLayout_1.addLayout(self.verticalLayout_2, 1, 0, 1, 1)
         
@@ -219,10 +206,6 @@ class Ui_MainWindow1(object): #setup for the main app; setup window frame settin
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        # self.pushButton_1.clicked.connect(self.enwi)
-        # self.pushButton_2a.clicked.connect(self.configuration)
-        # self.pushButton_2b.clicked.connect(lambda:self.configuration(True))       
-
     def msg(self, val):
         if val == 0:
             logging.debug('damn, a bug')
@@ -232,22 +215,6 @@ class Ui_MainWindow1(object): #setup for the main app; setup window frame settin
             logging.warning('that\'s not right')
         else:
             logging.error('foobar')
-
-    # def enwi(self):
-        # self.widget_1.setEnabled(True)
-        # self.configuration(False)
-
-    # def configuration(self, check):
-        # self.pushButton_2a.setEnabled(check)
-        # self.pushButton_2b.setEnabled(not check)
-        # self.pushButton_3.setEnabled(check)
-        # self.pushButton_4.setEnabled(check)
-        # self.pushButton_5.setEnabled(check)
-        # self.pushButton_6.setEnabled(check)
-        # self.pushButton_7.setEnabled(check)
-        # self.spinBox_1.setEnabled(not check)
-        # self.spinBox_2.setEnabled(not check)
-        # self.spinBox_3.setEnabled(not check)
 
     def retranslateUi(self, MainWindow): #setup values for the given widgets and window
         _translate = QtCore.QCoreApplication.translate
@@ -268,7 +235,7 @@ class Ui_MainWindow1(object): #setup for the main app; setup window frame settin
         self.pushButton_1.setText(_translate("MainWindow", "Connect"))
         self.pushButton_2a.setText(_translate("MainWindow", "Configuration"))
         self.pushButton_2b.setText(_translate("MainWindow", "Take-off"))
-        self.pushButton_3.setText(_translate("MainWindow", "Launch"))
+        self.pushButton_3.setText(_translate("MainWindow", "Arm"))
         self.pushButton_4.setText(_translate("MainWindow", "Autonomous Explore"))
         self.pushButton_5.setText(_translate("MainWindow", "Compulsive Move"))
         self.pushButton_6.setText(_translate("MainWindow", "Autonomous Move"))
