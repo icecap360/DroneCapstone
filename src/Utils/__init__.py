@@ -1,2 +1,2 @@
-from Utils.BaseSocket import BaseSocket
+from Utils.Sockets import OperatorSocket, DroneSocket
 from Utils.Common import *

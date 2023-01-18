@@ -115,7 +115,7 @@ Muhammad Khan, khanm120}
 Oct 5, 2022 & 1.0 & Team Finalized SRS\\
 
 \bottomrule
-Oct 31, 2022 & 2.0 & Split up manual move and malfunction states, added transition requirement and performance requirements accordingly with bidirectional references - did not update state machine pictures, state transition table and traceability tables. Also added USE\_005 which may require new references. Added new input, m\_CompulsiveMove. Added hover state lock. Removed 90\% exploration requirement. 
+Oct 31, 2022 & 2.0 & Split up Autonomous Move and malfunction states, added transition requirement and performance requirements accordingly with bidirectional references - did not update state machine pictures, state transition table and traceability tables. Also added USE\_005 which may require new references. Added new input, m\_CompulsiveMove. Added hover state lock. Removed 90\% exploration requirement. 
 \\
 
 \bottomrule
@@ -190,8 +190,8 @@ The product is powered on and communicating with the operator application, but a
 \subsubsection{Hover State}
 \label{Hover State}
 The product maintains its current longitudinal and latitudinal position, and hovers at a pre-defined operator selected height. 
-\subsubsection{Manual Move State}
-\label{Manual Move State}
+\subsubsection{Autonomous Move State}
+\label{Autonomous Move State}
 If the Operator requests to move to a specific location within the parking lot, the product shall move to that location and hover at a pre-defined operator-selected height. Note that this height does not need to be the same as the height specified in the Hover State. 
 \subsubsection{Compulsive Move State}
 \label{Compulsive Move State}
@@ -220,28 +220,36 @@ This error state occurs when an internal/external malfunction occurs in such a w
 \subsubsection{Communication Lost State}
 \label{Communication Lost State}
 This error state occurs when the product has lost connection or has a very weak connection so the Operator's Application, and shall provide the appropriate error message to the operator.
-
+\subsubsection{Arm State}
+\label{Arm State}
+During this state the drone shall arm and remain armed.
+\subsubsection{Takeoff State}
+\label{Takeoff State}
+During this state, the vehicle shall take off the ground towards m\_MaxHoverHeight.
 
 The normal modes of operation include the following:
 \begin{itemize}
   \item Idle State
   \item Hover State
-  \item Manual Move State
+  \item Autonomous Move State
   \item Compulsive Move State
   \item Autonomous Explore State
   \item Configure State
   \item Off State
+  \item Arm State
+  \item Takeoff State
 \end{itemize}
 The flight modes of operation \label{flightModes} include the following:
 \begin{itemize}
   \item Hover State
-  \item Manual Move State
-  \item Compulsive Manual Move
+  \item Takeoff State
+  \item Autonomous Move State
+  \item Compulsive Autonomous Move
   \item Autonomous Explore State
    \item No Parking Lot Detected Error State
    \item Desired Location Out of Bounds Error State
 \end{itemize}
-With the exception of the Configure State and Off State, the product shall update continuously update c_CurrentView and c_OccupancyMap for the operator. These requirements are further refined within \nameref{sec:funcReqs}. 
+With the exception of the Configure State and Off State, the product shall update continuously update c\_CurrentView and c\_OccupancyMap for the operator. These requirements are further refined within \nameref{sec:funcReqs}. 
 
 The error modes are listed below:
 \begin{itemize}
@@ -315,8 +323,7 @@ Input Variables: Input variables are set/configured before any flight operations
 \hline
  Variable Name & Type & Unit & Description \\ 
  \hline
-i\_Mode & Enumeration & 	0 - Normal, 1 - Configure &	Set by the user to choose whether they want to configure internal parameters or if they want regular operation. \\
-\hline i\_MinHoverHeight & float	&m	& Minimum aerial hover height set by user\\
+ i\_MinHoverHeight & float	&m	& Minimum aerial hover height set by user\\
 \hline i\_MaxHoverHeight & float	&m	& Maximum aerial hover height set by user\\
 \hline i\_DesiredHoverHeight & float	&m	& Desired aerial hover height set by user\\
 \hline 
@@ -343,13 +350,21 @@ m\_Barometer	& Float&	atm	 &Altitude detection using atmospheric pressure measur
 \hline
 m\_DesiredUserLoc &	GPS Location& DMS &	 Desired location of the aerial drone set by user.\\
 \hline
-m\_Launch &	Boolean	 &  - &	Indicates if the operator desires the drone to begin operation and turn on all peripherals.  \\
+m\_Arm &	Boolean	 &  - &	Indicates if the operator desires the drone to arm.  \\
+\hline
+m\_Configure &	Boolean	 &  - &	Indicates if the operator desires the drone to configure height parameters.  \\
+\hline
+m\_Takeoff &	Boolean	 &  - &	Indicates if the operator desires the drone to takeoff.  \\
 \hline
 m\_AutonomousExplore &	Boolean &	 -	 &Indicates if the operator desires the drone to autonomously explore the parking lot.\\ 
+\hline
+m\_AutonomousMove &	Boolean &	 -	 & Indicates if the operator desires the drone to go to a specific GPS location through the Autonomous Move State.\\ 
 \hline
 m\_CompulsiveMove &	Boolean &	 -	 &Indicates if the operator desires the drone to go to a specific GPS location through the Compulsive Move State.\\ 
 \hline
 m\_PowerOn&	Boolean  &	- &	Indicates if the operator desires the drone to be On or Off.\\
+\hline
+m\_BatteryCapacity&	Float  &	sec &	Estimated flight time in battery remaining. \\
 \hline
 m\_Land&Boolean&	-&	Indicates if the operator desires the drone to land.\\
 \hline
@@ -391,7 +406,7 @@ c\_ParkingLotDetected&	Boolean &	-&	Indicated if a parking lot is detected in th
 \hline
 c\_UserError &	Enumeration &	0 - None,
 1 - Desired_Location_Out_Of_Bounds,
-2 - No_Lot_Detected_State&	Indicates if a command the user requested is not feasible.\\
+2 - No_Lot_Detected&	Indicates if a command the user requested is not feasible.\\
 \hline
 c\_HealthStatus &	Enumeration &	0 - Healthy,
 1 - Unhealthy&	Indicates if the drone's mechanical and electrical state allows it to safely fly.  For example if there is mechanical damage, the value should be Unhealthy.\\
@@ -568,7 +583,7 @@ Associated Inputs and Outputs & m\_PowerOn and c\_Connected. \\
 \label{STA_001}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall implement a Hover State. During this state, the solution shall fly and hover to height i\_MaxHoverHeight. The drone shall keep the same lateral location it is currently at. The drone cannot transition to another flight state until it has reached a height of i\_MaxHoverHeight. This requirement is a refinement of the \nameref{Hover State} and is further refined by \nameref{PERF_002}, \nameref{PERF_004}, \nameref{PERF_005}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
+Description & The product shall implement a Hover State. During this state, the solution shall fly to and hover at a height of i\_MaxHoverHeight. The drone shall keep the same lateral location it is currently at. The drone cannot transition to another flight state until it has reached a height of i\_MaxHoverHeight. This requirement is a refinement of the \nameref{Hover State} and is further refined by \nameref{PERF_002}, \nameref{PERF_004}, \nameref{PERF_005}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
 \hline
 Rationale & This state is used for when the product is waiting for further operator commands. Hover height is selected to be i\_MaxHoverHeight, so that the drone can see as much of the parking lot section as it can. This makes the transition to \nameref{Autonomous Explore State} more likely.
 The drone cannot exit the Hover state until it reaches i\_MaxHoverHeight. This feature is added to ensure that the drone moves does not move laterally until it has sufficient height. during this state. For example, if the drone is just launching from the ground, it is unsafe for the drone to transition to the \nameref{Autonomous Explore State} and move laterally (as it could collide with an object).    \\
@@ -589,9 +604,9 @@ Associated Inputs and Outputs & m\_Barometer, m\_Acceleration, m\_Gyroscope, m\_
 \label{STA_002}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall implement a Manual Move State. During this state, the drone moves to the m\_DesiredUserLoc if it is within the parking lot, and hovers at that location with height i\_DesiredHoverHeight. This requirement is a refinement of the \nameref{Manual Move State} and is further refined by \nameref{PERF_003}, \nameref{PERF_004}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}, and \nameref{PERF_008}. \\
+Description & The product shall implement an Autonomous Move State. During this state, the drone moves to the m\_DesiredUserLoc if it is within the parking lot, and hovers at that location with height i\_DesiredHoverHeight. This requirement is a refinement of the \nameref{Autonomous Move State} and is further refined by \nameref{PERF_003}, \nameref{PERF_004}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}, and \nameref{PERF_008}. \\
 \hline
-Rationale & This state is used for when the the product needs to provide the operator the ability to move the drone to a specific location. \\
+Rationale & This state is used for when the product needs to provide the operator the ability to move the drone to a specific location, with the functionality of stopping motion if the location is invalid. \\
 \hline
 Phase & II \\
 \hline
@@ -637,7 +652,7 @@ Phase & II \\
 \hline
 Likely to Change & No. This requirement is required to ensure safety of the operator, as well as the product from unsafe changes during operation. \\
 \hline
-Associated Inputs and Outputs & i\_Mode, i\_MinHoverHeight, i\_MaxHoverHeight, and i\_DesiredHoverHeight. \\
+Associated Inputs and Outputs &  i\_MinHoverHeight, i\_MaxHoverHeight, and i\_DesiredHoverHeight. \\
 \hline
 \end{tabular}
 \end{center}
@@ -669,7 +684,7 @@ Associated Inputs and Outputs & c\_UserError, c\_HealthStatus, c\_Connected, c\_
 \label{STA_006}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall implement a Land state. In the land state the solution first travel laterally to the initial launch location, and then lands vertically downward. Once physically landed, the drone enters the Idle state. This requirement is a refinement of the \nameref{Land State} and is further refined by \nameref{PERF_002}, \nameref{PERF_004}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
+Description & The product shall implement a Land state. In the land state the solution first travel laterally to the initial launch location, and then lands vertically downward. After landing the drone enters the disarms and enters the Idle state. This requirement is a refinement of the \nameref{Land State} and is further refined by \nameref{PERF_002}, \nameref{PERF_004}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
 \hline
 Rationale & This state is used to explicitly designate a landing path and command. \\
 \hline
@@ -729,7 +744,7 @@ Associated Inputs and Outputs & m\_Barometer, m\_Acceleration, m\_Gyroscope, m\_
 \label{STA_009}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall implement a Malfunction state. Upon entry, the message "Major malfunction in drone detected, please inspect" shall be added to c\_Logs. During this state the drone sets the c\_HealthStatus to Unhealthy and sets c\_HealthStatus to Healthy upon exit. It then tries to land the product at its launch location, which if is not possible the drone instead lands vertically on the land below. After landing the drone enters the Off state. This requirement is a refinement of the \nameref{Malfunction State} and is further refined by \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
+Description & The product shall implement a Malfunction state. Upon entry, the message "Major malfunction in drone detected, please inspect" shall be added to c\_Logs. During this state the drone sets the c\_HealthStatus to Unhealthy and sets c\_HealthStatus to Healthy upon exit. It then tries to land the product at its launch location, which if is not possible the drone instead lands vertically on the land below. After landing the drone enters the disarms and enters the Idle state. This requirement is a refinement of the \nameref{Malfunction State} and is further refined by \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
 \hline
 Rationale & This state is used to ensure that the product can handle large malfunctions that can occur during operation. \\
 \hline
@@ -749,7 +764,7 @@ Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_
 \label{STA_010}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall implement a Communication Lost state. During this state, the drone sets the c\_HealthStatus to Unhealthy, and a message "Connection with drone lost." is sent to the Operator's Application. Upon exit, "Connection with drone established." is logged to c\_Logs and c\_HealthStatus to Healthy. It then tries to land at its launch location and turn off. After landing the drone enters the Off state. This requirement is a refinement of the \nameref{Communication Lost State} and is further refined by \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
+Description & The product shall implement a Communication Lost state. During this state, the drone sets the c\_HealthStatus to Unhealthy, and a message "Connection with drone lost." is sent to the Operator's Application. Upon exit, "Connection with drone established." is logged to c\_Logs and c\_HealthStatus to Healthy. While in this state, the product tries to land at its launch location. After landing the drone enters the disarms and enters the Idle state. This requirement is a refinement of the \nameref{Communication Lost State} and is further refined by \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
 \hline
 Rationale & This state is used to ensure that the product can handle large malfunctions that can occur during operation. \\
 \hline
@@ -762,6 +777,7 @@ Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_
 \end{tabular}
 \end{center}
 \end{table}
+
 \clearpage
 \newpage
 
@@ -785,6 +801,46 @@ Associated Inputs and Outputs & m\_DesiredUserLoc, m\_Barometer, m\_Acceleration
 \end{center}
 \end{table}
 
+
+\begin{table}[!h]
+\begin{center}
+\caption {STA\_012} 
+\label{STA_012}
+\begin{tabular}{ | m{3cm} | m{11cm} | }
+\hline
+Description & The product shall implement an Arm state. During this state, the drone attempts to arm the motor. Arming is essentially having the all motors spin, but not spin fast enough to generate liftoff. This requirement is a refinement of the \nameref{Arm State} and is further refined by \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
+\hline
+Rationale & This state is used to ensure that the product can handle large malfunctions that can occur during operation. \\
+\hline
+Phase & II \\
+\hline
+Likely to Change & No. This requirement is required to handle malfunctioning components during operation. \\
+\hline
+Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_gps, c\_healthStatus, and c\_motorSpeed. \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[!h]
+\begin{center}
+\caption {STA\_013} 
+\label{STA_013}
+\begin{tabular}{ | m{3cm} | m{11cm} | }
+\hline
+Description & The product shall implement a Takeoff state. During this state, the drone attempts to takeoff to i\_MaxHoverHeight. Arming is essentially having the all motors spin, but not spin fast enough to generate liftoff. This requirement is a refinement of the \nameref{Takeoff State} and is further refined by \nameref{PERF_002}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
+\hline
+Rationale & This state is used to ensure that the product can handle large malfunctions that can occur during operation. \\
+\hline
+Phase & II \\
+\hline
+Likely to Change & No. This requirement is required to handle malfunctioning components during operation. \\
+\hline
+Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_gps, c\_healthStatus, and c\_motorSpeed. \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
 
 \subsubsection{State Transition Requirements}
 \label{transReqs}
@@ -814,7 +870,7 @@ Associated Inputs and Outputs & m\_PowerOn. \\
 \label{TRANS_002}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & Upon the m\_PowerOn becoming true, the drone shall enter the Idle state. This requirement references the \nameref{Idle State} and the requirement \nameref{SAFE_005}. \\
+Description & While in the \nameref{Off State}, upon the m\_PowerOn becoming true, the drone shall enter the Idle state. This requirement references the \nameref{Idle State} and the requirement \nameref{SAFE_005}. \\
 \hline
 Rationale & This requirement ensures that the propellers do not damage the operator after touching the m\_PowerOn switch.  \\
 \hline
@@ -832,13 +888,13 @@ Associated Inputs and Outputs & m\_PowerOn. \\
 \label{TRANS_003}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & Upon the m\_Launch becoming true, the drone shall enter the Hover state if the i\_Mode was set to normal, and enters the Configure state if the i\_Mode was set to configure. This requirement references the \nameref{Hover State} and the \nameref{Configure State}. \\
+Description & While in the \nameref{Idle State}, upon the m\_Arm becoming true the drone shall enter the Arm state. And upon the m\_Configure the drone should enter the Configure state. This requirement references the \nameref{Arm State} and the \nameref{Configure State}. \\
 \hline
 Rationale & This requirement facilitates the setup and configuration of the product.  \\
 \hline
 Phase & II \\
 \hline
-Associated Inputs and Outputs & m\_Launch and i\_Mode. \\
+Associated Inputs and Outputs & m\_Arm and m\_Configure. \\
 \hline
 \end{tabular}
 \end{center}
@@ -868,7 +924,7 @@ Associated Inputs and Outputs & c\_ParkingLotDetected. \\
 \label{TRANS_005}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & Once the user enters or changes m\_DesiredUserLoc and m\_CompulsiveMove is asserted as false, the drone shall automatically enter the Manual Move state. This requirement references the \nameref{Manual Move State}. \\
+Description & Upon m\_AutonomousMove is asserted to true, the drone shall automatically enter the Autonomous Move state. This requirement references the \nameref{Autonomous Move State}. \\
 \hline
 Rationale & This requirement ensures that the product shall take the operator's request with higher priority than any other kind of operation. \\
 \hline
@@ -886,7 +942,7 @@ Associated Inputs and Outputs & m\_DesiredUserLoc, m\_CompulsiveMove. \\
 \label{TRANS_006}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & If while in the Manual Move state and the product determines that m\_DesiredUserLoc is outside parking lot boundaries, the product shall enter the Desired Location Error state. This requirement references the \nameref{Manual Move State} and the \nameref{Desired Location Error State}. \\
+Description & If while in the Autonomous Move State and the product determines that m\_DesiredUserLoc is outside parking lot boundaries, the product shall enter the Desired Location Error state. This requirement references the \nameref{Autonomous Move State} and the \nameref{Desired Location Error State}. \\
 \hline
 Rationale & This requirement ensures that the product shall notify any issues with the operator's request at the moment it is detected, so that the operator can make adjustments. \\
 \hline
@@ -994,13 +1050,67 @@ Associated Inputs and Outputs & c\_Connected. \\
 \label{TRANS_012}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & Once the user enters or changes m\_DesiredUserLoc and m\_CompulsiveMove is asserted as true, the drone shall automatically enter the Compulsive Move state. This requirement references the \nameref{Compulsive Move State}. \\
+Description & Upon the user asserting m\_CompulsiveMove is as true, the drone shall automatically enter the Compulsive Move state. This requirement references the \nameref{Compulsive Move State}. \\
 \hline
 Rationale & This requirement ensures that the product shall take the operator's request with higher priority than any other kind of operation. \\
 \hline
 Phase & II \\
 \hline
 Associated Inputs and Outputs & m\_DesiredUserLoc, m\_CompulsiveMove. \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[!h]
+\begin{center}
+\caption {TRANS\_013} 
+\label{TRANS_013}
+\begin{tabular}{ | m{3cm} | m{11cm} | }
+\hline
+Description & While in the \nameref{Arm State}, upon the m\_Takeoff becoming true the drone shall enter the Arm state. This requirement references the \nameref{Arm State} and the \nameref{Takeoff State}. \\
+\hline
+Rationale & This requirement facilitates breaking up the launching process so that if there are any issues they can be detected early.  \\
+\hline
+Phase & II \\
+\hline
+Associated Inputs and Outputs & m\_Takeoff. \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[!h]
+\begin{center}
+\caption {TRANS\_014} 
+\label{TRANS_014}
+\begin{tabular}{ | m{3cm} | m{11cm} | }
+\hline
+Description & While in the \nameref{Takeoff State}, upon the drone reaching within 1 meter of i\_MaxHoverHeight, the drone should transition to the \nameref{Hover State}. This requirement references the \nameref{Hover State} and the \nameref{Takeoff State}. \\
+\hline
+Rationale & This requirement facilitates the setup and configuration of the product.  \\
+\hline
+Phase & II \\
+\hline
+Associated Inputs and Outputs & m\_Barometer. \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[!h]
+\begin{center}
+\caption {TRANS\_015} 
+\label{TRANS_015}
+\begin{tabular}{ | m{3cm} | m{11cm} | }
+\hline
+Description & While in the \nameref{Configure State}, once the height parameters have been updated, the drone should transition back to the \nameref{Idle State}. This requirement references the \nameref{Configure State} and the \nameref{Idle State}. \\
+\hline
+Rationale & This requirement facilitates the setup and configuration of the product.  \\
+\hline
+Phase & II \\
+\hline
+Associated Inputs and Outputs & \\
 \hline
 \end{tabular}
 \end{center}
@@ -1034,6 +1144,15 @@ Functional Requirement & Non-functional requirement  \\
 \hline
 \nameref{STA_009} & \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}  \\
 \hline
+\hline
+\nameref{STA_010} & \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}  \\
+\hline
+\nameref{STA_011} & \nameref{PERF_003}, \nameref{PERF_004}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}  \\
+\hline
+\nameref{STA_012} & \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}  \\
+\hline
+\nameref{STA_013} & \nameref{PERF_002}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}  \\
+\hline
 
 \end{tabular}
 \end{center}
@@ -1047,13 +1166,13 @@ Functional Requirement & Non-functional requirement  \\
 \hline
 Functional Requirement & Function  \\
 \hline
-\nameref{GEN_001} & \nameref{Autonomous Explore State}  \\
+\nameref{GEN_001} & \nameref{Autonomous Explore State},\nameref{Autonomous Move State}  \\
 \hline
 \nameref{STA_000} & \nameref{Idle State}  \\
 \hline
-\nameref{STA_001} & \nameref{Autonomous Explore State}  \\
+\nameref{STA_001} & \nameref{Hover State}  \\
 \hline
-\nameref{STA_002} & \nameref{Manual Move State}  \\
+\nameref{STA_002} & \nameref{Autonomous Move State}  \\
 \hline
 \nameref{STA_003} & \nameref{Autonomous Explore State}  \\
 \hline
@@ -1189,7 +1308,7 @@ Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_
 \label{PERF_006}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & While the product is not hovering (moving from one location to another), it shall always maintain an altitude between i\_MaxHoverHeight and i\_MinHoverHeight, within a tolerance of ±5\%. This requirement are refinements of \nameref{STA_001}, \nameref{STA_002}, \nameref{STA_011} and \nameref{STA_003}.  \\
+Description & While the product is in a flying state that is not Takeoff the drone shall always maintain an altitude between i\_MaxHoverHeight and i\_MinHoverHeight, within a tolerance of ±5\%. This requirement are refinements of \nameref{STA_001}, \nameref{STA_002}, \nameref{STA_011} and \nameref{STA_003}.  \\
 \hline
 Rationale & The requirement ensures that the operator specified altitude limits are respected during operation of the product. \\
 \hline
@@ -1229,7 +1348,7 @@ Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_
 \label{PERF_008}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall maintain a longitudinal and lateral position within a 1.5m radius once the product has reached m\_DesiredUserLoc while in the \nameref{Manual Move State} or \nameref{Compulsive Move State}. This requirement is a refinement of \nameref{STA_002} and \nameref{STA_011}. \\
+Description & The product shall maintain a longitudinal and lateral position within a 1.5m radius once the product has reached m\_DesiredUserLoc while in the \nameref{Autonomous Move State} or \nameref{Compulsive Move State}. This requirement is a refinement of \nameref{STA_002} and \nameref{STA_011}. \\
 \hline
 Rationale & The requirement ensures that the product does not drift to a different location when the operator expects it to be stationary. \\
 \hline
@@ -1710,32 +1829,42 @@ Internal Sensors & Fady, Winnie and Ali & The Internal Sensors domain includes t
 \begin{center}
 \caption {State Transition Matrix: This is a formal specification of the finite state machine. The current states are written along the top row, and the transitions along the leftmost column. Other cells indicate the next state.  } 
 \label{TransTable}
-\begin{tabular}{ | m{2.5cm} | m{1cm} | m{1cm} | m{1.5cm} | m{1.5cm} | m{1cm} | m{1cm} | m{1cm} | m{1.5cm} | m{1cm} | m{1cm} | m{2cm} | } 
+\begin{tabular}{ | m{3cm} | m{1cm} | m{0.7cm} | m{1cm} | m{1cm} | m{1cm} | m{0.5cm} | m{1.5cm} | m{1cm} | m{0.8cm} | m{1.5cm} |  m{1.3cm} | m{1cm} | m{0.7cm} | m{0.8cm} |} 
 
 \hline
-- & Idle & Hover & Manual Move & \seqsplit{Autonomous Explore} & \seqsplit{Configuration}  & Off &	Desired Location Out of Bounds Error & \seqsplit{Malfunction} & Land & No Parking Lot Error Detected  \\
+- & Idle & Hover & \seqsplit{Autonomous Move} (AM) & \seqsplit{Autonomous Explore (AE)}  & \seqsplit{Configuration} (CON) & Off &	Desired Location Error (DLE) & \seqsplit{Malfunction} (MAL) & Land & No Parking Lot Error Detected & \seqsplit{Communication Lost} (CL) & \seqsplit{Compulsive Move} & Arm & \seqsplit{Takeoff} (TF) \\
 \hline
-\seqsplit{m\_PowerOn}  & - & - & - & - & - & Idle & - & - & - & -  \\
+\seqsplit{m\_PowerOn}  & - & - & - & - & - & Idle & - & - & - & - & - & - & - & -\\
 \hline
-\seqsplit{!m\_PowerOn} & Off & - & - & - & - & - & - & - & - & -  \\
+\seqsplit{!m\_PowerOn} & Off & - & - & - & - & - & - & - & - & - & - & - & - & -\\
 \hline
-m\_Launch \& i\_Mode == Normal & Hover & - & - & - & - & - & - & - & - & - \\
+m\_Arm \& m\_Connected \& m\_BatteryCapacity > 120 & Arm & - & - & - & - & - & - & - & - & - & - & - & - & -\\
 \hline
-m\_Launch \& i\_Mode == \seqsplit{Configure} & \seqsplit{Configuration} & - & - & - & - & - & - & - & -  & - \\
+m\_Configure & CON & - & - & - & - & - & - & - & -  & - & -  & - & - & -\\
 \hline
-m\_AutonomousExplore \& c\_ParkingLotDetected & - & \seqsplit{Autonomous Explore} & \seqsplit{Autonomous Explore} & \seqsplit{Autonomous Explore} & - & - & \seqsplit{Autonomous Explore} & - & - & \seqsplit{Autonomous Explore} \\
+m\_Takeoff & - & - & - & - & - & - & - & - & -  & - & -  & - & TF & -\\
 \hline
-c\_UserError == Desired_Location_Out_Of_Bounds & - & - & Desired Location Out of Bounds  & - & - & - & - & - & - & - \\
+m\_Barometer > m\_MaxHoverHeight - 1 & - & - & - & - & - & - & - & - & -  & - & -  & - & - & Hover\\
 \hline
-m\_Land & - & Land & Land & Land & - & - & Land & Land & Land & Land \\
+m\_Barometer == 0 & - & - & - & - & - & - & - & Idle & Idle  & - & -  & - & - & -\\
 \hline
-(\!c\_Connected) held for k\_ConnectionLostThresh & \seqsplit{Malfunction} & \seqsplit{Malfunction} & \seqsplit{Malfunction} & \seqsplit{Malfunction} & \seqsplit{Malfunction} & - & \seqsplit{Malfunction} & \seqsplit{Malfunction} & \seqsplit{Malfunction} & \seqsplit{Malfunction} \\
+m\_AutonomousExplore \& c\_ParkingLotDetected & - & AE & AE & AE & - & - & AE & - & - & AE & -  & AE & - & -\\
 \hline
-c\_ParkingLotDetected  & - & Autonomous Explore & - & - & - & - & - & - & - & - \\
+c\_UserError == Desired_Location_Out_Of_Bounds & - & - & DLE  & - & - & - & - & - & - & - & -  & - & - & -\\
 \hline
-k\_DesiredLocChanged & - & Manual Move & Manual Move & Manual Move & - & - & Manual Move & Manual Move & Manual Move & Manual Move \\
+m\_Land & - & Land & Land & Land & - & - & Land & Land & Land & Land & -  & Land & - & -\\
 \hline
-k\_OnGround  & - & - & - & - & - & - & - & Off & Off & - \\
+(c\_Connected == False) held for k\_ConnectionLostThresh & - & CL & CL & CL & - & - & CL & - & - & CL & -  & CL & - & -\\
+\hline
+(c\_Connected == True) held for k\_ConnectionLostThresh & - & - & - & - & - & - & - & - & - & - & Hover & - & - & - \\
+\hline
+c\_ParkingLotDetected  & - & AE & - & - & - & - & - & - & - & - & -  & - & - & -\\
+\hline
+m\_AutonomousMove & - & AM & AM & AM & - & - & AM & - & AM & AM & -  & AM & - & -\\
+\hline
+m\_CompulsiveMove & - & CM & CM & CM & - & - & CM & - & CM & CM & -  & CM & - & -\\
+\hline
+m\_BatteryCapacity < 120 sec  & MAL & MAL & MAL & MAL & MAL & - & MAL & - & MAL & MAL & MAL  & MAL & - & -\\
 \hline
 \end{tabular}
 \end{center}
