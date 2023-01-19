@@ -46,18 +46,7 @@
 \externaldocument{../../SRS/SRS}
 \externaldocument{../../VnVPlan/VnVPlan}
 \externaldocument{../SoftDetailedDes/MIS}
-
-\newcounter{acnum}
-\newcommand{\actheacnum}{AC\theacnum}
-\newcommand{\acref}[1]{AC\ref{#1}}
-
-\newcounter{ucnum}
-\newcommand{\uctheucnum}{UC\theucnum}
-\newcommand{\uref}[1]{UC\ref{#1}}
-
-\newcounter{mnum}
-\newcommand{\mthemnum}{M\themnum}
-\newcommand{\mref}[1]{M\ref{#1}}
+\externaldocument{../SoftArchitecture/MG}
 
 \begin{document}
 
@@ -337,7 +326,7 @@ Functional Requirement & Relevant Components & Component Reference \\
 \hline
 Non-Functional Requirement & Relevant Components & Component Reference \\
 \hline
-\nameref{PERF_001} & Path Planner Module & \nameref{MIS_PATH_PLANNER} \\ \hline
+\nameref{PERF_001} & Path Planner Module & \nameref{Path Plan App} \\ \hline
 \nameref{PERF_002} & Land State & \nameref{FlightStates} \\ \hline
 \nameref{PERF_003} & Autonomous Move State & \nameref{FlightStates} \\ \hline
 \nameref{PERF_004} & MessageSocket Module & \nameref{MIS_MESSAGE_SOCKET} \\ \hline
@@ -855,24 +844,24 @@ January 30, 2023 & Revise electrical design if required from previous test fligh
 \hline
 Date & Components/Description & Test Method & Responsible By \\
 \hline
-October 13, 2022 & Establish LAN communication between PC and drone. & 
+October 3, 2022 & Establish LAN communication between PC and drone. & 
     SSH into Raspberry Pi and verify bidirectional communication. & Ali, Winnie \\
 \hline
-October 17, 2022 & Establish MavROS communication with the flight controller. & 
+October 7, 2022 & Establish MavROS communication with the flight controller. & 
     Verify sensor readings sent by the flight controller, and ability to send commands to the flight controller. & Ali, Fady, Winnie \\
 \hline
-December 5, 2022 & Establish LAN communication between Windows PC and Software in the Loop (SITL) testing environment. The SITL testing environment is a series of applications that run on a Linux virtual machine. & 
+October 15, 2022 & Establish LAN communication between Windows PC and Software in the Loop (SITL) testing environment. The SITL testing environment is a series of applications that run on a Linux virtual machine. & 
     Demonstrate that a sample message (like 'Hello World') between separate python applications running on the two environments. & Zaid \\
 \hline
-December 25, 2022 & Write modules that present a usable interface for other modules to easily send and receive data. 
+October 20, 2022 & Write modules that present a usable interface for other modules to easily send and receive data. 
     Create modules to simplify the usage of ROS services and topics offered by MavROS and for sending and receiving JSON messages between the python applications running on the drone and PC. Given that the SITL environment replicates the drone environment, communication modules designed for the drone will also work on the SITL environment. & 
     Unit test the communication modules. For example, print the accelerometer values to the screen. Send and receive sample messages (like 'Hello World'). & Zaid \\
 \hline
-December 28, 2022 & Establish the ability to read live camera images, annotate the images, and send live image from the drone's camera to the Windows PC. & 
-    Watch live camera output seen on the Windows PC. Also annotate some text, such as 'Hello World' in the bottom left hand corner to verify that the image annotation works. & Ali \\
+October 25, 2022 & Create modules to simplify the usage of ROS services and topics, i.e. complete DDC Topic Interface, DDC Service interface, and Algorithm Interface. Given that the SITL environment replicates the drone environment, communication modules designed for the drone will also work on the SITL.  & 
+    Unit test the Topic Interface modules by printing sensor data to the screen. Unit test the Service modules in the SITL envirnment by calling the Arm service. The SITL environment should show the Copter armed.  & Ali \\
 \hline
-December 29, 2022 & Create a simple to use module that gets live images from the camera, send images to the operator's PC, and receive images to the operator's PC. & 
-    Unit test the modules by watching live camera output on the Windows PC. & Ali \\
+December 1, 2022 & Complete the Drone Camera and Operator Camera Services. In order to implement the modules one will have to learn how to read live camera images, annotate the images, and send live image from the drone's camera to the Windows PC. & 
+    Watch live camera output seen on the Windows PC. Also annotate some text, such as 'Hello World' in the bottom left hand corner to verify that the image annotation is visible on the Windows PC. & Ali \\
 \hline
 \end{tabular}
 \end{center}
@@ -882,21 +871,90 @@ December 29, 2022 & Create a simple to use module that gets live images from the
 \begin{center}
 \caption {Modules Timeline}
 \label{tab:moduleTimeline}
-\begin{tabular}{ | m{2.5cm} | m{7.5cm} | m{3cm} | m{2cm} | } 
+\begin{tabular}{ | m{2.5cm} | m{5cm} | m{5.5cm} | m{2cm} | } 
 \hline
 Date & Modules/Description & Test Method & Responsible By \\
 \hline
-December 25, 2022 & DroneSocket, OperatorSocket & 
-    Unit test the communication modules. For example, print the accelerometer values to the screen. Send and receive sample messages (like 'Hello World'). & Ali \\
+December 1, 2022 & Complete the widgets for the interface modules, User Interface and Main User Interface. The widgets don't need to do anything, but the form should be complete.   & 
+    The windows should appear visibly similar to the layout specified in the systems design. & Zaid \\
 \hline
-December 25, 2022 & DroneSocket, OperatorSocket & 
-    Unit test the communication modules. For example, print the accelerometer values to the screen. Send and receive sample messages (like 'Hello World'). & Ali \\
+December 3, 2022 & Complete the Main DDC Module, and the Main Algorithm Module. For the purposes of their development, create the Operation Manager and Algorithm Module, but leave the methods as empty. & 
+    In the SITL environment test that the two modules can be run as on the drone without crashing. & Ali \\
+\hline
+December 8, 2022 & Complete the Operation Manager module, as all of the modules it needs to use should have been developed prior to December 1st. For the purposes of this component write the abstract Operation State interface, and implement the simplest state, the Idle state. & 
+    Run the Main DDC Module. For unit testing purposes print the current Operation state, it should be Idle and the process should not crash. & Ali \\
 \hline
 \end{tabular}
 \end{center}
 \end{table}
 
-[todo]
+\begin{table}[!h]
+\begin{center}
+\begin{tabular}{ | m{2.5cm} | m{5cm} | m{5.5cm} | m{2cm} | } 
+\hline
+Date & Modules/Description & Test Method & Responsible By \\
+\hline
+December 20, 2022 & Add operation state classes for the non-autonomous flight states: Configure, Arm, Takeoff, Hover, Compulsive Move, Land, and Communication Lost States. In order to implement the transitions of the states, the User Interface will need to be modified and integrated with the state machine, e.g. when the arm button is clicked, the User Interface needs to send the convey the button click command to the Message Socket, which conveys the message to the Operation Manager, which conveys the message to the Operation State. & 
+    In the SITL environment run the following test case: 
+    \begin{enumerate}
+    \item Configure the height parameters to each be 10 meters.
+    \item Launch the drone from the user interface.
+    \item Do nothing and let the drone hover for 10 seconds.
+    \item From the user interface, make the drone move 50m forward.
+    \item Close the user interface (closes communication) and verify that drone attempts to land.
+    \item Open the user interface after closing, and verify that the drone hovers.
+    \item Use the user interface to land the drone.
+    \end{enumerate}
+    & Ali \\
+\hline
+December 28, 2022 & Create the Vision App, Mapper App, and Path Plan App modules. Leave their algorithm related methods empty, and make them publish NULL values for now. & 
+    In the SITL environment, run the Main Algorithm Module. The program should not crash. Print the topics that they publish using ROS' command line interface, NULL values should be seen. & Ali \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[!h]
+\begin{center}
+\begin{tabular}{ | m{2.5cm} | m{5cm} | m{5.5cm} | m{2cm} | } 
+\hline
+Date & Modules/Description & Test Method & Responsible By \\
+\hline
+December 31, 2022 & Implement the autonomous operation states, that will use the topics published by the Vision App, Mapper App, and Path Plan App modules: Autonomous Move, Autonomous Explore, Desired Location Error, No Parking Lot Detected Error States. In order to implement the transitions of the states, the User Interface will need to be modified and integrated with the state machine similar to the previous component. The Operations States module is now complete. & 
+    In the SITL environment, run the Main Algorithm Module and the Main DDC Module as concurrent processes. For unit testing purposes print the current Operation State on the Main DDC Module. The processes should not crash. Using the user interface, make the drone enter the autonomous explore state. Then make the drone move 50 meters forward using the Autonomous Move state. Finally land the drone.  & Ali \\
+\hline
+January 14, 2023 & Research and implement the algorithms used by the Vision App, Mapper App, and Path Plan App modules. & 
+    Profile the accuracy of the Vision App algorithms on parking lot image. Also overlay the ground of the SITL environment with a 10 by 10 meter parking lot. Using the user interface and SITL, make the drone enter the autonomous explore state. It should explore the parking lot in about 1 minute. If this test works, the No Parking Lot Detected Error state automatically works as well. Also using the user interface, command to drone use the Autonomous Move state and move to a location outside the parking lot. Once the drone reaches near the edge of the parking lot, it should enter the Desired Location Error state, complaining the location is outside of the parking lot.  & Fady, Winnie \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[!h]
+\begin{center}
+\begin{tabular}{ | m{2.5cm} | m{4cm} | m{6.5cm} | m{2cm} | } 
+\hline
+Date & Modules/Description & Test Method & Responsible By \\
+\hline
+February 6, 2022 & Integration testing of the non-autonomous operation states on the physical drone. & 
+    On the physical drone, run the following test case: 
+    \begin{enumerate}
+    \item Configure the height parameters to each be 10 meters.
+    \item Launch the drone from the user interface.
+    \item Do nothing and let the drone hover for 10 seconds.
+    \item From the user interface, make the drone move 50m forward.
+    \item Close the user interface (closes communication) and verify that drone attempts to land.
+    \item Open the user interface after closing, and verify that the drone hovers.
+    \item Use the user interface to land the drone.
+    \end{enumerate}
+    & Ali, Fady, Zaid, Winnie \\
+\hline
+March 15, 2023 & Integration testing the autonomous operation states on the physical drone. & 
+    Run the Main Algorithm Module and the Main DDC Module as concurrent processes on the drone. Using the user interface, make the drone enter the autonomous explore state. Wait 1 minute. It should explore some section of the parking lot. If this test works, the No Parking Lot Detected Error state automatically works as well. Also using the user interface, command to drone use the Autonomous Move state and move to a location outside the parking lot. Once the drone reaches near the edge of the parking lot, it should enter the Desired Location Error state, complaining the location is outside of the parking lot.  & Ali, Zaid, Fady, Winnie \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
 
 \clearpage
 
