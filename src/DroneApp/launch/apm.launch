@@ -3,7 +3,7 @@
 	<!-- example launch script for ArduPilot based FCU's -->
 
 	<arg name="fcu_url" default="udp://:14650@" />
-	<arg name="gcs_url" default="udp://:14551@192.137.91.1:14550" />
+	<arg name="gcs_url" default="udp://:14551@192.168.1.100:14550" />
 	<arg name="tgt_system" default="1" />
 	<arg name="tgt_component" default="1" />
 	<arg name="log_output" default="screen" />
@@ -22,4 +22,5 @@
 		<arg name="fcu_protocol" value="$(arg fcu_protocol)" />
 		<arg name="respawn_mavros" value="$(arg respawn_mavros)" />
 	</include>
+
 </launch>
