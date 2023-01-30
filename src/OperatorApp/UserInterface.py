@@ -187,11 +187,10 @@ class Ui_MainWindow1(object): #setup for the main app; setup window frame settin
             location=coordinate
         )
 
-        folium.Marker(location=coordinate,popup='start').add_to(m)
+        folium.Marker(location=coordinate,draggable=True,popup='Drone').add_to(m)
         fmtr = "function(num) {return L.Util.formatNum(num, 3) + ' º ';};"
         MousePosition(position='topright', separator=' | ', prefix="Mouse:",
         lat_formatter=fmtr, lng_formatter=fmtr).add_to(m)
-        ClickForMarker(popup='t').add_to(m)
 
         # save map data to data object
         data = io.BytesIO()
