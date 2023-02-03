@@ -14,6 +14,7 @@ Testing environment is Ubuntu 18.04 with ROS Melodic.
 1. Follow setup instructions in ardupilot_gazebo repo.  
 2. Replace `~/.gazebo/models/gimbal_small_2d/model.sdf` with one provided in this repo in `models/gimbal_small_2d'.  
 3. Ensure plugins inside build folder are visible to Gazebo, either by moving plugins to default Gazebo plugin path or adding build folder to $GAZEBO_PLUGIN_PATH. 
+4. Setup IP address of host machine within `~/.gazebo/models/gimbal_small_2d/model.sdf` under `libgazebo_gst_camera_plugin.so` plugin parameters.  
 
 ### Launching Sample Simulation
 1. Load SITL environment from Ardupilot.
