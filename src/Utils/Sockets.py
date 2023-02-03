@@ -72,12 +72,20 @@ class BaseSocket(ABC):
             readable, writable, exceptional = select.select([self.conn], [self.conn], [self.conn])
             if len(exceptional) > 0:
                 self.reconnect()
+
             if len(readable) > 0:
-                oneMessage = self.__receiveMessage()
-                if oneMessage:
-                    self.receivedMessages.append(oneMessage)
-                else:
+                if not self.__receive():
                     self.reconnect()
+                while self.recvBuffer:
+                    self.__processHeader()
+                    oneMessage = self.__processContent()
+                    while oneMessage == None:
+                        # the entire message has not been received yet, so get another packet.
+                        if not self.__receive():
+                            self.reconnect()
+                        oneMessage = self.__processContent()
+                    self.receivedMessages.append(oneMessage)
+
             if len(writable) > 0: 
                 oneMessage = self.messagesToSend.popLeft()
                 if oneMessage:
@@ -85,18 +93,7 @@ class BaseSocket(ABC):
                     while ret != True:
                         self.reconnect()
                         ret = self.sendMessageSync(message)
-                        
-    def __receiveMessage(self):
-        if not self.__receive():
-            return None
-        self.__processHeader()
-        data = self.__processContent()
-        while data == None:
-            # the entire message has not been received yet, so get another packet.
-            if not self.__receive():
-                return None
-            data = self.__processContent()
-        return data
+
     def __receive(self) -> bool:    
         try:
             # Should be ready to read
