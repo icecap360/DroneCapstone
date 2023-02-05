@@ -1,0 +1,1648 @@
+\documentclass[12pt, titlepage]{article}
+
+\usepackage{amsmath, mathtools}
+
+\usepackage[round]{natbib}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{colortbl}
+\usepackage{xr}
+\usepackage{xr-hyper}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{xfrac}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[section]{placeins}
+\usepackage{caption}
+\usepackage{fullpage}
+
+\usepackage{longtable}
+\usepackage[utf8]{inputenc}
+\usepackage{fullpage}
+\usepackage{caption}
+\usepackage{pdflscape}
+\usepackage{fixltx2e}
+\usepackage{afterpage}
+\usepackage{seqsplit}
+\usepackage{underscore}
+\usepackage{lscape}
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{tabularx}
+\usepackage{nameref}
+\usepackage{enumitem}
+\usepackage{indentfirst}
+
+\hypersetup{
+bookmarks=true,     % show bookmarks bar?
+colorlinks=true,       % false: boxed links; true: colored links
+linkcolor=red,          % color of internal links (change box color with linkbordercolor)
+citecolor=blue,      % color of links to bibliography
+filecolor=magenta,  % color of file links
+urlcolor=cyan          % color of external links
+}
+
+\usepackage{array}
+
+\input{../../Comments}
+\input{../../Common}
+\externaldocument{../../HazardAnalysis/HazardAnalysis}
+\externaldocument{../../SRS/SRS}
+\externaldocument{../SoftArchitecture/MG}
+
+%\newcounter{acnum}
+%\newcommand{\actheacnum}{AC\theacnum}
+%\newcommand{\actheacnum}{AC\arabic{acnum}}
+%\newcommand{\acref}[1]{AC\ref{#1}}
+
+%\newcounter{ucnum}
+%\newcommand{\uctheucnum}{UC\theucnum}
+%\newcommand{\uref}[1]{UC\ref{#1}}
+
+\begin{document}
+
+\title{Module Interface Specification for \progname{}}
+
+\author{\authname}
+
+\date{\today}
+
+\maketitle
+
+\pagenumbering{roman}
+
+\section{Revision History}
+
+\begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
+\toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
+\midrule
+January 18, 2023 & 1.0 & Initial Revision\\
+\bottomrule
+\end{tabularx}
+
+~\newpage
+
+\section{Symbols, Abbreviations and Acronyms}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{p{3cm} p{12cm}} 
+  \toprule		
+  \textbf{symbol} & \textbf{description}\\
+  \midrule 
+  AC & Anticipated Change\\
+  DAG & Directed Acyclic Graph \\
+  M & Module \\
+  MG & Module Guide \\
+  MIS & Module Interface Specifications \\
+  OS & Operating System \\
+  R & Requirement\\
+  Algo & Algorithms \\
+  SRS & Software Requirements Specification\\
+  \progname & Mechatronics Engineering is an engineering stream that mixes electrical, mechanical, and software engineering.\\
+  UC & Unlikely Change \\
+  DDC & Drone Decision and Control \\
+  Ardupilot & Open-source Autopilot Software Suite for unmanned vehicles. \\
+  ROS Node & Process using ROS functionality. \\
+  MavROS & Process presents a ROS interface to interact with Ardupilot and MAVLINK. \\
+  High-level Motion Commands & 3-dimensional move to commands, e.g. hover at 5m, move 5m left, etc. \\
+  MAVLINK & Typical communication network used by hardware peripherals, low-level interface. \\
+  ROS & Robot Operating System, open-source robotics middleware suite. \\
+  main & Starting point of execution for a process. \\
+  PC & Personal Computer. \\
+  \bottomrule
+\end{tabular}\\
+
+\tableofcontents
+
+\newpage
+
+\pagenumbering{arabic}
+
+\section{Introduction}
+
+The following document details the Module Interface Specifications for
+the Parking Lot Hawk project. Parking Lot Hawk allows a Parking Lot Manager (Operator) to gather information about their parking lot. The user instructs a drone that offers various autonomous modes to help the Operator understand their parking lot. The drone gives two primary pieces of information, live camera images of what the drone currently sees, as well as an occupancy map based on what the drone has observed in the past.
+
+Complementary documents include the System Requirement Specifications
+and Module Guide.  The full documentation and implementation can be
+found at \href{https://github.com/icecap360/DroneCapstone}{Parking Lot Hawk}
+
+\section{Notation}
+
+  %Talk about Image arrray, queue, sockets, occupancy map, local pose, global pose, User Error  Enum, Health Enum, dict, ros topic, ros node, ros service, 
+
+  %MavROS: State, GLOBAL POSE, LOCAL POSE, diagnostics, BatteryInfo, ArdupilotMode 
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\noindent 
+\begin{tabular}{p{2cm} p{2cm} p{10cm}}
+\toprule 
+\textbf{Data Type} & \textbf{Notation} & \textbf{Description}\\ 
+\midrule
+character & char & a single symbol or digit\\
+integer & $\mathbb{Z}$ & a number without a fractional component in (-$\infty$, $\infty$) \\
+natural number & $\mathbb{N}$ & a number without a fractional component in [1, $\infty$) \\
+real & $\mathbb{R}$ & any number in (-$\infty$, $\infty$)\\
+Image Array & Image Array & 2D Array to hold the pixels of images.\\
+Sockets & Sockets & Software structure within a network that serves as an endpoint for sending and receiving messages across the network.\\
+Occupancy Map & Occupancy Map & 2D Map that describes parking lot area, non-parking lot area, and unoccupied parking lots.\\
+User Error & User Error & Enum: 0 - None, 1 - Desired_Location_Out_Of_Bounds, 2  - No_Lot_Detected \\
+Health Status & Health Status & Enum: 0 - Healthy, 1 - Unhealthy \\
+Dictionary & dict & - \\
+Local Pose & Local Pose & 3D position and orientation of an object, XY coordinates are relative to the arm location. \\
+Global Pose & Global Pose & 3D position and orientation of an object, coordinates are latitude and longitude. \\
+\midrule
+\end{tabular} 
+\end{center}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\noindent 
+\begin{tabular}{p{2.5cm} p{2.5cm} p{8cm}}
+\toprule 
+\textbf{Data Type} & \textbf{Notation} & \textbf{Description}\\ 
+\midrule 
+ROS Node & ROS Node & Synonym for a process with ROS functionality (registered with the ROS master node). \\
+ROS Master Node & ROS Master Node & ROS Node that runs in the background. All ROS nodes must register with this node. \\
+ROS Topic & ROS Topic & Used to stream continuous data between two ROS Nodes. \\
+ROS Service & ROS Service & Type of inter-process communication where "server nodes" can advertise certain services and "client nodes" can send synchronous service requests.  \\
+Ardupilot Mode & Ardupilot Mode & Ardupilot defined enum. Ardupilot interfaces with the hardware (actuators and sensors), and offer several flight modes such as: RTL (Return to Launch), LAND, and GUIDED mode which is used to fly to a specific location.  \\
+State & State & A MavROS defined struct. Contains several key diagnostic signals from the flight controller, including whether the drone is armed, the Ardupilot Mode, etc.  \\
+BatteryInfo & BatteryInfo & A MavROS defined struct. Contains several key diagnostic signals about the battery, such as percentage of capacity left, voltage, etc.  \\
+Diagnostics & BatteryInfo & A MavROS defined struct. Contains several summary diagnostic signals about the hardware.  \\
+\end{tabular} 
+\end{center}
+
+\noindent
+The specification of \progname \ uses some derived data types: sequences, strings, and
+tuples. Sequences are lists filled with elements of the same data type. Strings
+are sequences of characters. Tuples contain a list of values, potentially of
+different types. In addition, \progname \ uses functions, which
+are defined by the data types of their inputs and outputs. Local functions are
+described by giving their type signature followed by their specification.
+
+\section{Module Decomposition}
+
+The following table is taken directly from the Module Guide document for this project.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{p{0.3\textwidth} p{0.4\textwidth}  p{0.3\textwidth}}
+\toprule
+\textbf{Level 1} & \textbf{Level 2} & 
+\textbf{Level 3}\\
+\midrule
+{Hardware Hiding} & 
+Ardupilot \\
+& MavROS \\
+\midrule
+Communication Hiding &
+Drone-PC Communication Hiding & Base Socket \\
+ && Message Socket \\
+ && GStreamer \\
+ && Drone Camera \\
+ && Operator Camera \\
+ &{Drone Inter-Process Communication Hiding} 
+& ROS \\
+&& Algorithm Topic Interface \\
+&& DDC Topic Interface \\
+&& DDC Service Interface \\
+\midrule
+Interface Hiding
+& User Interface \\
+& Main Interface Module \\
+\midrule
+{Algorithm Hiding} 
+& Vision App \\
+& Mapper App \\
+& Path Planning App \\
+& Algorithm Manager App \\
+& Main Algorithm Module \\
+\midrule
+{Drone Decision and Control (DDC) Hiding} 
+& Operation States \\
+& Operations Manager \\
+& Main DDC Module \\
+\midrule
+\end{tabular}
+\caption{Module Hierarchy}
+\label{TblMH}
+\end{table}
+
+~\newpage
+
+\section{MIS of \nameref{Message Socket}} \label{MIS_MESSAGE_SOCKET} 
+\subsection{Module}
+The secret of this module is the socket used for communicating string data between two different platforms over a LAN network, in order to present a user-freindly interface for other communication modules.
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{5.5cm} }
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Access Programs} & \textbf{Description}  \\
+\nameref{Base Socket} & BaseSocket & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Types}
+MessageSocket =  ?
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{2.5cm} p{5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+new MessageSocket & inIP: string inPort: int ($\mathbb{N}$) & - & ConnectionTimeout \\
+\hline
+init & - & - & ConnectionTimeout \\
+\hline
+sendMessageSync & x : string & - & FailedToSend \\
+\hline
+sendMessageAsync & x : string & - & - \\
+\hline
+getMessage & - & string & NoMessagesError \\
+\hline
+isConnected & - & bool & - \\
+\hline
+close & - & - & \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{3 cm} p{3.5cm} p{7cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+conn & BaseSocket & This variable is the secret of the module, it is not accessible to users of this module. \\
+port & int $(\mathbb{N})$& Port number used for communication. \\
+IP & string & IP address. For a server connection, this is empty, while for a client connection, it contains the IP address of the server. \\
+connected & bool & Indicates if a connection is established \\
+receivedMessages & Sequence of string & Serves as a queue for received messages. \\
+messagesToSend & Sequence of string & Serves as a queue for messages that need to be sent to the opposite socket. \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+The init() routine is called before any other access programs.
+\subsubsection{Access Routine Semantics}
+\noindent new MessageSocket(inIP, inPort):
+\begin{itemize}
+\item transition: IP, port := inIP, inPort
+\item out:  out := self
+\item description: Constructor
+\end{itemize}
+\noindent init():
+\begin{itemize}
+\item transition: conn := new BaseSocket.BaseSocket(); \\ \ connected := conn.connect(IP, port); \\ connected = TRUE $\Rightarrow$ \{  receivedMessages := <> ; \\ messagesToSend := <> ;\\ startReadThread(); \\ startWriteThread(); \}
+\item exception:  \{$\neg$ connected  $\Rightarrow$ ConnectionTimeout\}
+\item description: Initializes the connection with the Operator's PC Application. Returns an exception if a timeout occurred while connecting.
+\end{itemize}
+\noindent sendMessageSync(x):
+\begin{itemize}
+\item transition: \{connected = FALSE $\Rightarrow$ reconnect() \}; temp := conn.send(x)\}
+\item exception: \{connected = FALSE | temp = FALSE $\Rightarrow$ FailedToSend\}
+\item description: Sends a synchronous string message to the socket, i.e. program will block until data is sent. This function will try to reconnect if a connection is not established. If the reconnect failed, then an exception is returned.
+\end{itemize}
+\noindent sendMessageAsync(x):
+\begin{itemize}
+\item transition: messagesToSend := messagesToSend || <x>
+\item description: Sends an asynchronous string of data to the Operator Application's Socket. Non-blocking function call, so data will be sent in the background.
+\end{itemize}
+\noindent getMessage():
+\begin{itemize}
+\item transition: receivedMessages := receivedMessages[1..|receivedMessages| \textminus  1]
+\item output: out := receivedMessages[0]
+\item exception: exc = \{|receivedMessages| = 0 $\Rightarrow$ NoMessagesError\}
+\item description: Returns a string of data from the Operator Application. Returns empty string if there are no messages. If multiple messages have been sent since the last getMessage call, it returns the earliest message (through the use of the queue). The routine is quite similar to pop() call on a queue.
+\end{itemize}
+\noindent isConnected():
+\begin{itemize}
+\item output: out := connected
+\item description: Returns if a connection is established.
+\end{itemize}
+\noindent close():
+\begin{itemize}
+\item transition: conn.close()
+\item description: Closes the socket connection. 
+\end{itemize}
+\subsubsection{Local Functions}
+\noindent reconnect():
+\begin{itemize}
+\item transition: conn.connect(IP, port); \\ connected = true;
+\item description: Reconnects a previously established socket connection. Also utilized by the background threads.
+\end{itemize}
+\noindent startReadThread():
+\begin{itemize}
+\item output: -
+\item transition: This starts a background thread that constantly reads messages in the messagesToSend queue and sends them to the receiving module. It is up to the developer to design and implement this internal routine.
+\end{itemize}
+\noindent startWriteThread():
+\begin{itemize}
+\item output: -
+\item transition: This starts a background thread that constantly sends messages in the  messagesReceived queue. Its operation is quite complicated, as strings received from the socket may contain multiple messages or may contain only a partial message. It is up to the developer to design and implement this internal routine.
+\end{itemize}
+\newpage
+
+
+
+
+
+\section{MIS of \nameref{Drone Camera}} \label{MIS_DRONE_CAMERA} 
+\subsection{Module}
+The secret of this module is interfacing with the camera to get images, as well as the mechanism of sending an image to the Operator Camera Module (and ultimately to the user's interface).
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+\nameref{GStreamer} & VideoStreamer & This datatype creates a video streaming object that can be used to send images to a connected client. The datatype has a sendImage method, which performs the appropriate compression before publishing the image over a stream that can be subscribed to by any number of clients. \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Constants}
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{2.5cm} p{5cm}} 
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+init & - & - & - \\
+sendImage & Image Array & - & FailedToSend \\
+getImage & - & Image Array & NoImage \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{3 cm} p{3cm} p{6.5cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+image & Image Array & Contains the latest image captured from the camera. \\
+IP & string & Contains the IP address used to create the video stream. \\
+port & $\mathbb{N}$ & Contains the port used to create the video streams. \\
+videoStreamer & VideoStreamer & This variable is used to create a video stream accessible to any number of clients and contains routines to send images over the stream.   \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+The init() routine is called before any other access programs.
+\subsubsection{Access Routine Semantics}
+\noindent init():
+\begin{itemize}
+\item transition: videoStreamer := new GStreamer.VideoStream(IP, Port); startReadThread();
+\item output: -
+\item description: Creates a video streaming object and starts the background thread to read images from the camera.
+\end{itemize}
+\noindent sendImage(x):
+\begin{itemize}
+\item transition: temp = videoStreamer.sendImage(x);
+\item exception: \{temp = FALSE $\Rightarrow$ FailedToSend)\}
+\item exception: Publishes the given image on the stream.  
+\end{itemize}
+\noindent getImage():
+\begin{itemize}
+\item transition: -
+\item output: out := image 
+\item exception: \{image = NULL $\Rightarrow$ NoImage)\}
+\item description: Returns the latest image captured from the camera. 
+\end{itemize}
+\subsubsection{Local Functions}
+\noindent startReadThread():
+\begin{itemize}
+\item description: This routine starts a background thread for updating the "image" array with the latest camera image. As this routine is internal and specific to the camera hardware/interface, it is left to the developers to design and implement. 
+\end{itemize}
+\newpage
+
+
+
+\section{MIS of \nameref{Operator Camera}} \label{MIS_OPERATOR_CAMERA} 
+\subsection{Module}
+The secret of this module is the communication means used to obtain images from the drone.
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+\nameref{GStreamer} & VideoStreamClient & This datatype creates a video stream client object that can be used to receive images from a video stream. The datatype has a receiveImage method, which performs the appropriate decompression before returning an image from the video streamer. \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Constants}
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{2.5cm} p{5cm}} 
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+init & - & - & - \\
+getImage & - & Image Array & NoImage \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{3 cm} p{3.2cm} p{6.5cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+image & Image Array & Contains the latest image captured from the camera. \\
+IP &  strings & Contains the IP address to the video stream. \\
+port & int $(\mathbb{N})$ & Contains the port to the video streamer. \\
+videoStreamClient & VideoStreamClient & This variable is used to read images from a video stream created externally by the \nameref{Drone Camera}.   \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+The init() routine is called before any other access programs.
+\subsubsection{Access Routine Semantics}
+\noindent init():
+\begin{itemize}
+\item transition: videoStreamClient := new GStreamer.VideoStreamClient(IP, Port); startReadThread();
+\item output: -
+\item description: Creates a video stream client object and starts the background thread to read images from the stream.
+\end{itemize}
+\noindent getImage():
+\begin{itemize}
+\item output: out := image 
+\item exception: \{image = NULL $\Rightarrow$ NoImage\}
+\item description: Returns the latest image captured from the stream. 
+\end{itemize}
+\subsubsection{Local Functions}
+\noindent startReadThread():
+\begin{itemize}
+\item description: This routine starts a background thread for updating the "image" array with the latest image from the stream. As this routine is internal and specific to the GStreamer API, it is left to the developers to design and implement. 
+\end{itemize}
+\newpage
+
+
+
+
+
+
+\section{MIS of \nameref{Algorithm Topic Interface}} \label{MIS_ALGO_TI} 
+\subsection{Module}
+The secret of this module is reading data from various topics created by other processes, and presenting the data in easy-to-use "get" routines. Furthermore, it contains ROS topics for sending information to other processes running on the drone. Unlike the other Topic Interface Modules, this module is designed specifically for usage by the Algorithms Modules (\nameref{Vision App}, \nameref{Mapper App},\nameref{Path Plan App}).
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+\nameref{ROS} & Topic Subscriber, Topic Publisher & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Constants}
+\begin{center}
+\begin{tabular}{p{4cm} p{3cm} p{7.8cm}}
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Purpose} \\
+parkLotDetectedPub & ROS Topic Publisher for publishing booleans. &  Indicates if a parking lot is currently visible at the drone's current position. Meant for usage by the \nameref{Operations Manager}. \\
+desLocInboundPub & ROS Topic Publisher for publishing booleans. &  Indicates if the location that the Operations Manager App is intends the drone to move to is within the parking lot. Meant for usage by the \nameref{Operations Manager}. \\
+occupancyMapPub  & ROS Topic Publisher for publishing occupancy maps. &  Contains the latest occupancy map, created from observations ever since the drone launched. Meant for usage by the \nameref{Operations Manager}. \\
+localPosPub & ROS topic Publisher for publishing local poses. &  Contains the next position the drone should move to. This topic is consumed by the MavROS process, which in turn relays this instruction to the flight controller. \\
+visionAppHealthPub & Health Status & Health status of the Vision App module.  \\
+mapperAppHealthPub & Health Status & Health status of the Mapper App module.  \\
+pathPlanAppHealthPub & Health Status & Health status of the Path Plan App module.  \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{2.5cm} p{5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+init &  - & - & - \\
+getDroneState &  - & string & - \\
+getDesiredPose & - & Local Pose & - \\
+getLocalPose & - & Local Pose & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{2.5 cm} p{2.5cm} p{8cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+droneState & string & The latest estimate of the current Operation State (\nameref{Operation States}) the drone is currently operating in. Received from the \nameref{Operations Manager}.  \\
+desiredPose & Local Pose & The latest estimate of the location the user desires the drone to move to. Received from the \nameref{Operations Manager}. \\
+localPose & Local Pose & The current pose of the drone, with respect to the location the drone was armed.  \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+The init() routine is called before any other access programs.
+\subsubsection{Access Routine Semantics}
+\noindent init():
+\begin{itemize}
+\item transition: initSubscribers()
+\item description: Initializes the Topic Subscribers used to read ROS Topic data from other ROS Nodes running on the drone.
+\end{itemize}
+\noindent getDroneState():
+\begin{itemize}
+\item output: out := droneState 
+\end{itemize}
+\noindent getDesiredPose():
+\begin{itemize}
+\item output: out := desiredPose 
+\end{itemize}
+\noindent getLocalPose():
+\begin{itemize}
+\item output: out := localPose 
+\end{itemize}
+\subsubsection{Local Functions}
+\noindent initSubscribers():
+\begin{itemize}
+\item description: Initializes the mechanisms to subscribe to the relevant ROS Topics. Freedom is given to the developer to implement the subscription mechanism, but ultimately the state variables (droneState, desiredPose, and localPose) should be regularly updated to contain the latest estimates of each of their respective signals.
+\end{itemize}
+\newpage
+
+
+
+\section{MIS of \nameref{Vision App}} \label{MIS_VISION_APP} 
+\subsection{Module}
+The secret of this module is the image processing and analysis algorithms that are used to yield insights.
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+\nameref{Drone Camera} & Drone Camera & This module runs on the Drone, thus it receives and sends annotated images using the \nameref{Drone Camera}. \\
+\nameref{Algorithm Topic Interface} & Algorithm Topic Interface & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Constants}
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{5cm} p{2.5cm} p{2.5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+init & inDC: Drone Camera, inTopicInterface: Algorithm Topic Interface & - & - \\
+process & - & - & NoImage, AlgoError \\
+getParkLotDetected & - & bool & - \\
+getHealth & - & Health Status & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{3 cm} p{4cm} p{5cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+droneCamera & Drone Camera & Contains a reference to the Drone Camera object. \\
+topicInterface & Algorithm Topic Interface & Contains a reference to the Algorithm Topic Interface object.\\
+parkLotDetected & bool & Indicates if the drone currently sees a parking lot, used as a transition in the state machine as per SRS (\nameref{TRANS_007},\nameref{TRANS_008}). \\
+annotatedImage & Image Array & Some of the analysis and results conducted by the vision app is visualized by annotating on top of the raw image. This image is ultimately seen by the User.   \\
+health & Health Status & Health of module, whether results can be trusted.   \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+The Drone Camera and Algorithm Topic Interface objects are already created.
+The init() routine is called before any other access programs.
+\subsubsection{Access Routine Semantics}
+\noindent init(inDC, inTopicInterface):
+\begin{itemize}
+\item transition:  droneCamera := inDC; \\ droneCamera.init() ;\\ topicInterface := topicInterface; \\ health := Healthy;
+\item description: Initializes all Vision App member fields, such as droneCamera. Algorithm specific data structures are a secret of this module and are not shown in the MIS.
+\end{itemize}
+\noindent process():
+\begin{itemize}
+\item transition: annotatedImage := droneCamera.getImage(); \\
+res = runImageAlgorithms(topicInterface); \\ sendUpdate(topicInterface);
+\item exception: \{annotatedImage = NoImage $\rightarrow$ NoImage, res = AlgoError $\Rightarrow$ AlgoError\} \\
+\item description: Called every frame, this function runs the vision algorithm on the latest raw images from the Drone Camera module and information from the Topic Interface. Then it updates the relevent topics and modules.
+\end{itemize}
+\noindent getParkLotDetected():
+\begin{itemize}
+\item output: out := parkLotDetected 
+\end{itemize}
+\noindent getHealth():
+\begin{itemize}
+\item output: out := health 
+\end{itemize}
+\subsubsection{Local Functions}
+\noindent runImageAlgorithms(topicInterface):
+\begin{itemize}
+\item exception: If the algorithm fails to run for any issues, it returns a AlgoError exception. 
+\item description: Runs the image processing algorithms. Updates the parkLotDetected variable. Also annotates the image array annotatedImage with overlays that may be useful for the user. 
+\end{itemize}
+\noindent sendUpdate(topicInterface):
+\begin{itemize}
+\item transition: droneCamera.send(annotatedImage ); \\ topicInterface.parkLotDetectedPub.publish(getParkLotDetected()); \\ topicInterface.visionAppHealthPub.publish(getHealth())
+\item description: Updates the relevant topics and modules with the algorithm results.
+\end{itemize}
+\newpage
+
+
+
+
+
+
+\section{MIS of \nameref{Mapper App}} \label{MIS_MAPPER_APP} 
+\subsection{Module}
+The secret of this module is the algorithm creating an occupancy map of the parking lot.
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+\nameref{Algorithm Topic Interface} & Algorithm Topic Interface & - \\
+\nameref{Vision App} & getParkLotDetected  & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Constants}
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{2.5cm} p{5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+init & inVisionApp: Vision App, inTopicInterface: Algorithm Topic Interface & - & - \\
+process & -  & - & AlgoError \\
+getOccupancyMap & - & Occupancy Map & - \\
+getHealth & - & Health Status & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{3 cm} p{4cm} p{5cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+visionApp & Vision App & Contains a reference to the Vision App object. \\
+topicInterface & Algorithm Topic Interface & Contains a reference to the Algorithm Topic Interface object.\\
+occupancyMap & occupancyMap & Contains the latest estimate of the parking lot's occupancy. \\
+health & Health Status & Health of module, whether results can be trusted.   \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+The init() routine is called before any other access programs.
+\subsubsection{Access Routine Semantics}
+\noindent init(inVisionApp, inTopicInterface):
+\begin{itemize}
+\item transition: health := Healthy; \\ visionApp := inVisionApp; // topicInterface:= inTopicInterface; //occupancyMap := OccupancyMap(); // Empty Occupancy Map \\
+\item description: Initializes the constructs needed by the Mapping Algorithm.
+\end{itemize}
+\noindent process():
+\begin{itemize}
+\item transition: res := runMappingAlgorithms(visionApp, topicInterface); \\
+sendUpdate(topicInterface);
+\item exception: \{res = AlgoError $\Rightarrow$ AlgoError \}
+\item description: Called every frame, this function runs the mapping algorithm on the latest raw information from the Vision App and Topic Interface. Then it updates the topics with the latest mapping results.
+\end{itemize}
+\noindent getOccupancyMap():
+\begin{itemize}
+\item output: out := occupancyMap
+\end{itemize}
+\subsubsection{Local Functions}
+\noindent getHealth():
+\begin{itemize}
+\item output: out := health 
+\end{itemize}
+\noindent runMappingAlgorithms(visionApp, topicInterface):
+\begin{itemize}
+\item exception: If the algorithm fails to run for any issues, it returns a AlgoError exception. 
+\item description: Runs the mapping algorithm, storing the results in occupancyMap. The algorithm will use the visionApp.getParkLotDetected() routine.
+\end{itemize}
+\noindent sendUpdate(topicInterface):
+\begin{itemize}
+\item transition: topicInterface.parkOccupancyMapPub.publish(getOccupancyMap()); \\ topicInterface.mapperAppHealthPub.publish(getHealth())
+\item description: Updates the relevant topics and modules with the algorithm results.
+\end{itemize}
+\newpage
+
+
+
+
+
+
+
+\section{MIS of \nameref{Path Plan App}} \label{PATH_PLAN_APP} 
+\subsection{Module}
+The secret of this module is the path-planning decisions of the drone. 
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+\nameref{Algorithm Topic Interface} & Algorithm Topic Interface & - \\
+\nameref{Mapper App} & MappingApp & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Constants}
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{2.5cm} p{5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+init & inMappingApp: Mapper App, inTopicInterface: Algorithm Topic Interface & - & - \\
+process & - & - & AlgoError \\
+getLocalPose & - & Local Pose & - \\
+getDesPoseInbound & - & bool & - \\
+getHealth & - & Health Status & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{3 cm} p{3cm} p{7cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+mappingApp & Mapper App & Contains a reference to the Mapper App object. \\
+topicInterface & Algorithm Topic Interface & Contains a reference to the Algorithm Topic Interface object.\\
+desPoseInbound & bool & This boolean indicates if the pose that the user requests the drone to move toward is valid (i.e within the parking lot).  \\ 
+localPose & Local Pose & This is the pose that the drone is actually instructed to move toward. \\
+health & Health Status & Health of module, whether results can be trusted.   \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+The init() routine is called before any other access programs.
+\subsubsection{Access Routine Semantics}
+\noindent init(inMappingApp, inTopicInterface):
+\begin{itemize}
+\item transition: health:= Healthy; \\ mappingApp:= inMappingApp; // topicInterface := inTopicInterface; //desPoseInbound := TRUE;//
+localPose = new Pose(); 
+\item description: Initializes the constructs needed by the Path Plan App. Initialize desPoseInbound to TRUE because all poses are assumed to be within the bounds of the parking lot until proven otherwise.
+\end{itemize}
+\noindent process():
+\begin{itemize}
+\item transition: res := runPathPlanAlgorithms(mappingApp, topicInterface); \\
+sendUpdate(topicInterface);
+\item exception: \{res = AlgoError $\Rightarrow$ AlgoError\}
+\item description: Called every frame, this function runs the path planning algorithm on the latest raw information from the Mapper App and Topic Interface. Then it updates the topics with the latest algorithm results.
+\end{itemize}
+\noindent getOccupancyMap():
+\begin{itemize}
+\item output: out := occupancyMap
+\end{itemize}
+\subsubsection{Local Functions}
+\noindent runPathPlanAlgorithms(visionApp, topicInterface):
+\begin{itemize}
+\item exception: If the algorithm fails to run for any issues, it returns a AlgoError exception. 
+\item description: Runs the path plan algorithm, storing the results in localPose and desPoseInbound. The algorithm will use the Occupancy Map (from mapping.getOccupancyMap()) to make suggest a path. 
+
+Note that localPose is different from desPose. The former is the actual pose that the drone is instructed to move toward. The latter (available in the Algorithm Topic Interface) is the pose that the  user requests the drone to move toward. They are the same in all flight states, except for the Autonomous Explore state, under which the drone moves toward the location that will yield the most amount of new parking lot information. Responsibility is given to the algorithm engineer to implement an exploration algorithm, as well as to obey the state requirements indicated in the SRS.
+\end{itemize}
+\noindent sendUpdate(topicInterface):
+\begin{itemize}
+\item transition: topicInterface.desLocInboundPub.publish(getDesLocInbound()); \\
+topicInterface.localPosePub.publish(getLocalPose()); \\
+topicInterface.pathPlanHealthPub.publish(getHealth()); \\
+\item description: Updates the relevant topics and modules with the algorithm results.
+\end{itemize}
+\newpage
+
+
+
+
+
+\section{MIS of \nameref{Algorithm Manager App}} \label{MIS_ALGORITHM_APP} 
+\subsection{Module}
+The secret of this module is the execution order and data exchange between the modules \nameref{Drone Camera}, \nameref{Vision App}, \nameref{Mapper App}, and \nameref{Path Plan App}. 
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+\nameref{Algorithm Topic Interface} & Algorithm Topic Interface & - \\
+\nameref{Vision App} & Vision App  & - \\
+\nameref{Mapper App} & Mapper App  & - \\
+\nameref{Path Plan App} & Path Plan App  & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Constants}
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{2.5cm} p{5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+init & inVisionApp: Vision App, mappingApp: Vision App, pathPlanApp: Path Plan App, algoTopicInterface: Algorithm Topic Interface, inDroneCamera: Drone Camera  & - & - \\
+process & -  & - & AlgoError \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{3 cm} p{4cm} p{5cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+algoTopicInterface & Algorithm Topic Interface & - \\
+visionApp & Reference to the Vision App object. & - \\
+mapperApp & Reference to the Mapper App. & - \\
+pathPlanApp & Reference to Path Plan App object. & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+The init() routine is called before any other access programs.
+\subsubsection{Access Routine Semantics}
+\noindent init(inAlgoTopicInterface, inVisionApp, inMapperApp, inPathPlanApp, inDroneCamera):
+\begin{itemize}
+\item transition: 
+algoTopicInterface = inAlgoTopicInterface; \\ 
+visionApp = inVisionApp; \\
+mappingApp = inMapperApp;\\
+pathPlanApp = inPathPlanApp;\\
+algoTopicInterface.init(); \\ 
+visionApp.init(inDroneCamera, algoTopicInterface); \\ 
+mappingApp.init(visionApp, algoTopicInterface); \\ 
+pathPlanApp.init(mappingApp, algoTopicInterface); \\ 
+\item description: Initializes all the Algorithms Applications.
+\end{itemize}
+\noindent process(visionApp, topicInterface):
+\begin{itemize}
+\item transition: res1 := visionApp.process(); \\
+res2 := mappingApp.process(); \\
+red3 := pathPlanApp.process(); \\
+\item exception: \{ res1 = AlgoError | res2 = AlgoError | res3 = AlgoError $\Rightarrow$ AlgoError \}
+\item description: Called every frame, this function runs all of the algorithms.
+\end{itemize}
+\subsubsection{Local Functions}
+\newpage
+
+
+
+
+
+\section{MIS of \nameref{Main Algorithm Module}} \label{MIS_ALGO_MAIN} 
+\subsection{Module}
+This module is one of four modules run as processes on the drone's hardware. This module runs the process responsible for running the algorithms. Most of the management of sub-algorithms are available by the routines in the Algorithm Manager App. Because this module is run as a standalone process, it creates abstract objects/modules as well.
+
+The secret of this module is the execution and operation of the process running the algorithm.   
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+Algorithm Manager App & Algorithm Manager App & - \\
+Vision App & Vision App & - \\
+Mapper App & Mapper App & - \\
+Path Plan App & Path Plan App & - \\
+Drone Camera & Drone Camera & - \\
+Algorithm Topic Interface & Algorithm Topic Interface & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Constants}
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{2.5cm} p{5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+main & - & - & Starting point for program execution. \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{3 cm} p{4cm} p{5cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+algorithmApp & Algorithm Manager App & - \\
+visionApp & Vision App & - \\
+mapperApp & Mapper App & - \\
+pathPlanApp & Path Plan App & - \\
+droneCamera & Drone Camera & - \\
+topicInterface & Algorithm Topic Interface & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+\subsubsection{Access Routine Semantics}
+\noindent main():
+\begin{itemize}
+\item transition: 
+droneCamera = new DroneCamera();\\
+visionApp = new VisionApp();\\
+mapperApp = new MapperApp();\\
+pathPlanApp = new PathPlanApp();\\
+topicInterface = new TopicInterface();\\
+algorithmApp = new AlgorithmApp(topicInterface, visionApp, mapperApp, pathPlanApp, droneCamera);\\
+algorithmApp.init() \\
+while (True) \{algorithmApp.process();\};
+\end{itemize}
+\subsubsection{Local Functions}
+\newpage
+
+
+\section{MIS of \nameref{DDC Topic Interface}} \label{MIS_DDC_TI} 
+\subsection{Module}
+The secret of this module is reading data from various topics published by other processes, and presenting the data in easy-to-use "get" routines for DDC Modules. Furthermore, it contains ROS Topics for sending DDC information to other processes running on the drone. Unlike the other Topic Interface Nodes, this module is designed specifically for usage by the \nameref{Drone Decision and Control Modules} (\nameref{Operations Manager} and \nameref{Operation States}). \subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+\nameref{ROS} & Topic Subscriber, Topic Publisher & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Constants}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{8cm}}
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Purpose} \\
+desPosePub  & ROS Topic Publisher for publishing Local Poses. &  Contains the pose that the user desires the drone to move to. Meant for usage by the Algorithm Manager App. \\
+currStatePub  & ROS Topic Publisher for publishing strings. &  Contains a unique string to indicate the current Operation State. Meant for usage by the Algorithm Manager App. \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{5cm} p{2.5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+getState &  - & State & - \\
+getGlobalPose &  - & Global Pose  & - \\
+getDiagnostics &  - & Diagnostics  & - \\
+getParkLotDetected &  - & bool & - \\
+getDesLocInbound &  - & bool & - \\
+getHealthStatus &  - & Health  & - \\
+getLocalPose &  - & Local Pose & - \\
+getBatteryInfo &  - & BatteryState & - \\
+getRelAlt &  - & float $(\mathbb{R})$ & - \\
+getOccupancyMap &  - & Occupancy Map & - \\
+getVisionHealth &  - & Health Status & - \\
+getMapperHealth &  - & Health Status & - \\
+getPathPlanHealth &  - & Health Status & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{2.5 cm} p{2.5cm} p{8cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+state &  State  & Contains several key diagnostics signals from the flight controller, such as if the drone is armed, if the flight controller is connected to MavROS, if the drone waiting for manual input, the current Ardupilot state of the drone, etc.  \\
+globalPose &  Global Pose  & Contains the current pose of the drone, in global format (i.e. contains latitude, longitude, etc.).  \\
+diagnostics & Diagnostics  & Contains diagnostics about the hardware on the drone (sensors, motors, etc.).  \\
+parkLotDetected& bool &  The latest estimate of whether or not the parking lot is currently detected, received from the Vision App.   \\
+desLocInbound & bool & The latest estimate of whether or not the user request location is valid (within the parking lot boundaries), received from the Path Plan App.  \\
+healthStatus & Health Status & Another type of diagnostic. However, this contains information about the overall health status of the drone (including firmware and hardware).   \\
+localPose & Local Pose & Contains the current pose of the drone (i.e. position relative to takeoff location, etc.).   \\
+batteryInfo & BatteryInfo & Contains the information about the current battery, such as capacity left, voltage, etc.   \\
+relAlt & float $(\mathbb{R})$ & Contains the relative altitude the drone is currently flying at, relative to the launch height.  \\
+occupancyMap & Occupancy Map & The latest estimate of the parking lot occupancy map received from the Mapper App.   \\
+visionHealth & Health status & The latest estimate of the Vision App's health received from the Vision App.   \\
+mapperHealth & Health status & The latest estimate of the Mapper App's health received from the Mapper App.   \\
+pathPlanHealth & Health status & The latest estimate of the Path Plan App's health received from the Path Plan App.   \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+The init() routine is called before any other access programs.
+\subsubsection{Access Routine Semantics}
+\noindent init():
+\begin{itemize}
+\item transition: initSubscribers()
+\item description: Initializes the Topic Subscribers used to receive data from other processes running on the drone.
+\end{itemize}
+\noindent getState():
+\begin{itemize}
+\item output: out := state 
+\end{itemize}
+\noindent getGlobalPose():
+\begin{itemize}
+\item output: out := globalPose 
+\end{itemize}
+\noindent getDiagnostics():
+\begin{itemize}
+\item output: out := diagnostics 
+\end{itemize}
+\noindent getParkLotDetected():
+\begin{itemize}
+\item output: out := parkLotDetected 
+\end{itemize}
+\noindent getDesLocInbound():
+\begin{itemize}
+\item output: out := desLocInbound 
+\end{itemize}
+\noindent getHealthStatus():
+\begin{itemize}
+\item output: out := healthStatus 
+\end{itemize}
+\noindent getBatteryInfo():
+\begin{itemize}
+\item output: out := batteryInfo 
+\end{itemize}
+\noindent getRelAlt():
+\begin{itemize}
+\item output: out := relAlt 
+\end{itemize}
+\noindent getOccupancyMap():
+\begin{itemize}
+\item output: out := occupancyMap 
+\end{itemize}
+\noindent getVisionHealth():
+\begin{itemize}
+\item output: out := visionHealth 
+\end{itemize}
+\noindent getMapperHealth():
+\begin{itemize}
+\item output: out := mapperHealth 
+\end{itemize}
+\noindent getPathPlanHealth():
+\begin{itemize}
+\item output: out := pathPlanHealth 
+\end{itemize}
+\subsubsection{Local Functions}
+\noindent initSubscribers():
+\begin{itemize}
+\item description: Initializes the mechanisms to subscribe to the relevant ROS topics. Freedom is given to the developer to implement the subscription mechanism, but ultimately the state variables (e.g. state, globalPose, diagnostics, parkLotDetected) should be regularly updated to contain the latest estimates of each of their respective signals.
+\end{itemize}
+\newpage
+
+
+\section{MIS of \nameref{DDC Service Interface}} \label{MIS_DDC_SERVICE_INTERFACE} 
+\subsection{Module}
+The secret of this module is the choice of ROS services used to send instructions to the flight controller, as well as simplifying the usage of the services.
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+\nameref{ROS} & Service Client, Service Response & -\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Constants}
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{2.5cm} p{5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+init & - & - & - \\
+setArm & bool & - & ReqFailed \\
+setRtlAlt & int $(\mathbb{N})$ & - & ReqFailed \\
+sendTakeoffCmd & float $(\mathbb{R})$ & - & ReqFailed \\
+setMode & Ardupilot Mode & - & ReqFailed \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{3 cm} p{4cm} p{9cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+armingClient & ROS Service Client & Used for sending arm/disarm commands to the flight controller. \\
+setModeClient & ROS Service Client & Used for sending flight mode commands in the flight controller's firmware. This Service Client is used to set the Ardupilot Mode used by the flight controller's firmware, which is different from the \nameref{Operation States} used by the \nameref{Operations Manager}.  \\
+takeoffClient & ROS Service Client & Used for sending takeoff commands. \\
+paramSetClient & ROS Service Client & Used for setting the values of flight controller parameters. \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+The init() routine is called before any other access programs.
+\subsubsection{Access Routine Semantics}
+\noindent init():
+\begin{itemize}
+\item transition: createServiceClients();
+\item description: This routine initializes the module. 
+\end{itemize}
+\noindent setArm(armReq):
+\begin{itemize}
+\item transition: temp := armingClient.call(armReq)
+\item output: out := temp.success
+\end{itemize}
+\noindent setRtlAlt(altitude):
+\begin{itemize}
+\item transition: res := paramSetClient.call(altitude)
+\item exception: \{ res.success = FAIL $\Rightarrow$ ReqFailed \}
+\item description: This method sets the return to launch altitude parameter, which is the altitude the drone hovers at while in the "RTL" flight controller state.
+\end{itemize}
+\noindent takeoffClient(altitude):
+\begin{itemize}
+\item transition: res := takeoffClient.call(altitude)
+\item exception: \{ res.success = FAIL $\Rightarrow$ ReqFailed \}
+\item description: If given 'True' as input, this method arms the drone, while if given 'False' this method disarms the drone.
+\end{itemize}
+\noindent setMode(modeReq):
+\begin{itemize}
+\item transition: res := setModeClient.call(modeReq)
+\item exception: \{ res.success = FAIL $\Rightarrow$ ReqFailed \}
+\item description: Used for sending flight mode commands in the flight controller's firmware. This Service Client is used to set the Operation States used by the flight controller's firmware, which is different from the \nameref{Operation States} used by the \nameref{Operations Manager}. 
+\end{itemize}
+\subsubsection{Local Functions}
+\noindent createServiceClients():
+\begin{itemize}
+\item description: This routine creates and initializes Service Clients (armingClient, paramSetClient, takeoffClient setModeClient). 
+\end{itemize}
+\newpage
+
+
+
+
+
+
+\section{MIS of \nameref{Operation States}} \label{MIS_OPERATION_STATE} 
+\subsection{Module}
+The secret of this module is the implementation of each of the nearly dozen drone operation states specified in the SRS (\ref{sec:stateReqs} and \ref{transReqs}). 
+
+The information here shows the state interface that each of the nearly dozen states/types inherit from. In the \nameref{Operations Manager}, the abstract state interface described below is used to manipulate the concrete state class.
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+\nameref{Operations Manager} & Operations Manager & Operations Manager contains all of the data the various Operation States may need, such as a reference to the Message Socket, DDC Topic Interface, DDC Service Interface etc. \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Types}
+State = ?
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{2.5cm} p{5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+new State & opMan: Operations Manager, 
+initCommand: dict, name: string & - & - \\
+process & - & - & - \\
+transitionNextState & - & OperationState & - \\
+getIdentity & - & string & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{3 cm} p{4cm} p{5cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+identity & string & A unique string identifier for the Operation States, created during object construction. \\
+context & Operations Manager & This variable is a reference to the Operations Manager. Operation States manipulate the Operations Manager to implement their behaviors specified in the SRS. The Operations Manager stores any  topics, services, and functionalities a state could need to implement its responsibilities as per SRS (\ref{sec:stateReqs} and \ref{transReqs}). 
+ \\
+command & dict & Contains the initial command information that was used to transition into this state. Its fields contain state-specific information, e.g. for the Configure state the command contains the value of the height parameters that the user wanted to configure.  \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+\subsubsection{Access Routine Semantics}
+
+\noindent new State(opMan, initCommand, name):
+\begin{itemize}
+\item transition: context, command, identity := opMan, initCommand, name 
+\item output: out := self
+\end{itemize}
+
+\noindent getIdentity():
+\begin{itemize}
+\item output: out := identity
+\end{itemize}
+
+\noindent process():
+\begin{itemize}
+\item description: This method performs any state-specific behavior by utilizing the  services, topics, and modules found in the context variable. Its behavior is unique to the Operation States, and is specified in the SRS. This function will be called every frame while this state is still active and operational (i.e. until a new state is transitioned to). 
+\end{itemize}
+\noindent transitionNextState():
+\begin{itemize}
+\item transition: // determine the new state
+\item output: out := newState
+\item description: Using the information within the context and within the current Operation State, this method determines the next Operation State. If the next state is the same as the current state, this function returns itself. If the next state is a different state, this function returns a new state object. It is called every frame. Its behavior is unique to the Operation State and is specified in the SRS. 
+\end{itemize}
+
+
+\subsubsection{Local Functions}
+\newpage
+
+
+
+
+
+
+
+\section{MIS of \nameref{Operations Manager}} \label{MIS_OPERATION_MANAGER} 
+\subsection{Module}
+The secret of this module is the storage and execution of  modules running on the drone, that is it collects relevant topics, data, services, etc., and then hands over execution to the Operation States Modules. The Operation States routines (that implement SRS requirements) will manipulate the fields of the Operations Manager. 
+
+The Operations Manager and Operation States implement the "State" UML design pattern.
+
+The MIS of this module is formalized to increase clarity.
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+Operation States & Operation State & - \\
+DDC Topic Interface & DDC Topic Interface & - \\
+Message Socket & Message Socket & - \\
+DDC Service Interface & DDC Service Interface & - \\
+\hline
+\hline
+
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Constants}
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{2.5cm} p{5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+init & messageSocket: Message Socket, ddcTopicInterface: DDC Topic Interface, ddcServiceInterface: DDC Service Interface & - & - \\
+process & - & - & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{3 cm} p{4cm} p{7cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+droneSocket & Message Socket & This is the Communication Module to send updates and receive commands from the user. This should be configured to be a server socket. \\
+paramFile & string & Filename that permanently stores user parameters for the drone, so that the parameters can be saved and reset during boot. \\
+params & dict & Contains user  parameters for the drone. \\
+FSMState & OperationState & Contains the current Operation States Module. \\
+userError & User Error Enum & Contains the user error. \\
+healthStatus & Health Enum & contains the health status.\\
+topicInterface & DDCTopicInterface & Contains the topic interface module.  \\
+serviceInterface & DDCServiceInterface & Contains the service interface module.  \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+The init() routine is called before any other access programs.
+\subsubsection{Access Routine Semantics}
+\noindent init(messageSocket, ddcTopicInterface, ddcServiceInterface):
+\begin{itemize}
+\item transition: droneSocket = messageSocket; \\ 
+topicInterface = ddcTopicInterface; \\
+serviceInterface = ddcServiceInterface; \\
+droneSocket.init();
+topicInterface.init();
+serviceInterface.init();
+userError = None; \\
+healthStatus = Healthy; \\ 
+params = readParam(paramFile); \\ 
+FSMState = Idle(this, {}, 'Idle'); // Creates an 'Idle' Operation State\\
+
+\item description: Called once at the very beginning, this routine initializes the member fields. Initially there are no errors, and everything is assumed healthy. Parameters are read from the path specified in paramFile. The operation state is initialized to the Idle states, as per SRS (\nameref{TRANS_002}).
+\end{itemize}
+\noindent process():
+\begin{itemize}
+\item transition: FSMState.process(); \\
+FSMState = FSMState.transitionNextState(); \\
+sendHeartbeat();
+\item description: Called every frame, this routine first executes the process routine of the active OperationState. Then it activates the new FSMState. Finally it sends a heartbeat message to the Operator Application.
+\end{itemize}
+\subsubsection{Local Functions}
+\noindent sendHeartbeat():
+\begin{itemize}
+\item transition: if (FSMState.getIdentity() != 'CommunicationLost): \\
+droneSocket.sendAsyncMessage(\{ \\
+            'Type': 'Heartbeat', \\
+            'State': FSMState.getIdentity(), \\
+            'Ardupilot State': topicInterface.getState().mode, \\
+            'Occupancy Map': topicInterface.getOccupancyMap(), \\
+            'Relative Altitude': topicInterface.getRelAlt(), \\
+            'Armed': topicInterface.getState().armed, \\
+            'Latitude': topicInterface.getPose().latitude, \\
+            'Longitude': topicInterface.getPose().longitude, \\
+            'Local Position X': topicInterface.getLocalPose().pose.position.x, \\
+            'Local Position Y': topicInterface.getLocalPose().pose.position.x, \\
+            'Battery Percentage': topicInterface.getBatteryInfo().percentage, \\
+            'User Error': userError.value, \\
+            'Health Status': healthStatus.value \\
+\})
+\item description: A heartbeat message contains all the information the \nameref{User Interface} needs from the drone, such as information about the parking lot and drone status. This message is only sent if the drone is in a connected state
+\end{itemize}
+\noindent readParam(filename):
+\begin{itemize} 
+\item description: Opens and reads the parameter file, stores the parameters in a dict, and returns it. The choice of format used to store the parameters and to read the parameters is left to the developer.
+\end{itemize}
+
+
+
+
+
+
+
+
+\section{MIS of \nameref{Main DDC Module}} \label{MIS_DDC_MAIN_MODULE} 
+\subsection{Module}
+The secret of this module is the execution and operation of the process running the finite state machine.   
+
+This module is one of four modules that are run as processes on the drone's hardware. This module is will run the central decision-making process, that instructs the drone's controllers based on information from various sources (e.g. user's commands, battery capacity, height of the drone, and results of algorithms). These responsibilities are handled by routines in the Operations Manager module. Because this module is run as a standalone process, it also needs to create the Abstract Objects.
+
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+Operations Manager & Operations Manager & -\\
+DDC Topic Interface & DDC Topic Interface & - \\
+Message Socket & Message Socket & - \\
+DDC Service Interface & DDC Service Interface & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Constants}
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{2.5cm} p{5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+main & - & - & This is the starting point for program execution. \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{3 cm} p{4cm} p{5cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+operationManager & Operations Manager & - \\
+topicInterface & DDC Topic Interface & - \\
+droneSocket & Message Socket & - \\
+serviceInterface & DDC Service Interface & - \\
+serverIP & string & IP address of the server socket. \\
+port & int & Port used for communication with the client socket. \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+\subsubsection{Access Routine Semantics}
+\noindent main():
+\begin{itemize}
+\item transition: 
+serverIP = ""; // Server sockets have no IP, as per Base Socket implementation \\
+serverPort = 3000; // The port number can be changed \\
+droneSocket = new MessageSocket(serverIP ,serverPort)\\
+topicInterface = new TopicInterface();\\
+serviceInterface = new ServerInterface();\\
+operationManager = new OperationManager(droneSocket, topicInterface, serviceInterface);\\
+	opeartionManager.init() \\
+	while (True) \{operationManager.process();\};
+\end{itemize}
+\subsubsection{Local Functions}
+\newpage
+
+\section{MIS of \nameref{User Interface}} \label{MIS_USER_INTERFACE} 
+\subsection{Module}
+The secret of this module is the interaction with the user to display outputs and gather inputs.
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+Operator Camera & Operator Camera & - \\
+Message Socket & Message Socket & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Constants}
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{2.5cm} p{3.5cm} p{2.5cm} p{5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+start & opCam: Operator Camera & - & StartFailed \\
+join & - & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{4 cm} p{4cm} p{5cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+operatorCamera & Operator Camera & - \\
+operatorSocket & Message Socket & - \\
+commandForDrone & dict & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+The variables listed in the table below are in the environment, and it is the secret of the GUI to detect them, and notify the drone of there values. 
+
+For the boolean environment variables, at a given moment in time only one will of the variables will be true.
+\begin{center}
+\begin{tabular}{p{4 cm} p{4cm} p{5cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+kill & bool &  \\
+connect & bool &  \\
+configure & bool &  \\
+arm & bool &  \\
+takeoff & bool &  \\
+autonomousExplore & bool &  \\
+compulsiveMove & bool &  \\
+autonomousMove & bool &  \\
+desiredLocationX & float ($\mathbb{R}$) & Relative movement in the latitudinal direction. \\
+desiredLocationY & float ($\mathbb{R}$) & Relative movement in the longitudinal direction. \\
+minHoverHeight & float ($\mathbb{R}$) &  \\
+maxHoverHeight & float ($\mathbb{R}$) &  \\
+desiredHoverHeight & float ($\mathbb{R}$) &  \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Assumptions}
+\subsubsection{Access Routine Semantics}
+\noindent start(opCam, opSock):
+\begin{itemize}
+\item transition: operatorCamera = opCam; \\
+operatorCamera.init();\\
+operatorSocket = opSock;
+\item output: -
+\item exception: Return StartFailed if the GUI was for any reason unable to launch. 
+\item description: Launches and starts the GUI thread.  
+\end{itemize}
+\noindent join():
+\begin{itemize}
+\item transition: while ($\neg$ kill) \{ \\ processInputs(); \\ updateDisplay(operatorSocket.getMessage()); \}
+\item output: -
+\item description: This routine does not exit until the user closes the app.  
+\end{itemize}
+\subsubsection{Local Functions}
+\noindent processInputs():
+\begin{itemize}
+\item transition:
+if (connect) droneSocket.init();\\
+elif (configure) operatorSocket.send(\{"Type":"Configure", "Min":minHoverHeight, \\"Des": desiredHoverHeight, "Max": maxHoverHeight\});\\
+ elif (arm) operatorSocket.send(\{"Type": "Arm"\});\\
+ elif (takeoff) operatorSocket.send(\{"Type": "Takeoff"\});\\
+ elif (autonomousExplore) operatorSocket.send(\{"Type": "Autonomous Explore"\});\\
+ elif (compulsiveMove) operatorSocket.send(\{"Type": "Compulsive Move", \\ "X": desiredLocationX, "Y": desiredLocationY\});\\
+ elif (autonomousMove) operatorSocket.send(\{"Type": "Autonomous Move", \\ "X": desiredLocationX, "Y": desiredLocationY\});\\
+\item description: This routine checks all of the environment variables. If an environment variable is triggered, send the appropriate command to the drone. For the boolean environment variables, at a given moment in time, only one of the variables will be true.
+\end{itemize}
+
+\noindent updateDisplay(heartBeat: dict):
+\begin{itemize}
+\item description: This routine updates the display using the heartbeat message received from the drone. Widgets displaying the occupancy map and the live drone images are updated. Furthermore widgets showing the status of the drone (such as drone altitude, drone location, etc.) are updated. As this module is specific to the widgets, its design is left to the developer.
+\end{itemize}
+\newpage
+
+\section{MIS of \nameref{Main Interface Module}} \label{MAIN_INTERFACE} 
+\subsection{Module}
+This module is run as a stand-alone process on the Operator's PC. This module runs the user interface and the communication of the operator with the drone. Because this module is run as a standalone process, it creates the abstract objects/modules as well.
+
+\subsection{Uses}
+\begin{center}
+\begin{tabular}{p{2 cm} p{5cm} p{6.5cm} } 
+\hline
+\textbf{Module} & \textbf{Imported Types, Constants, Routines} & \textbf{Description} \\
+Operator Camera & Operator Camera & - \\
+Message Socket & Message Socket & - \\
+User Interface & User Interface & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Syntax}
+\subsubsection{Exported Constants}
+\subsubsection{Exported Access Programs}
+\begin{center}
+\begin{tabular}{p{3.5cm} p{2.5cm} p{2.5cm} p{5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+main & - & - & - \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsection{Semantics}
+\subsubsection{State Variables}
+\begin{center}
+\begin{tabular}{p{3 cm} p{4cm} p{5cm} }
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description}  \\
+operatorCamera & Operator Camera & - \\
+operatorSocket & Message Socket & - \\
+userInterface & User Interface & - \\
+IP & string & Private IP address of the drone \\
+port & int ($\mathbb{N}$) & Private IP address of the drone \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\subsubsection{Environment Variables}
+\subsubsection{Assumptions}
+\subsubsection{Access Routine Semantics}
+\noindent main():
+\begin{itemize}
+\item transition: operatorCamera = new OperatorCamera(); \\
+IP = '192.168.1.100'; // This is the static IP address of the drone. It may be something else. \\
+port = 3000; // It may be something else. \\
+operatorSocket = new OperatorSocket(IP, port); \\
+userInterface = new UserInterface();\\
+userInterface.start(operatorCamera, operatorSocket);\\
+userInterface.join();
+\item description: This is the starting point of execution for the process running on the Operator's PC.
+\end{itemize}
+\subsubsection{Local Functions}
+\newpage
+
+
+
+
+
+
+\bibliographystyle {plainnat}
+\bibliography {../../../refs/References}
+
+\newpage
+
+\section{Appendix} \label{Appendix}
+
+
+
+\ref{MavROS}
+
+
+\wss{Extra information if required}
+
+\end{document}
