@@ -12,7 +12,7 @@ def get_street_image(latitude, longitude):
         return True
     else:
         return False
-get_street_image(43.25389218740147, -79.86851520944438)
+get_street_image(43.261433135855484, -79.93115175015133)
 
 
 #Watershed Algo
