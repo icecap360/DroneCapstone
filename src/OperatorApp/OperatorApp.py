@@ -1,44 +1,52 @@
 import sys
-sys.path.append('..')
+sys.path.append("..")
 import Utils
 import sys, time, cv2
 from multiprocessing import Process
+import threading
+from PyQt5.QtWidgets import QApplication, QWidget
+import UserInterface #import the setup code for the app
 
-def DisplayCameraView():
-    DroneCamera = Utils.Camera()
-    DroneCamera.init()
-
+def DisplayCameraView(platform):
+    Camera = None
+    if platform == 'PI':
+        Camera = Utils.OperatorCameraPI()
+    elif platform == 'SITL':
+        Camera = Utils.OperatorCameraSITL()
+    Camera.init()
     try:
         while True:
-            DroneCamera.read()
-            cv2.imshow('DroneView', DroneCamera.image)
+            Camera.read()
+            cv2.imshow('DroneView', Camera.image)
             if cv2.waitKey(1)&0xFF == ord('q'):
                 break
     except KeyboardInterrupt:
-            print("Keyboard Interrupt")
+            Utils.LogDebug("Keyboard Interrupt")
 
-if __name__=='__main__':
-    try:    
-        #sys.path.append("..") # Adds higher directory to python modules path.
-        #DisplayCameraView()
-        #p_camera = Process(target=DisplayCameraView)
-        #p_camera.start()
-        #p_camera.join()
 
-        ss = Utils.OperatorSocket(HOST="192.168.56.101")
-        ss.init()
-        ss.sendMessageSync({'Type':'Launch','Mode':'Normal'})
-        x = input()
-        while x != '-1':
-            print('processing ', x)
-            #ss.sendMessageSync({'Type':'AutonomousMove','X':float(x),'Y':float(x), 'w':float(0)})
-            ss.sendMessageSync({'Type':'AutonomousExplore'})
-            x = input()
-        ss.sendMessageSync({'Type':'Land'})
-        print('Message sent')
-        while True:
-            data = ss.getMessage()
-            if data:
-                print(data)
-    except KeyboardInterrupt:
-        ss.close()
+if __name__ == '__main__':
+    platform = 'SITL'
+    droneInterface = None
+    p_camera = None
+    if platform == 'SITL':
+        droneInterface = Utils.OperatorSocket(HOST="192.168.56.101")
+        p_camera = Process(target=DisplayCameraView, args=('SITL',))
+        p_camera.start()
+    else:
+        droneInterface = Utils.OperatorSocket(HOST="navio")
+        p_camera = Process(target=DisplayCameraView, args=('PI',))
+        p_camera.start()
+
+
+    app = QApplication(sys.argv)
+    uiApp = UserInterface.UIApp(droneInterface)
+
+    #droneDisplayer = UserInterface.DroneDisplayer()
+    #t1 = threading.Thread(target=uiApp.processDroneMessages, args=())
+    #t1.start()
+
+    app.exec_()
+
+    # GUI Closed
+    uiApp.close()
+    p_camera.terminate()

@@ -3,7 +3,7 @@ import cv2
 import queue, threading, time
 import Utils.Common as Common
 
-class Camera:
+class OperatorCamera:
     def __init__(self):
         self.cap_receive, self.thread = None, None
         self.q = queue.Queue()
@@ -12,8 +12,9 @@ class Camera:
     def read(self):
         self.image = self.q.get()
         
-    def init(self):
-        self.cap_receive = cv2.VideoCapture('udpsrc port=9000 caps="application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264" ! rtph264depay ! avdec_h264 ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
+    def init(self, cap_receive):
+        self.cap_receive = cap_receive
+        
         if not self.cap_receive.isOpened():
             Common.LogError('VideoCapture not opened')
             raise Exception('Video Capture failed to opened')
@@ -35,6 +36,14 @@ class Camera:
                     pass
             self.q.put(frame)
 
+class OperatorCameraPi(OperatorCamera):
+    def init(self):
+        cap = cv2.VideoCapture('udpsrc port=9000 caps="application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264" ! rtph264depay ! avdec_h264 ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
+        super().init(cap)
+class OperatorCameraSITL(OperatorCamera):
+    def init(self):
+        cap = cv2.VideoCapture('udpsrc port=5600 ! application/x-rtp, payload=96 ! rtpjitterbuffer ! rtph264depay ! avdec_h264 ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
+        super().init(cap) 
 if __name__ == '__main__':
     DroneCamera = Camera()
     DroneCamera.init()
