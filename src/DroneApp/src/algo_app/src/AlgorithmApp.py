@@ -52,9 +52,13 @@ class AlgorithmApp:
         #localPose should be controlled by the FSM under all states except Autonomous Explore, within which it is calculated from this module
         if  self.droneState == 'AutonomousExplore':
             self.localPose = self.autonomousExplorePose
-        elif self.desPoseFSM != self.localPose:
+            self.topicInterface.localPosPub.publish(self.localPose)
+        elif (self.droneState in ['Hover', 'DesiredLocationError', 
+                'NoParkingLotDetected','CompulsiveMove','AutonomousMove'] and 
+                self.desPoseFSM != self.localPose):
             self.localPose = self.desPoseFSM
-        self.topicInterface.localPosPub.publish(self.localPose)
+            LogMessage('NEXT POSE:\n'+ str(self.localPose))
+            self.topicInterface.localPosPub.publish(self.localPose)
         
         # reset variables when error state is exited
         if self.prevDroneState != self.droneState:
