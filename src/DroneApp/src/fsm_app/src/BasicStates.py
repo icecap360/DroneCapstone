@@ -78,7 +78,7 @@ class Malfunction(State):
         with open('Logs/ErrorDiagnostic.txt', 'w') as writer:
             writer.write(str(data_dict))
         LogError('MALFUNCTION:\n'+str(data_dict))
-        self.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Malfunction, system error detected'})
+        self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Malfunction, system error detected'})
         super().init()
     def exit(self):
         self.context.servInterface.setArm(False)
@@ -128,7 +128,7 @@ class DesiredLocationError(Hover): # reusing code by inheiritng from Hover
         super().__init__(context, command, name)
     def init(self):
         self.context.userError = UserErrorCode.DESIRED_LOCATION_INVALID
-        self.opAppInterface.sendMessageAsync({'Type':'Log', 'Message':'Desired location not within a parking lot'})
+        self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Desired location not within a parking lot'})
         super().init()
     def exit(self):
         self.context.userError = UserErrorCode.NONE
@@ -138,7 +138,7 @@ class NoParkingLotDetected(Hover): # reusing code by inheiritng from Hover
         super().__init__(context, command, name)
     def init(self):
         self.context.userError = UserErrorCode.NO_LOT_DETECTED
-        self.opAppInterface.sendMessageAsync({'Type':'Log', 'Message':'No parking lot detected'})
+        self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'No parking lot detected'})
         super().init()
     def exit(self):
         self.context.userError = UserErrorCode.NONE
@@ -249,7 +249,8 @@ class Takeoff(State):
     def __init__(self,context, command,name='Takeoff'):
         super().__init__(context, command, name)
     def init(self):
-        self.context.servInterface.sendTakeoffCmd(self.context.homeHoverPoseGlob)
+        if self.context.topicInterface.getRelAlt() < 5:
+            self.context.servInterface.sendTakeoffCmd(self.context.homeHoverPoseGlob)
         rospy.loginfo("Taking off")
         rospy.sleep(8)
         super().init()
