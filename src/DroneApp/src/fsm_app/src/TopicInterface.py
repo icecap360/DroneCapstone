@@ -1,6 +1,6 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
-from mavros_msgs.msg import State
+from mavros_msgs.msg import State, HomePosition, OverrideRCIn
 from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest, CommandTOL, CommandTOLRequest
 from sensor_msgs.msg import NavSatFix, BatteryState
 from diagnostic_msgs.msg import DiagnosticArray
@@ -53,6 +53,10 @@ class TopicInterface:
 
         self.rel_alt = Float64()
         self.sem_rel_alt = Semaphore()
+
+        self.home_position = HomePosition()
+        self.sem_home_position = Semaphore()
+
         # Subscribe to topics at the end!
         self.state_sub = rospy.Subscriber("/mavros/state", State, callback = self.state_cb)
         self.global_pose_sub = rospy.Subscriber("/mavros/global_position/global", NavSatFix, callback = self.global_pose_cb)
@@ -61,8 +65,9 @@ class TopicInterface:
         self.des_loc_inbound_sub = rospy.Subscriber("/algo_app/desired_loc_inbound", Bool, callback = self.des_loc_inbound_cb)
         self.occupancy_map_sub = rospy.Subscriber("/algo_app/occupancy_map", OccupancyMap, callback = self.occupancy_map_cb)
         self.local_pose_sub = rospy.Subscriber("/mavros/local_position/pose", PoseStamped, callback = self.local_pose_cb)
-        self.battery_pub = rospy.Subscriber("/mavros/battery", BatteryState, callback = self.battery_cb)
-        self.rel_alt_pub = rospy.Subscriber("/mavros/global_position/rel_alt", Float64, callback = self.rel_alt_cb)
+        self.home_position_sub = rospy.Subscriber("/mavros/home_position/home", HomePosition, callback = self.home_position_cb)
+        self.battery_sub = rospy.Subscriber("/mavros/battery", BatteryState, callback = self.battery_cb)
+        self.rel_alt_sub = rospy.Subscriber("/mavros/global_position/rel_alt", Float64, callback = self.rel_alt_cb)
 
 
     def convertToAMSL(self,lat, lon, height) -> float:
@@ -106,6 +111,10 @@ class TopicInterface:
         self.sem_occupancy_map.acquire()
         self.occupancy_map = msg
         self.sem_occupancy_map.release()
+    def home_position_cb(self, msg):
+        self.sem_home_position.acquire()
+        self.home_position = msg
+        self.sem_home_position.release()
     def getState(self) -> State:
         self.sem_state.acquire()
         t = self.state
@@ -161,4 +170,9 @@ class TopicInterface:
         self.sem_occupancy_map.acquire()
         t = self.occupancy_map
         self.sem_occupancy_map.release()
+        return t
+    def getHomePosition(self):
+        self.sem_home_position.acquire()
+        t = self.home_position
+        self.sem_home_position.release()
         return t

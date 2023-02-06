@@ -4,22 +4,45 @@ import sys
 sys.path.append('/home/operator/DroneCapstone/src')
 from OperationManager import OperationManager
 import Utils.Sockets as Sockets
+from Utils import LogDebug
+import time
+from threading import Event, Thread
+
+def infOpManLoop(stopNodeEvent, operationManager):
+    while not stopNodeEvent.is_set():
+        operationManager.process()
+        LogDebug('Current State:'+operationManager.FSMState.name)
+        operationManager.sleep(0.2)
+    operationManager.close()
 
 if __name__ == "__main__":
     operationManager = OperationManager(Sockets.DroneSocket())
     operationManager.init()
+    stopNodeEvent = Event()
 
     #fly in circle testcase
     #operationManager.TestCircularMotion()
 
-    #test launch 
     try:
-        while True:
+        while not stopNodeEvent.is_set():
             operationManager.process()
-            print('Current State:',operationManager.FSMState)
-            operationManager.sleep(0.2)
+            LogDebug('Current State:'+operationManager.FSMState.name)
+            operationManager.sleep(0.5)
     except KeyboardInterrupt:
-        print('Keyboard expection')
+        LogDebug('Keyboard expection')
+        stopNodeEvent.set()
+        operationManager.close()
+    
+    # try:
+    #     t1 = Thread(target=infOpManLoop, args=(stopNodeEvent, operationManager))
+    #     t1.start()
+    #     operationManager.spin()
+    # except KeyboardInterrupt:
+    #     print('Keyboard expection')
+    #     stopNodeEvent.set()
+    # except:
+    #     stopNodeEvent.set()
+
 
 
     #test configure 

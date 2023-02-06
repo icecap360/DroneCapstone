@@ -20,11 +20,16 @@ class BaseSocket(ABC):
         self.processingMsg = False
         self.buffSize = buffSize
         self.msgLen = -1
+        self.initialized = False
+
+    def isInitialized(self):
+        return self.initialized
     def init(self):
         self.connect()
         #self.__startReadThread()
         #self.__startSendThread()
         self.__startReadSendThread()
+        self.initialized = True
 
     @abstractmethod
     def connect(self):
@@ -59,16 +64,21 @@ class BaseSocket(ABC):
     def isConnected(self) -> bool:
         return self.isConnected_b.get()
     def close(self) -> None:
-        self.connLock.acquire()
-        self.conn.close()
-        self.connLock.release()
+        if self.isInitialized():
+            self.__endReadSendThread()
+            self.connLock.acquire()
+            self.conn.close()
+            self.connLock.release()
 
     def __startReadSendThread(self):
+        self.threadReadSendEvent = threading.Event()
         self.threadReadSend = threading.Thread(target=self.__readSendMessagesInfLoop)
         self.threadReadSend.daemon = True
         self.threadReadSend.start()
+    def __endReadSendThread(self):
+        self.threadReadSendEvent.set()
     def __readSendMessagesInfLoop(self):
-        while True:
+        while not self.threadReadSendEvent.is_set():
             readable, writable, exceptional = select.select([self.conn], [self.conn], [self.conn])
             if len(exceptional) > 0:
                 self.reconnect()
@@ -198,6 +208,7 @@ Having seperate threads using polling, I don't think is that good
 '''
 class OperatorSocket(BaseSocket):
     def __init__(self, HOST='navio') -> None:
+        super().__init__(self)
         self.HOST = HOST #"127.0.0.1" The server's hostname or IP address
         pass
     def connect(self):
@@ -213,6 +224,7 @@ class OperatorSocket(BaseSocket):
 
 class DroneSocket(BaseSocket) :
     def __init__(self) -> None:
+        super().__init__(self)
         # the drone runs the server socket
         pass
     def connect(self):

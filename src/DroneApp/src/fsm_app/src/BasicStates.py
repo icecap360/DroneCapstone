@@ -35,9 +35,18 @@ class Configure(State):
         self.maxHoverHeight = float(command['MaxHoverHeight'])
         super().__init__(context,command, name)
     def init(self):
-        self.context.setAndSaveParams(self.minHoverHeight, 
-            self.desiredHoverHeight, 
-            self.maxHoverHeight)
+        if self.minHoverHeight<7 or self.desiredHoverHeight<7 or self.maxHoverHeight<7:
+            self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Height parameters must be atleast 7m'}) 
+            self.userError = UserErrorCode.HEIGHT_PARAMS_INVALID
+        elif self.minHoverHeight<self.desiredHoverHeight and self.desiredHoverHeight<self.maxHoverHeight:
+            self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Heaight parameters must be in ascending order: Min,Des,Max'}) 
+            self.userError = UserErrorCode.HEIGHT_PARAMS_INVALID
+        else:
+            self.context.setAndSaveParams(self.minHoverHeight, 
+                self.desiredHoverHeight, 
+                self.maxHoverHeight)
+            self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Heaight parameters successfully updated'}) 
+            self.userError = UserErrorCode.NONE
         super().init()
     def evalNewState(self):
         return Idle(self.context, {})
@@ -69,6 +78,7 @@ class Malfunction(State):
         with open('Logs/ErrorDiagnostic.txt', 'w') as writer:
             writer.write(str(data_dict))
         LogError('MALFUNCTION:\n'+str(data_dict))
+        self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Malfunction, system error detected'})
         super().init()
     def exit(self):
         self.context.servInterface.setArm(False)
@@ -118,6 +128,7 @@ class DesiredLocationError(Hover): # reusing code by inheiritng from Hover
         super().__init__(context, command, name)
     def init(self):
         self.context.userError = UserErrorCode.DESIRED_LOCATION_INVALID
+        self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Desired location not within a parking lot'})
         super().init()
     def exit(self):
         self.context.userError = UserErrorCode.NONE
@@ -127,6 +138,7 @@ class NoParkingLotDetected(Hover): # reusing code by inheiritng from Hover
         super().__init__(context, command, name)
     def init(self):
         self.context.userError = UserErrorCode.NO_LOT_DETECTED
+        self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'No parking lot detected'})
         super().init()
     def exit(self):
         self.context.userError = UserErrorCode.NONE
@@ -227,6 +239,9 @@ class Arm(State):
         command = self.context.opAppInterface.getMessage()
         if command != None and command['Type'] == 'Takeoff':
             return Takeoff(self.context,{})
+        elif command != None and command['Type'] == 'Disarm':
+            self.context.servInterface.setArm(False)
+            return Idle(self.context, {})
         else:
             return None
 
@@ -234,7 +249,8 @@ class Takeoff(State):
     def __init__(self,context, command,name='Takeoff'):
         super().__init__(context, command, name)
     def init(self):
-        self.context.servInterface.sendTakeoffCmd(self.context.homeHoverPoseGlob)
+        if self.context.topicInterface.getRelAlt() < 5:
+            self.context.servInterface.sendTakeoffCmd(self.context.homeHoverPoseGlob)
         rospy.loginfo("Taking off")
         rospy.sleep(8)
         super().init()
@@ -244,7 +260,7 @@ class Takeoff(State):
         #if not self.context.topicInterface.getHealthStatus():
         #    return Malfunction(self.context)
         if not self.context.topicInterface.getState().armed:
-            return Arm(self.conext, {})
+            return Arm(self.context, {})
         elif self.context.topicInterface.getRelAlt() > self.context.homeHoverPoseGlob.altitude - 0.5:
             return Hover(self.context,{})
         else:
