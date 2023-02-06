@@ -100,16 +100,16 @@
             mapManager.processClick(data);
         });
 
-        var latt, long;
+        var lat, long;
         setInterval(function () {
             map.removeLayer(markerDroneLoc);
-            mapManager.getDroneLatt(function(loc) {
-                latt = loc;
+            mapManager.getDroneLat(function(loc) {
+                lat = loc;
             })
             mapManager.getDroneLong(function(loc) {
                 long = loc;
             })
-            markerDroneLoc = new L.Marker([latt, long]);
+            markerDroneLoc = new L.Marker([lat, long]);
             map.addLayer(markerDroneLoc);
             markerDroneLoc.setIcon(iconDroneLoc);
             markerDroneLoc.bindPopup(popupDroneLoc);

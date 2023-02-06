@@ -6,9 +6,9 @@ import UserInterface #import the setup code for the app
 class DroneApp(QtWidgets.QMainWindow, UserInterface.UIController): #the method for the main app
     def __init__(self, parent=None):
         super(DroneApp, self).__init__(parent)
-        self.setupUi(self)
         self.camocc = CamOccApp()
         self.camocc.show()
+        self.setupUi(self, None, self.camocc)
         
 class CamOccApp(QtWidgets.QMainWindow, UserInterface.UIDisplayer): #the method for the sub app
     def __init__(self, parent=None, child=None):
