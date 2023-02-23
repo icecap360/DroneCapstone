@@ -16,7 +16,7 @@ def infOpManLoop(stopNodeEvent, operationManager):
     operationManager.close()
 
 if __name__ == "__main__":
-    operationManager = OperationManager(MessageSocket("DRONE"))
+    operationManager = OperationManager(MessageSocket("DRONE", ""))
     operationManager.init()
     stopNodeEvent = Event()
 
