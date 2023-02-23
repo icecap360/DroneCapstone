@@ -29,14 +29,13 @@ if __name__ == '__main__':
     droneInterface = None
     p_camera = None
     if platform == 'SITL':
-        droneInterface = Utils.OperatorSocket(HOST="192.168.56.101")
+        droneInterface = Utils.MessageSocket("OPERATOR",HOST="192.168.56.101")
         p_camera = Process(target=DisplayCameraView, args=('SITL',))
         p_camera.start()
     else:
-        droneInterface = Utils.OperatorSocket(HOST="navio")
+        droneInterface = Utils.MessageSocket("OPERATOR",HOST="navio")
         p_camera = Process(target=DisplayCameraView, args=('PI',))
         p_camera.start()
-
 
     app = QApplication(sys.argv)
     uiApp = UserInterface.UIApp(droneInterface)
