@@ -206,50 +206,42 @@ Having seperate threads using polling, I don't think is that good
                 self.reconnect()
                 self.__receive()
 '''
-class OperatorSocket(BaseSocket):
-    def __init__(self, HOST='navio') -> None:
-        super().__init__(self)
-        self.HOST = HOST #"127.0.0.1" The server's hostname or IP address
-        pass
-    def connect(self):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        ret = self.sock.connect_ex((self.HOST, Common.App_PORT))
-        while ret != 0:
-            Common.LogMessage('Connect failed, waiting 3 sec')
-            sleep(3)
-            ret = self.sock.connect_ex((self.HOST, Common.App_PORT))
-        super().__init__( self.sock, buffSize=Common.App_buffSize)
-        super().connect()
 
-class DroneSocket(BaseSocket) :
-    def __init__(self) -> None:
+class MessageSocket(BaseSocket) :
+    def __init__(self, type, HOST=None, PORT=3002) -> None:
+        self.type = type
+        self.HOST = HOST
+        self.PORT = PORT
+        self.buffSize=4096
         super().__init__(self)
-        # the drone runs the server socket
-        pass
+        # the drone runs the server socket, while the operator runs the 
     def connect(self):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # SOCK_STREAM is the socket type for TCP
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # https://stackoverflow.com/questions/4465959/python-errno-98-address-already-in-use
-        HOST = "" #empty to accept any client
-        self.sock.bind((HOST, Common.App_PORT))
-        self.sock.listen(500) # maximum of 500 connections, so I think we can lose and regain connection 500 times
-        Common.LogMessage('Waiting for connections')
-        
-        conn = None
-        while True:
-            readable, _, _ = select.select([self.sock], [], [])
-            sleep(0.5)
-            if len(readable) >0 and readable[0] is self.sock:
-                conn, self.addr = self.sock.accept()
-                break
-        
-        # blocking call
-        # while True:
-        #     try:
-        #         conn, self.addr = self.sock.accept() # blocks execution, addr contains adress of the client
-        #     break
-        # except:
-        #     pass
+        if self.type == "DRONE":
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # SOCK_STREAM is the socket type for TCP
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # https://stackoverflow.com/questions/4465959/python-errno-98-address-already-in-use
+            HOST = "" # empty to accept any client
+            self.sock.bind((HOST, self.PORT))
+            self.sock.listen(500) # maximum of 500 connections, so I think we can lose and regain connection 500 times
+            Common.LogMessage('Waiting for connections')
+            conn = None
+            while True:
+                readable, _, _ = select.select([self.sock], [], [])
+                sleep(0.5)
+                if len(readable) >0 and readable[0] is self.sock:
+                    conn, self.addr = self.sock.accept()
+                    break
+            super().__init__( conn, buffSize=self.buffSize)
+            super().connect()
+        elif self.type == "OPERATOR":
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            ret = self.sock.connect_ex((self.HOST, self.PORT))
+            while ret != 0:
+                Common.LogMessage('Connect failed, waiting 3 sec')
+                sleep(3)
+                ret = self.sock.connect_ex((self.HOST, self.PORT))
+            super().__init__( self.sock, buffSize=self.buffSize)
+            super().connect()
+        else:
+            Common.LogError("Invalid Socket Type:"+str(self.type))
 
-        super().__init__( conn, buffSize=Common.App_buffSize)
-        super().connect()
