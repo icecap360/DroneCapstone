@@ -1,9 +1,6 @@
 from threading import Lock
 from collections import deque 
 from enum import Enum
- 
-App_PORT = 3002
-App_buffSize=4096
 
 def LogError(msg):
     print(msg +'!')
