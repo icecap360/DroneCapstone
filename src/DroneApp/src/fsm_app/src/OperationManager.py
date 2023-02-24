@@ -44,11 +44,11 @@ class OperationManager:
             self.sendHeartbeat()
         self.topicInterface.currStatePub.publish(str(self.FSMState))
         
-    def init(self):
+    def init(self, topicInterf, servInterf):
         rospy.init_node(self.nodeName, disable_signals=True)
 
-        self.topicInterface = TopicInterface()
-        self.servInterface = ServiceInterface()
+        self.topicInterface = topicInterf
+        self.servInterface = servInterf
         #state_sub = rospy.Subscriber("/mavros/state", State, callback = state_cb)
         #global_pose_sub = rospy.Subscriber("/mavros/global_position/global", NavSatFix, callback = global_pose_cb)
 

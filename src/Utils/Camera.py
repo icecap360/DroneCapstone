@@ -3,7 +3,7 @@ import cv2
 import queue, threading, time
 import Utils.Common as Common
 
-class OperatorCamera:
+class Camera:
     def __init__(self):
         self.cap_receive, self.thread = None, None
         self.q = queue.Queue()
@@ -36,14 +36,17 @@ class OperatorCamera:
                     pass
             self.q.put(frame)
 
-class OperatorCameraPi(OperatorCamera):
+class OperatorCameraPi(Camera):
     def init(self):
         cap = cv2.VideoCapture('udpsrc port=9000 caps="application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264" ! rtph264depay ! avdec_h264 ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
         super().init(cap)
-class OperatorCameraSITL(OperatorCamera):
+class OperatorCameraSITL(Camera):
     def init(self):
         cap = cv2.VideoCapture('udpsrc port=5600 ! application/x-rtp, payload=96 ! rtpjitterbuffer ! rtph264depay ! avdec_h264 ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
         super().init(cap) 
+class DroneCamera(Camera):
+    pass
+
 if __name__ == '__main__':
     DroneCamera = Camera()
     DroneCamera.init()

@@ -437,8 +437,13 @@ different platforms over a LAN network.
 \label{GStreamer}
 \begin{description}
 \item[Secrets:] The secret of this module is the creation and maintenance of complex video streaming pipelines.
-\item[Services:] Offers a class that can be used to create complex video streaming pipelines. Users of this module can set up pipelines with complex operations, like compression and decompression. Users can also specify the protocol, IP, and port over which the images will be published.
-\item[Implemented By:] GStreamer, an open-source framework for streaming media.
+\item[Services:] GStreamer is an library and application that can be used to read images from a camera, send images over a network, and and read images from a network (IP and POrt).
+
+On the Drone, GStreamer is a process that can read images from a camera and share them over a network (IP and Port). It supports the creation of complex optimized video streaming pipelines. Various types of  compression algorithms, decompression algorithms, and streaming protocols are supported.
+
+On the Operator's PC, GStreamer is used to read images from the network connection (IP and Port) used to create the video stream.
+
+\item[Implemented By:] GStreamer, an open-source framework for streaming media. GStreamer is integrated into newer versions of OpenCV, so the GStreamer API can be used in Python through OpenCV.
 \item[Type of Module:] Abstract Data Type
 \end{description}
 

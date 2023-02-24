@@ -37,6 +37,9 @@ class TopicInterface:
         self.desLocInboundPub.publish(True) # initialize to True
         self.localPosPub = rospy.Publisher("/mavros/setpoint_position/local", PoseStamped, queue_size=10)
         self.occupancyMapPub = rospy.Publisher("/algo_app/occupancy_map", OccupancyMap, queue_size=10)
+        self.visionAppHealth = rospy.Publisher("/algo_app/vision_app_health", Bool, queue_size=10)
+        self.mapperAppHealth = rospy.Publisher("/algo_app/mapper_app_health", Bool, queue_size=10)
+        self.pathPlanAppHealth = rospy.Publisher("/algo_app/path_plan_app_health", Bool, queue_size=10)
 
     def drone_state_cb(self, msg):
         self.sem_drone_state.acquire()
