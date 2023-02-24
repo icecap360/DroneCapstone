@@ -11,9 +11,8 @@ from Utils.Common import UserErrorCode, HealthStatusCode, LogDebug
 from rospy_message_converter import message_converter
 
 class OperationManager:
-    def __init__(self, opAppInterface):
+    def __init__(self):
         self.nodeName = "fsm_app"
-        self.opAppInterface = opAppInterface
         self.paramFile = 'Params.json'
         self.readParams()
         self.userError = UserErrorCode.NONE
@@ -44,13 +43,14 @@ class OperationManager:
             self.sendHeartbeat()
         self.topicInterface.currStatePub.publish(str(self.FSMState))
         
-    def init(self, topicInterf, servInterf):
+    def init(self, opAppInterface, topicInterf, servInterf):
         rospy.init_node(self.nodeName, disable_signals=True)
 
         self.topicInterface = topicInterf
         self.servInterface = servInterf
         #state_sub = rospy.Subscriber("/mavros/state", State, callback = state_cb)
         #global_pose_sub = rospy.Subscriber("/mavros/global_position/global", NavSatFix, callback = global_pose_cb)
+        self.opAppInterface = opAppInterface
 
         # Setpoint publishing MUST be faster than 2Hz
         self.rate = rospy.Rate(10)
