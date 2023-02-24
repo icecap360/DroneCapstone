@@ -17,6 +17,18 @@ from geopy import distance
 import haversine as hs
 import threading
 from math import sqrt, cos, radians
+import cv2
+
+def StartDroneCameraDisplay(Camera, platform="PI"):  
+    Camera.init()
+    try:
+        while True:
+            Camera.read()
+            cv2.imshow('DroneView', Camera.image)
+            if cv2.waitKey(1)&0xFF == ord('q'):
+                break
+    except KeyboardInterrupt:
+            LogDebug("Keyboard Interrupt")
 
 class MapManager(QtCore.QObject):
     def __init__(self, window, initLat, initLong):
@@ -92,7 +104,7 @@ class UIController(PyQtInterface.PyQtController):
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.droneComm.process)
-        self.timer.start(500);
+        self.timer.start(500)
         #self.thread.started.connect(self.droneComm.run)
         self.droneCommInitialized = False
         self.droneComm.initConnSig.connect(self.droneComm.initialize)

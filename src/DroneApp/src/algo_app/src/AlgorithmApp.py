@@ -9,66 +9,33 @@ from geometry_msgs.msg import PoseStamped
 
 class AlgorithmApp:
     def __init__(self):
-        self.desLocInbound = True
-        self.droneState = ''
-        self.prevDroneState = ''
-        self.desPoseFSM = PoseStamped()
-        self.prevDesPoseFSM = PoseStamped()
-        self.localPose = PoseStamped()
-        self.autonomousExplorePose = PoseStamped()
-        self.visionApp = VisionApp()
-        self.mapperApp = MapperApp(self.visionApp)
-        self.pathPlanApp = PathPlanApp(self.mapperApp)
+        pass
 
-    def init(self):
+    def init(self, vapp, mapp, ppapp, dronecam, topinterf):
+        self.visionApp = vapp
+        self.mapperApp = mapp
+        self.pathPlanApp = ppapp
+        self.droneCamera = dronecam
         rospy.init_node('vision_app', anonymous=True)
-        self.topicInterface = TopicInterface()
+        self.topicInterface = topinterf
+        self.droneCamera.init()
         # create segmented image publisher
         # create occupancy map publisher
-        self.rate = rospy.Rate(10) 
-        self.visionApp.init()
-        self.mapperApp.init()
-        self.pathPlanApp.init()
+        self.rate = rospy.Rate(10)
+        self.visionApp.init(self.topicInterface, self.droneCamera)
+        self.mapperApp.init(self.visionApp, self.topicInterface)
+        self.pathPlanApp.init(self.pathPlanApp, self.topicInterface)
     
     def pathplan(self):
         pass
     def process(self):
-        # Get Inputs
-        #self.visionApp.readCamera()
-        self.droneState = self.topicInterface.getDroneState()
-        self.desPoseFSM = self.topicInterface.getDesiredPose()
-
         # Run the algorithms
         self.visionApp.process()
         self.mapperApp.process()
-        self.pathPlanApp.process(self.droneState)
-
-        # Publish relevent data
-        # publish segmented image 
-        self.topicInterface.occupancyMapPub.publish(self.mapperApp.getOccupancyMap())
-        self.topicInterface.parkLotDetectedPub.publish(self.visionApp.parkLotDetected) #always publish this, as a default transition depends on this
-        self.topicInterface.desLocInboundPub.publish(self.desLocInbound)
-
-        #localPose should be controlled by the FSM under all states except Autonomous Explore, within which it is calculated from this module
-        if  self.droneState == 'AutonomousExplore':
-            self.localPose = self.autonomousExplorePose
-            self.topicInterface.localPosPub.publish(self.localPose)
-        elif (self.droneState in ['Hover', 'DesiredLocationError', 
-                'NoParkingLotDetected','CompulsiveMove','AutonomousMove'] and 
-                self.desPoseFSM != self.localPose):
-            self.localPose = self.desPoseFSM
-            LogMessage('NEXT POSE:\n'+ str(self.localPose))
-            self.topicInterface.localPosPub.publish(self.localPose)
+        self.pathPlanApp.process()
         
-        # reset variables when error state is exited
-        if self.prevDroneState != self.droneState:
-            if self.prevDroneState == 'DesiredLocationError':
-                self.desLocInbound = True
-                self.topicInterface.desLocInboundPub.publish(self.desLocInbound)
-            # if self.prevDroneState == 'NoParkingLotDetected':
-            #     self.desLocInbound = True
-            #     self.topicInterface.desLocInboundPub.publish(self.desLocInbound)
-        
-        self.prevDroneState = self.droneState 
-        self.prevDesPoseFSM = self.desPoseFSM        
+        self.visionApp.publish()
+        self.mapperApp.publish()
+        self.pathPlanApp.publish()
+
         self.rate.sleep()
