@@ -1,7 +1,7 @@
 import rospy
 from std_msgs.msg import Bool
 from MapperApp import MapperApp
-from Utils.Common import LogMessage
+from Utils.Common import LogDebug
 from geometry_msgs.msg import PoseStamped
 
 class PathPlanApp:
@@ -15,7 +15,7 @@ class PathPlanApp:
         self.mapperApp = mapperApp
         self.topicInterface = topicInterface
         #self.camera.init()
-    def process(self, droneState, desLoc):
+    def process(self):
         # plan the path if in compulsive move (update desired self.desLocInbound)
         # plan the path if in autonomous mode (update self.autonomousExplorePose)
         pass
@@ -24,14 +24,15 @@ class PathPlanApp:
         self.topicInterface.desLocInboundPub.publish(self.getDesLocInBound())
         droneState = self.topicInterface.getDroneState()
         desPoseFSM = self.topicInterface.getDesiredPose()
-        #localPose should be controlled by the FSM under all states except Autonomous Explore, within which it is calculated from this module
+        localPose = self.topicInterface.getLocalPose()
+        # The final localPose should be published by the FSM under all states except Autonomous Explore, within which it is calculated from this module
         if  droneState== 'AutonomousExplore':
             self.topicInterface.localPosPub.publish(self.autonomousExplorePose)
         elif (droneState in ['Hover', 'DesiredLocationError', 
                 'NoParkingLotDetected','CompulsiveMove','AutonomousMove'] and 
                 desPoseFSM != localPose):
             localPose = desPoseFSM
-            LogMessage('NEXT POSE:\n'+ str(localPose))
+            LogDebug('NEXT POSE:\n'+ str(localPose))
             self.topicInterface.localPosPub.publish(localPose)
         
         # Reset variables when error state is exited

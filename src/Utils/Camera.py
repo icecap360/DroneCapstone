@@ -45,7 +45,8 @@ class OperatorCameraSITL(Camera):
         cap = cv2.VideoCapture('udpsrc port=5600 ! application/x-rtp, payload=96 ! rtpjitterbuffer ! rtph264depay ! avdec_h264 ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
         super().init(cap) 
 class DroneCamera(Camera):
-    pass
+    def init(self):
+        pass 
 
 if __name__ == '__main__':
     DroneCamera = Camera()

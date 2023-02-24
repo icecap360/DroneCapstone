@@ -12,6 +12,9 @@ from Utils import DroneCamera
 from TopicInterface import TopicInterface
 
 if __name__ == "__main__":
+    rospy.init_node('vision_app', anonymous=True)
+    rate = rospy.Rate(10)
+
     algorithmApp = AlgorithmApp()
     visionApp = VisionApp()
     mapperApp = MapperApp()
@@ -27,6 +30,7 @@ if __name__ == "__main__":
     try:
         while True:
             algorithmApp.process()
+            rate.sleep()
             #algorithmApp.rate.sleep(1)
     except KeyboardInterrupt:
         print('Keyboard expection')

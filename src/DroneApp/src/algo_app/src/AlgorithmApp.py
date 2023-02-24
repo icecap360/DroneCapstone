@@ -1,4 +1,3 @@
-import rospy
 from threading import Semaphore
 from TopicInterface import TopicInterface
 from VisionApp import VisionApp
@@ -16,13 +15,11 @@ class AlgorithmApp:
         self.mapperApp = mapp
         self.pathPlanApp = ppapp
         self.droneCamera = dronecam
-        rospy.init_node('vision_app', anonymous=True)
         self.topicInterface = topinterf
         self.droneCamera.init()
         # create segmented image publisher
         # create occupancy map publisher
-        self.rate = rospy.Rate(10)
-        self.visionApp.init(self.topicInterface, self.droneCamera)
+        self.visionApp.init( self.droneCamera, self.topicInterface)
         self.mapperApp.init(self.visionApp, self.topicInterface)
         self.pathPlanApp.init(self.pathPlanApp, self.topicInterface)
     
@@ -38,4 +35,3 @@ class AlgorithmApp:
         self.mapperApp.publish()
         self.pathPlanApp.publish()
 
-        self.rate.sleep()
