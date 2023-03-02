@@ -12,7 +12,7 @@ def get_street_image(latitude, longitude):
         return True
     else:
         return False
-get_street_image(43.261433135855484, -79.93115175015133)
+get_street_image(43.263028258992236, -79.91665084063234)
 
 
 #Watershed Algo
@@ -31,6 +31,8 @@ lower_gray = np.array([0, 0, 0])
 upper_gray = np.array([255, 25, 255])
 # Threshold the HSV image to get only gray colors
 thresh = cv.inRange(hsv, lower_gray, upper_gray)
+cv.imshow("thresholding", thresh)
+
 
 
 #gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
@@ -64,5 +66,43 @@ img[markers == -1] = [255,0,0]
 
 
 cv.imshow("pic", img)
-cv.waitKey(0)
-cv.destroyAllWindows()
+
+
+
+#Contouring
+
+import cv2
+import numpy as np
+
+# Let's load a simple image with 3 black squares
+img2 = np.ones((400, 600, 3), dtype = np.uint8)
+img2[markers == -1] = [255,0,0]
+image = img2
+
+
+# Grayscale
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Find Canny edges
+edged = cv2.Canny(gray, 30, 200)
+
+
+# Finding Contours
+# Use a copy of the image e.g. edged.copy()
+# since findContours alters the image
+contours, hierarchy = cv2.findContours(edged,
+	cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+cv2.imshow('Canny Edges After Contouring', edged)
+
+
+print("Number of Contours found = " + str(len(contours)))
+
+# Draw all contours
+# -1 signifies drawing all contours
+cv2.drawContours(image, contours, -1, (0, 255, 0), 1)
+
+cv2.imshow('Contours', image)
+cv2.imwrite('Contoured.png', image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
