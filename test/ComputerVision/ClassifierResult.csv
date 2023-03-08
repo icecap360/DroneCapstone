@@ -1,0 +1,14 @@
+Image Name, Ground Truth, PredPRK, PredNature, PredOccupied
+10Drone-Sunny-MedAlt-Nature,Nature,False,True,False
+10Drone-Sunny-MedAlt-Occupied,Occupied,True,False,False
+10Drone-Sunny-MedAlt-ParkLot,ParkLot,False,True,False
+1Drone-Overcast-MedAlt-Nature,Nature,False,True,False
+1Drone-Overcast-MedAlt-Occupied,Occupied,True,False,False
+1Drone-Overcast-MedAlt-ParkLot,ParkLot,True,False,False
+1Drone-Sunny-MedAlt-Nature,Nature,False,True,False
+1Drone-Sunny-MedAlt-Occupied,Occupied,True,False,False
+1Drone-Sunny-MedAlt-Occupied1,Occupied,True,False,False
+1Drone-Sunny-MedAlt-ParkLot,ParkLot,False,False,True
+3Drone-Overcast-MedAlt-Nature,Nature,False,True,False
+3Drone-Overcast-MedAlt-Occupied,Occupied,False,False,True
+3Drone-Overcast-MedAlt-ParkLot,ParkLot,True,False,False
