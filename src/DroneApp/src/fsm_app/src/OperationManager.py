@@ -7,7 +7,7 @@ from TopicInterface import TopicInterface
 from ServiceInterface import ServiceInterface
 from BasicStates import Idle
 import json
-from Utils.Common import UserErrorCode, HealthStatusCode
+from Utils.Common import UserErrorCode, HealthStatusCode, LogDebug
 from rospy_message_converter import message_converter
 
 class OperationManager:
@@ -40,12 +40,12 @@ class OperationManager:
     def process(self):
         self.FSMState.process()
         self.FSMState = self.FSMState.transitionNextState()
-        if self.healthStatus != HealthStatusCode.COMMUNICATION_LOST:
+        if self.opAppInterface.isConnected():
             self.sendHeartbeat()
         self.topicInterface.currStatePub.publish(str(self.FSMState))
         
     def init(self):
-        rospy.init_node(self.nodeName)
+        rospy.init_node(self.nodeName, disable_signals=True)
 
         self.topicInterface = TopicInterface()
         self.servInterface = ServiceInterface()
@@ -53,28 +53,33 @@ class OperationManager:
         #global_pose_sub = rospy.Subscriber("/mavros/global_position/global", NavSatFix, callback = global_pose_cb)
 
         # Setpoint publishing MUST be faster than 2Hz
-        self.rate = rospy.Rate(20)
+        self.rate = rospy.Rate(10)
 
         self.FSMState = Idle(self,{})
 
         self.opAppInterface.init()
     def sendHeartbeat(self):
+        homePose = self.topicInterface.getHomePosition()
+        localPose = self.topicInterface.getLocalPose()
+        globalPose = self.topicInterface.getPose()
         self.opAppInterface.sendMessageAsync( {
-            'Type':'Hearbeat',
+            'Type':'Heartbeat',
             'State':str(self.FSMState),
-            'Ardupilot State':self.topicInterface.getState().mode,
-            'Occupancy Map':message_converter.convert_ros_message_to_dictionary(
+            'ArduMode':self.topicInterface.getState().mode,
+            'OccMap':message_converter.convert_ros_message_to_dictionary(
                 self.topicInterface.getOccupancyMap()
             ),
-            'Relative Altitude':self.topicInterface.getRelAlt(),
-            'Armed':self.topicInterface.getState().armed,
-            'Latitude':self.topicInterface.getPose().latitude,
-            'Longitude':self.topicInterface.getPose().longitude,
-            'Local Position X':self.topicInterface.getLocalPose().pose.position.x,
-            'Local Position Y':self.topicInterface.getLocalPose().pose.position.x,
-            'Battery Percentage':self.topicInterface.getBatteryInfo().percentage,
-            'User Error':self.userError.value,
-            'Health Status':self.healthStatus.value
+            'RelAlt':self.topicInterface.getRelAlt(),
+            'Arm':self.topicInterface.getState().armed,
+            'Lat':globalPose.latitude,
+            'Long':globalPose.longitude,
+            'RelX':localPose.pose.position.x,
+            'RelY':localPose.pose.position.y,
+            'HomeLat':homePose.geo.latitude,
+            'HomeLong':homePose.geo.longitude,
+            'BattPerc':self.topicInterface.getBatteryInfo().percentage,
+            'UserErr':self.userError.value,
+            'HealthStatus':self.healthStatus.value
         })
     def saveHomeLoc(self):
         pose = self.topicInterface.getPose()
@@ -90,7 +95,13 @@ class OperationManager:
 
     def sleep(self, sec:float):
         rospy.sleep(sec)
+    
+    def close(self):
+        self.opAppInterface.close()
+        LogDebug('CLOSING!')
 
+    def spin(self):
+        rospy.spin()
     def TestCircularMotion(self):
         rospy.loginfo("initializing...")
         # Wait for Flight Controller connection

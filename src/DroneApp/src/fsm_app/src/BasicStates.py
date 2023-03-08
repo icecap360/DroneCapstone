@@ -35,13 +35,21 @@ class Configure(State):
         self.maxHoverHeight = float(command['MaxHoverHeight'])
         super().__init__(context,command, name)
     def init(self):
-        self.context.setAndSaveParams(self.minHoverHeight, 
-            self.desiredHoverHeight, 
-            self.maxHoverHeight)
+        if self.minHoverHeight<7 or self.desiredHoverHeight<7 or self.maxHoverHeight<7:
+            self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Height parameters must be atleast 7m'}) 
+            self.userError = UserErrorCode.HEIGHT_PARAMS_INVALID
+        elif self.minHoverHeight<self.desiredHoverHeight and self.desiredHoverHeight<self.maxHoverHeight:
+            self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Heaight parameters must be in ascending order: Min,Des,Max'}) 
+            self.userError = UserErrorCode.HEIGHT_PARAMS_INVALID
+        else:
+            self.context.setAndSaveParams(self.minHoverHeight, 
+                self.desiredHoverHeight, 
+                self.maxHoverHeight)
+            self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Heaight parameters successfully updated'}) 
+            self.userError = UserErrorCode.NONE
         super().init()
     def evalNewState(self):
-        # this is a permanent state
-        return None
+        return Idle(self.context, {})
 
 class Idle(State):
     def __init__(self,context, command,name='Idle'):
@@ -49,18 +57,14 @@ class Idle(State):
     def init(self):
         super().init()
     def evalNewState(self):
-        print(self.context.opAppInterface.isConnected())
         if not self.context.opAppInterface.isConnected():
             return None
         command = self.context.opAppInterface.getMessage()
-        if command != None:
-            if (command['Type'] == 'Launch' and command['Mode'] != 'Configure' and 
-                    self.context.topicInterface.getBatteryInfo().percentage > 0.2):
-                return Takeoff(self.context,{})
-            elif command['Type'] == 'Launch' and command['Mode'] == 'Configure':
-                return Configure(self.context, command)
-            else:
-                return None
+        if (command != None and command['Type'] == 'Arm' and
+                self.context.topicInterface.getBatteryInfo().percentage > 0.2):
+            return Arm(self.context,{})
+        elif command != None and command['Type'] == 'Configure':
+            return Configure(self.context, command)
         else:
             return None
 
@@ -74,12 +78,13 @@ class Malfunction(State):
         with open('Logs/ErrorDiagnostic.txt', 'w') as writer:
             writer.write(str(data_dict))
         LogError('MALFUNCTION:\n'+str(data_dict))
+        self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Malfunction, system error detected'})
         super().init()
     def exit(self):
         self.context.servInterface.setArm(False)
         rospy.loginfo("Vehicle disarmed")
     def evalNewState(self):
-        if self.context.topicInterface.getRelAlt() < 0.2:
+        if not self.context.topicInterface.getState().armed:
             return Idle(self.context, {})
         return None
 
@@ -102,7 +107,7 @@ class CommunicationLost(State):
     def evalNewState(self):
         if self.context.opAppInterface.isConnected():
             return Hover(self.context, {})
-        elif self.context.topicInterface.getRelAlt() < 0.2:
+        elif not self.context.topicInterface.getState().armed:
             return Idle(self.context, {})
         return None
 
@@ -123,6 +128,7 @@ class DesiredLocationError(Hover): # reusing code by inheiritng from Hover
         super().__init__(context, command, name)
     def init(self):
         self.context.userError = UserErrorCode.DESIRED_LOCATION_INVALID
+        self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Desired location not within a parking lot'})
         super().init()
     def exit(self):
         self.context.userError = UserErrorCode.NONE
@@ -132,6 +138,7 @@ class NoParkingLotDetected(Hover): # reusing code by inheiritng from Hover
         super().__init__(context, command, name)
     def init(self):
         self.context.userError = UserErrorCode.NO_LOT_DETECTED
+        self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'No parking lot detected'})
         super().init()
     def exit(self):
         self.context.userError = UserErrorCode.NONE
@@ -157,7 +164,7 @@ class Land(State):
         self.context.servInterface.setMode('RTL')
         super().init()
     def evalNewState(self):
-        if self.context.topicInterface.getRelAlt() < 0.2:
+        if not self.context.topicInterface.getState().armed:
             return Idle(self.context,{})
         return None
     def exit(self):
@@ -202,36 +209,59 @@ class AutonomousMove(FlightState):
             return DesiredLocationError(self.context, {})
         return super().evalNewState()
 
-class Takeoff(State):
-    def __init__(self,context, command,name='Takeoff'):
+class Arm(State):
+    def __init__(self,context, command,name='Arm'):
         super().__init__(context, command, name)
     def init(self):
         rospy.loginfo("initializing...")
         # Wait for Flight Controller connection
         while(not rospy.is_shutdown() and not self.context.topicInterface.getState().connected):
             self.context.rate.sleep()
-
         rospy.loginfo("Connected...")
         self.context.saveHomeLoc()
         self.context.servInterface.setMode('GUIDED')
         rospy.sleep(4)
+        self.context.servInterface.setArm(True)
+        rospy.loginfo("Vehicle armed")
+        rospy.sleep(2)
         super().init()
-
     def during(self):
         if not self.context.topicInterface.getState().armed:
+            rospy.loginfo("Vehicle disarmed, rearming")
             self.context.servInterface.setArm(True)
             rospy.loginfo("Vehicle armed")
             rospy.sleep(2)
-            self.context.servInterface.sendTakeoffCmd(self.context.homeHoverPoseGlob)
-            rospy.loginfo("Taking off")
-            rospy.sleep(10)
-    
     def evalNewState(self):
         if not self.context.opAppInterface.isConnected():
             return CommunicationLost(self.context, {})
         #if not self.context.topicInterface.getHealthStatus():
         #    return Malfunction(self.context)
-        if self.context.topicInterface.getRelAlt() < self.context.homeHoverPoseGlob.altitude - 0.5:
-            return None
+        command = self.context.opAppInterface.getMessage()
+        if command != None and command['Type'] == 'Takeoff':
+            return Takeoff(self.context,{})
+        elif command != None and command['Type'] == 'Disarm':
+            self.context.servInterface.setArm(False)
+            return Idle(self.context, {})
         else:
+            return None
+
+class Takeoff(State):
+    def __init__(self,context, command,name='Takeoff'):
+        super().__init__(context, command, name)
+    def init(self):
+        if self.context.topicInterface.getRelAlt() < 5:
+            self.context.servInterface.sendTakeoffCmd(self.context.homeHoverPoseGlob)
+        rospy.loginfo("Taking off")
+        rospy.sleep(8)
+        super().init()
+    def evalNewState(self):
+        if not self.context.opAppInterface.isConnected():
+            return CommunicationLost(self.context, {})
+        #if not self.context.topicInterface.getHealthStatus():
+        #    return Malfunction(self.context)
+        if not self.context.topicInterface.getState().armed:
+            return Arm(self.context, {})
+        elif self.context.topicInterface.getRelAlt() > self.context.homeHoverPoseGlob.altitude - 0.5:
             return Hover(self.context,{})
+        else:
+            return None

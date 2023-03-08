@@ -8,7 +8,7 @@ App_buffSize=4096
 def LogError(msg):
     print(msg +'!')
 def LogDebug(msg):
-    #print(msg +'.')
+    print(msg)
     return 
 def LogMessage(msg):
     print(msg)
@@ -48,6 +48,7 @@ class UserErrorCode(Enum):
     NONE = 1
     DESIRED_LOCATION_INVALID = 2 
     NO_LOT_DETECTED = 3
+    HEIGHT_PARAMS_INVALID = 4
 
 class HealthStatusCode(Enum):
     HEALTHY = 1
