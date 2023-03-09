@@ -1675,13 +1675,13 @@ Type &  Functional, Automatic, Static  \\
 \hline
 Initial State & -\\ 
 \hline
-Input &  200 images from any of the public parking lot image datasets are fed into the Occupancy Classifier feature, running on the Raspberry PI. At least 20 images should be during the night, at least 50 images should be during cloudy days, at least 50 images should be taken during sunny days, at least 20 images should be from above 15m, at least 20 images should have a camera altitude between 7m and 15m, and at least 40 images should been taken with the camera tilted.\\ 
+Input &  Atleast 50 images from any of the public parking lot camera datasets are fed into the Occupancy Classifier feature, running on the Raspberry PI. The Occupancy Classifier assigns the central pixel as either "Parking Lot", "Nature", or "Occupied". At least 20\% of the dataset should be during sunny conditions, and 20\% of the dataset should be from overcast decisions. The camera should be within at a height within 7m and 20m. Atleast 5\% of the dataset should be from low light conditions (evening or night) images. The camera can be tilted at any angle so long as the sky is not visible in the image.\\ 
 \hline
-Output &  Measure the time taken for the 200 images to be processed. The 200 images should have taken less than 400 seconds to be processed, to verify the 0.5 frames per second requirement. Also, measure the accuracy of the classification. \\ 
+Output &  Measure the average time taken processing a single image (FPS), and use it to verify the 0.5 frames per second requirement. Also, measure the accuracy of the classification. \\ 
 \hline
 How test will be performed & The test will be through a special unit testing script. The script should hardcode the image from one of the datasets, run the algorithm, and record the result on some kind of table. \\ 
 \hline
-Test case derivation & 200 images were selected because they are an ample testing size. The images consisted of varying weather conditions, altitudes and tilts.  \\ 
+Test case derivation & Atleast 50 images were selected because they are an ample testing size.   \\ 
 \hline
 Requirements & \nameref{GEN_005} \\ 
 \hline
@@ -1701,13 +1701,13 @@ Type &  Functional, Automatic, Static  \\
 \hline
 Initial State & -\\ 
 \hline
-Input &  100 satellite images of parking lots are fed into the Vision App's parking lot segmentation feature.\\ 
+Input &  12 satellite images of parking lots are fed into the Vision App's parking lot segmentation feature.\\ 
 \hline
-Output &  Measure the accuracy of the segmentation. \\ 
+Output &  Measure the accuracy of the segmentation, pixels correctly classified divided by the total number of pixels. \\ 
 \hline
 How test will be performed & The test will be through a special unit testing script. The script should hardcode the image to be a satellite image of a parking lot, run the algorithm, and record the result in some kind of table. \\ 
 \hline
-Test case derivation & 100 images were selected because they are an ample testing size.  \\ 
+Test case derivation & 12 images were selected because they are an ample testing size.  \\ 
 \hline
 Requirements & \nameref{GEN_001} \\ 
 \hline
