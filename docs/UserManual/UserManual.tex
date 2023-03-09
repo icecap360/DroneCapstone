@@ -52,7 +52,6 @@
 \title{User Manual}
 \author{\authname}
 \maketitle
-\label{userManual}
 
 \begin{center}
 Version 1.0    
@@ -96,7 +95,7 @@ The drone used for ParkingLotHawk is custom made and a majority of its body cons
 
 In addition to the parts to build the drone, there are several key electrical components that are integrated to prepare for the drone operations. These include:
 
-\begin{itemize}
+\begin{itemize} \label{subsec:Electrical}
     \item Raspberry Pi 3B – Main controller of the drone and responsible for software operations.
     \item Navio2 – Physical flight controller hardware, contains various sensors and interfaces with motors and batteries.
     \item Radio Antenna and Receiver – Not for operator use.
@@ -123,11 +122,11 @@ Lastly, to make the drone operate properly, there are various software component
 
 The user interface consists of two parts: Hardware Interface and Software Interface. The Hardware Interface will be limited in order to minimize damage to the product from improper handling, as well as decrease any technical experience required by the operator. The only Hardware Interface present is the disconnecting and reconnecting of the battery to the drone, and the mechanical On/Off switch. \\\
 
-The Software User Interface for ParkingLotHawk is used to control the drone from the operator’s console. It starts with a Login Window that requests for username and password. It displays an error message if the credentials do not match. Once the operator successfully logs in, the operator is presented with two windows as described below. \\\
+The Software User Interface for ParkingLotHawk is used to control the drone from the operator’s console. It starts with a Login Window that requests for username and password. It displays an error message if the credentials do not match. Once the operator successfully logs in, the operator is presented with two windows. \\\
 
-The first window is the User Interface where the operator can view the location of the drone on the map and various information related to the drone. The information on the drone is displayed at the top of the window. There is also a logs window which displays the program status or any changes that occur in the software at the bottom. The operator can control the configurations for the drone start-up from the left section of the window. The central map displayed in the window displays the current GPS position of the drone. It also allows the user to direct the drone's flight path via mouse-click from point A (drone position) to point B (drone destination), and trace its movement. \\\
+The first window is the User Interface where the operator can view the location of the drone on the map and various information related to the drone. The information on the drone is displayed at the top of the window. There is also a logs window which displays the program status or any changes that occur in the software at the bottom of the window. The operator can control the configurations for the drone start-up from the left section of the window. The central map displayed in the window displays the current GPS position of the drone. It also allows the user to direct the drone's flight path via mouse-click from point A (drone position) to point B (drone destination), and trace its movement. \\\
 
-The second window, displays the camera visuals and the occupancy map of the entire parking lot that is currently being explored by the drone. There exists a sliding divider in the center which displays the visual images from the camera on the left and the parking lot occupancy on the right, with the status of the parking spots being constantly updated by the drone's sensors.
+The second window displays the camera visuals and the occupancy map of the entire parking lot that is currently being explored by the drone. There exists a sliding divider in the center which divides the visual images from the camera on the left and the parking lot occupancy on the right, with the status of the parking spots being constantly updated by the drone's sensors.
 
 \section{Installation Instructions}
 
@@ -190,32 +189,52 @@ Map & Web Engine Widget & Displays an online map that should have the ability to
 \hline
 Camera & Input & Display the visuals from the camera mounted in the drone. \\
 \hline
-Occupancy Map & Input & Display the status of the parking spots within the parking lot through the drone. \\
+Occupancy Map & Input & Display the status of the parking spots within the parking lot through the drone's sensors. \\
 \hline
 \end{longtable}
 
+\newpage
+
+\section{Drone Flight Checklist}
+\label{sec:umChecklist}
+
+Before the user starts to operate the drone, they are required to verify the following conditions to ensure its safety before launch:
+
+\begin{enumerate}
+    \item Check all parts, including the drone's frame and its components (Refer to Section \ref{subsec:Electrical}), for any damage.
+    \item Check the drone's ability to connect to the power supply by verifying the LED status after plugging the drone to the battery.
+    \item Check the current environment; whether there any strong external variables like rain, wind, heat, etc.
+    \item Test the drone application and whether it can be properly launched on the user's PC.
+    \item Determine if the drone is able to properly connect to the PC application.
+    \item Determine if the information provided by the drone and its components are accurately displayed in the application, within a certain margin of error.
+    \item Test the GPS by determining the current location of the drone and its changes, with respect to the movements of the drone.
+    \item Check if the drone properly responds to the commands issued from the application.
+    \item (\textit{Optional}) Test for errors that can be caused manually and whether the application responds and displays it.
+    \item Test the clarity of the drone's camera and its ability to properly provide a visual of its surroundings.
+    \item Test the accuracy of the situation at each parking spot that is provided by the drone on the occupancy map.
+\end{enumerate}
+
 \section{Safety}
+\label{sec:umSafety}
 
 In order to protect the safety of the user, the drone, and the user interface, various safety procedures need to be performed, as per the following:
 
 \begin{itemize}
     \item Perform a visual inspection for damages before each use to prevent any impact to the drone's performance.
-    \item Check the drone's estimated remaining battery life for its expected duration of operation.
-    \item Test both the primary and secondary sensors for localization. As long as the secondary sensors work, the product can still function.
-    \item Test both the redundant and primary method for determining height. As long as the redundant method works, the product can still land safely.
     \item Check the current environment conditions to determine whether the product can be allowed to operate.
-    \item Upon entering into the Malfunction States, inform the Operator through the Operator’s application if the product and application can successfully communicate.
-    \item Test the GPS and its secondary localization method to ensure that the product can still operate in case the GPS malfunctions.
-    \item Display a segmented image of the parking lot vs non-parking lot to the Operator’s application to determine the product’s perception of its environment.
+    \item Check the drone's estimated remaining battery life for its expected duration of operation.
     \item Read instructions provided on how to hold the product properly to prevent self-harm or damage the product through incorrect use.
-    \item Test whether the drone automatically return to its original launch location and land once the estimated battery time is less than 1.5 minutes.
     \item Test whether the product can inform the battery capacity before launch. If it is estimated to be less than 3 minutes of flight, it will prevent launch of the product.
-    \item The Operator’s login password shall be sufficiently complex to ensure safety against malicious users.
+    \item Test whether the drone automatically return to its original launch location and land once the estimated battery time is less than 1.5 minutes.
     \item Test the lowest height the drone hovers to check if it encounters any obstacles from the given height.
-    \item Check if all the functions in the UI are properly functioning when the product is not in Off State to detect malfunctions.
-    \item Test if the drone causes any distraction or operates properly when facing obstacles or individuals in the parking lot.
+    \item Test if the drone causes any distraction, and operates properly when facing obstacles or individuals in the parking lot.
+    \item Display a segmented image of the parking lot vs non-parking lot to the PC application to determine the product’s perception of its environment.
+    \item Upon entering into the Malfunction States, inform the user through the PC application if the product and application can successfully communicate.
+    \item The user’s login password shall be sufficiently complex to ensure safety against malicious users.
+    \item Check if all the functions in the application are properly functioning when the product is not in Off State to detect malfunctions.
     \item Check if the mechanical Off switch is working in order to ensure that the product can be turned off even in the case of electronic failures, and can double as a kill switch.
-    \item Keep a proper distance from the drone and do not attempt to hold it when it's in On State to prevent physical injuries.
+    \item \color{red} Keep a proper distance from the drone and do not attempt to hold it when it's in On State to prevent physical injuries.
+    
 \end{itemize}
 
 \section{Maintenance}
@@ -223,7 +242,7 @@ In order to protect the safety of the user, the drone, and the user interface, v
 Every moment, before the product is used to accomplish its tasks, it will need to be evaluated. Given below are a few methods to keep check if the drone is properly functioning before each use:
 
 \begin{itemize}
-    \item The user should let the product be recharged for 1 hour to maintain the availability of the product to the maximum.
+    \item The user should let the product be charged for 1 hour to maintain the availability of the product's user to the maximum.
     \item The user should visually inspect the drone for any damages.
     \item The user should determine if the product can sustain itself in wet environments, which ensures that the product will not be damaged.
 \end{itemize}
@@ -234,9 +253,9 @@ In case of any damage to the product, the user can refer to Warranty in Section 
 
 \section{Technical Specifications}
 
-There are many details on the design of the drone and its various components. The user only needs to know the following specifications to have a better understanding of the drone's design:
+There are many details on the design of the drone and its various components. The user only requires to know the following specifications to have a better understanding of the drone's design:
 
-\begin{longtable}{| c | c |}
+\begin{longtable}{| l | r |}
 \caption {Technical Specification}
 \label{tab:TechnicalSpecifications} \\
 \hline
@@ -264,7 +283,7 @@ The group will ensure that any damages that have occurred to the product and/or 
 
 The following individuals can be contacted through username on email (Ex.: \textit{username}@mcmaster.ca):
 
-\begin{longtable}{| c | c |}
+\begin{longtable}{| l | l |}
 \caption {Group Contact}
 \label{tab:Contact} \\
 \hline
