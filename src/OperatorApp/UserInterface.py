@@ -312,7 +312,8 @@ class DroneCommManager(QObject): #enable background processing
 
 class UIDisplayer( PyQtInterface.PyQtDisplayer):
     def updateOccupancyMap(self, occMap):
-        LogDebug('UIDisplayer\n'+str(occMap))
+        pass
+        #LogDebug('UIDisplayer\n'+str(occMap))
 
 class UIApp(QtWidgets.QMainWindow, UIController): #the method for the main app
     def __init__(self, droneInterface, parent=None):

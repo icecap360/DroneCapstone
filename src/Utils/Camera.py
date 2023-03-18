@@ -1,12 +1,14 @@
 from multiprocessing import Process
 import cv2
-import queue, threading, time
+from multiprocessing import Queue
+from asyncio import QueueEmpty
+import threading, time
 import Utils.Common as Common
 
 class Camera:
     def __init__(self):
         self.cap_receive, self.thread = None, None
-        self.q = queue.Queue()
+        self.q = Queue()
         self.image = None
 
     def read(self):
@@ -32,7 +34,7 @@ class Camera:
             if not self.q.empty():
                 try:
                     self.q.get_nowait() # discard previous (unprocessed) frame
-                except queue.Empty:
+                except: # if QueueEmpty
                     pass
             self.q.put(frame)
 

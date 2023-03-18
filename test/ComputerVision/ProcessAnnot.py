@@ -18,7 +18,8 @@ class DataPair:
     def hasNatureAnnot(self):
         return self.natureAnnot != None
     def saveAnnotatedImage(self, folder,polygons, suffix):
-        img = np.zeros((400,640), dtype=np.uint8)
+        dimensions = cv2.imread(self.imgPath).shape
+        img = np.zeros((dimensions[0],dimensions[1]), dtype=np.uint8)
         # for i in range(400):
         #     print(i)
         #     for j in range(640):
@@ -47,7 +48,7 @@ class AnnotProcessor:
     def init(self):
         dataFiles = np.sort(os.listdir(self.imgFolder))
         for imgFile in dataFiles:
-            if not '.jpg' in imgFile:
+            if not '.jpg' in imgFile and not '.png' in imgFile:
                 continue
             #coreImageName = os.path.basename(imgFile).split('-')[:-1].join('-')
             fullImgPath = os.path.join(self.imgFolder, imgFile) 
@@ -82,38 +83,16 @@ class AnnotProcessor:
                 pair.saveAnnotatedImage(self.annotationFolder,pair.natureAnnot,  'AnnotNAT')
 
 if __name__=='__main__':
-    dataset = AnnotProcessor(annotationFileName='labels_parking-lot-hawk.json')#labels_prk+nat_2023-03-04-11-58-06.json')
+    dataset = AnnotProcessor(imgFolder='SattaliteImagery', annotationFolder='AnnotationSattaliteImagery',annotationFileName='labels_ali-satellite-imagery_2023-03-08-10-35-12.json')#labels_prk+nat_2023-03-04-11-58-06.json')
     dataset.init()
     dataset.updateAnnotatedImages() 
 
-    dataset = AnnotProcessor(annotationFileName='labels_prk+nat_2023-03-04-11-58-06.json')
-    dataset.init()
-    dataset.updateAnnotatedImages()
+    # dataset = AnnotProcessor(annotationFileName='labels_parking-lot-hawk.json')#labels_prk+nat_2023-03-04-11-58-06.json')
+    # dataset.init()
+    # dataset.updateAnnotatedImages() 
 
-    
-    # for pair in dataset.data:
-    #     if not pair.hasParkLotAnnot(): 
-    #         continue
-    #     img = np.zeros((400,640,1))
-    #     for i in range(400):
-    #         print(i)
-    #         for j in range(640):
-    #             for polygon in pair.parkLotAnnot:
-    #                 if Polygon(polygon).contains(Point(j,i)):
-    #                     img[i][j]=255
-    #                     break
-    #                 # if Path(polygon[ConvexHull(polygon).vertices]).contains_point((j,i)):
-    #                 #     img[i][j]=255
-    #                 #     break
-        
-    #     cv2.imshow( 'image', img)
-    #     cv2.waitKey(0)
-
-        # for polygon in pair.parkLotAnnot:
-        #     plt.plot(polygon, 'r--', lw=2)
-        
-        # #plt.plot(pair[1][0][:,0], pair[1][0][:,1], 'r--', lw=2)
-        # plt.show()
-        # break
+    # dataset = AnnotProcessor(annotationFileName='labels_prk+nat_2023-03-04-11-58-06.json')
+    # dataset.init()
+    # dataset.updateAnnotatedImages()
 
         
