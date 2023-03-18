@@ -38,7 +38,7 @@ class Configure(State):
         if self.minHoverHeight<7 or self.desiredHoverHeight<7 or self.maxHoverHeight<7:
             self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Height parameters must be atleast 7m'}) 
             self.userError = UserErrorCode.HEIGHT_PARAMS_INVALID
-        elif self.minHoverHeight<self.desiredHoverHeight and self.desiredHoverHeight<self.maxHoverHeight:
+        elif not (self.minHoverHeight<self.desiredHoverHeight and self.desiredHoverHeight<self.maxHoverHeight):
             self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Heaight parameters must be in ascending order: Min,Des,Max'}) 
             self.userError = UserErrorCode.HEIGHT_PARAMS_INVALID
         else:

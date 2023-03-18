@@ -1,7 +1,6 @@
 import rospy
 from std_msgs.msg import Bool
 from Segmenters import ParkingLotSegmenter, NatureSegmenter
-from DataSetManager import DataSetManager
 from Classifier import Classifier
 
 class VisionApp:
@@ -22,7 +21,7 @@ class VisionApp:
         #self.camera.init()
     def process(self):
         # image processing code goes here  
-        self.droneCamera.getImage()
+        self.droneCamera.read()
         self.processImage(self.droneCamera.image)
         
         # self.parkLotDetected = True

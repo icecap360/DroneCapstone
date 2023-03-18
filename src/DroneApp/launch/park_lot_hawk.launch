@@ -1,0 +1,4 @@
+<launch>
+  <node name="fsm_node" pkg="fsm_app" type="MainPI.py" output="screen" cwd="node"/>
+  <node name="algo_node" pkg="algo_app" type="MainPI.py" output="screen"/>
+</launch>
