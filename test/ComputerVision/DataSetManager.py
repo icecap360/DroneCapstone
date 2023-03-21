@@ -36,7 +36,7 @@ class DataSetManager:
         imgFiles = np.sort(os.listdir(self.imgFolder))
         annotFiles = np.sort(os.listdir(self.annotationFolder))
         for imgFile in imgFiles:
-            if not '.jpg' in imgFile:
+            if not '.jpg' in imgFile and not '.png' in imgFile:
                 continue
             parkLotAnnotPath = os.path.basename(imgFile)[:-4]+'-AnnotPRK.jpg'
             fullParkAnnotPath = os.path.join(self.annotationFolder, parkLotAnnotPath)
