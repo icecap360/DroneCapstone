@@ -60,7 +60,8 @@ class Menu(QWidget):
         painter.drawPixmap(self.rect(), self.image)
         painter.setPen(QPen(Qt.red, 3, Qt.SolidLine))
         # painter.drawPoint(self.lastPoint)
-        painter.drawPixmap(self.lastPoint, self.marker)
+        if self.drawing:
+            painter.drawPixmap(self.lastPoint, self.marker)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -78,7 +79,8 @@ class PyQtController(object):
         Controller.setObjectName("Controller")
         Controller.setEnabled(True)
         Controller.resize(1000, 530)
-        Controller.setMinimumSize(QtCore.QSize(1000, 0))
+        Controller.setFixedSize(1000, 750)
+        # Controller.setMinimumSize(QtCore.QSize(1000, 0))
         self.centralwidget = QtWidgets.QWidget(Controller)
         self.centralwidget.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.centralwidget.setObjectName("centralwidget")
