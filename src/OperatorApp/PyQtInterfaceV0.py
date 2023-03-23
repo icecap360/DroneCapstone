@@ -41,6 +41,13 @@ class aThread(QThread): #enable background processing
             if x > 3:
                 x = 0
 
+class bThread(QThread): #enable background processing
+    updt_chk = pyqtSignal(int)
+    def run(self):
+        for i in range(0, 100):
+            time.sleep(0.05)
+            self.updt_chk.emit(i)
+
 class Menu(QWidget):
 
     def __init__(self):
@@ -48,12 +55,30 @@ class Menu(QWidget):
 
         self.drawing = False
         self.lastPoint = QPoint()
+        self.cord = []
+        self.chk = 0
         self.image = QPixmap("image4.png")
         self.marker = QPixmap("mrkr1.png").scaled(24,24)
 
         # self.setGeometry(100, 100, 500, 300)
         # self.resize(self.image.width(), self.image.height())
         # self.show()
+        self.threads = aThread()
+        self.threads.start()
+        self.threads.updt_chk.connect(self.updt)
+
+    def updt(self, x):
+        painter = QPainter(self.image)
+        if x == 0:
+            painter.setPen(QPen(Qt.red, 30, Qt.SolidLine))
+            # print(0)
+        else:
+            painter.setPen(QPen(Qt.green, 30, Qt.SolidLine))
+            # print(1)
+
+        painter.drawPoint(50, 50)
+        self.update()
+
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -62,6 +87,8 @@ class Menu(QWidget):
         # painter.drawPoint(self.lastPoint)
         if self.drawing:
             painter.drawPixmap(self.lastPoint, self.marker)
+            for i in self.cord:
+                painter.drawPoint(i)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -70,10 +97,40 @@ class Menu(QWidget):
             # self.label.update()
             self.update()
 
+    def mouseMoveEvent(self, event):
+        if len(self.cord) < 100 and self.chk == len(self.cord):
+            self.cord.append(event.pos())
+        else:
+            self.cord[self.chk] = event.pos()
+
+        self.update()
+        # print(self.cord[self.chk], ' | ', self.chk)
+
+        if self.chk < 99:
+            self.chk += 1
+        else:
+            self.chk = 0
+
     def mouseReleaseEvent(self, event):
         if event.button == Qt.LeftButton:
             self.drawing = False
+            self.chk = 0
+        self.threads = bThread()
+        self.threads.updt_chk.connect(self.relupdt)
+        self.threads.start()
 
+    def relupdt(self, i):
+        if len(self.cord) > i:
+            if len(self.cord) < 100:
+                self.cord[i] = self.cord[self.chk-1]
+            else:
+                if i + self.chk < 100:
+                    self.cord[i + self.chk] = self.cord[self.chk-1]
+                else:
+                    self.cord[i + self.chk - 100] = self.cord[self.chk-1]
+            self.update()
+
+            
 class PyQtController(object):
     def setupUi(self, Controller):
         Controller.setObjectName("Controller")
