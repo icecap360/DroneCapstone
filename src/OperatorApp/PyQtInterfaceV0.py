@@ -30,6 +30,7 @@ class QTextEditLogger(logging.Handler): #update log file in logs textbox
         msg = self.format(record)
         self.widget.appendPlainText(msg)
         self.widget.moveCursor(QtGui.QTextCursor.End)
+
 class aThread(QThread): #enable background processing
     updt_chk = pyqtSignal(int)
     def run(self):
@@ -38,7 +39,7 @@ class aThread(QThread): #enable background processing
             time.sleep(2)
             self.updt_chk.emit(x)
             x+=1
-            if x > 3:
+            if x > 1:
                 x = 0
 
 class bThread(QThread): #enable background processing
@@ -70,20 +71,20 @@ class Menu(QWidget):
     def updt(self, x):
         painter = QPainter(self.image)
         if x == 0:
-            painter.setPen(QPen(Qt.red, 30, Qt.SolidLine))
+            painter.setBrush(Qt.red)
             # print(0)
         else:
-            painter.setPen(QPen(Qt.green, 30, Qt.SolidLine))
+            painter.setBrush(Qt.green)
             # print(1)
 
-        painter.drawPoint(50, 50)
+        painter.drawEllipse(50, 50, 25, 25)
         self.update()
 
 
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.drawPixmap(self.rect(), self.image)
-        painter.setPen(QPen(Qt.red, 3, Qt.SolidLine))
+        painter.setPen(QPen(Qt.black, 3, Qt.SolidLine))
         # painter.drawPoint(self.lastPoint)
         if self.drawing:
             painter.drawPixmap(self.lastPoint, self.marker)
@@ -130,7 +131,7 @@ class Menu(QWidget):
                     self.cord[i + self.chk - 100] = self.cord[self.chk-1]
             self.update()
 
-            
+
 class PyQtController(object):
     def setupUi(self, Controller):
         Controller.setObjectName("Controller")
