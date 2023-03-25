@@ -42,110 +42,6 @@ class aThread(QThread): #enable background processing
             if x > 1:
                 x = 0
 
-class cThread(QThread): #enable background processing
-    updt_chk = pyqtSignal()
-    x = 0
-    def run(self):
-        for i in range(0,self.x):
-            time.sleep(0.05)
-            self.updt_chk.emit()
-
-class Menu(QWidget):
-
-    def __init__(self):
-        super().__init__()
-
-        self.drawing = False
-        self.lastPoint = QPoint()
-        self.drft = QPoint(75, 75)
-        self.cord = []
-        self.chk = 0
-        self.image = QPixmap("image4.png")
-        self.drone = QPixmap("drone.png").scaled(40, 40, 1)
-        self.dest = QPixmap("dest.png").scaled(40, 40, 1)
-
-        # self.label = QLabel()
-        # self.label.setPixmap(self.image)
-
-        # self.grid = QGridLayout()
-        # self.grid.addWidget(self.label,1,1)
-        # self.setLayout(self.grid)
-
-        # self.setGeometry(100, 100, 500, 300)
-        # self.resize(self.image.width(), self.image.height())
-        self.threads = aThread()
-        self.threads.updt_chk.connect(self.updt)
-        self.threads.start()
-
-    def updt(self, x):
-        painter = QPainter(self.image)
-        if x == 0:
-            painter.setBrush(Qt.red)
-            # print(0)
-        else:
-            painter.setBrush(Qt.green)
-            # print(1)
-
-        painter.drawEllipse(50, 50, 25, 25)
-        self.update()
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.drawPixmap(self.image.rect(), self.image)
-        painter.setPen(QPen(Qt.black, 3, Qt.SolidLine))
-        # painter.drawPixmap(self.start.x()-10, self.start.y()-40, self.drone)
-        if self.drawing:
-            painter.drawPixmap(self.lastPoint.x()-10, self.lastPoint.y()-40, self.dest)
-            for i in self.cord:
-                painter.drawPoint(i)
-                # print(i)
-        painter.drawPixmap(self.drft.x()-10, self.drft.y()-40, self.drone)
-
-    def move(self):
-        cty = self.lastPoint - self.drft
-        sst = QPoint(0, 0)
-
-        if cty.x() > sst.x(): sst.setX(0+1)
-        elif cty.x() < sst.x(): sst.setX(0-1)
-
-        if cty.y() > sst.y(): sst.setY(0+1)
-        elif cty.y() < sst.y(): sst.setY(0-1)
-
-        if self.drft != self.lastPoint:
-            self.cord.append(self.drft + sst)
-            self.drft = self.cord[len(self.cord) - 1]
-            # print(sst, ",", cty, ",", self.lastPoint, ",", self.drft, "," , self.cord[len(self.cord) - 1], ",", self.click)
-        else:
-            if len(self.cord) > 0:self.cord.pop(0)
-
-        if len(self.cord) > 100:self.cord.pop(0)
-
-        if self.drft == self.lastPoint and len(self.cord) == 0:
-            self.threads.terminate()
-
-        self.update()
-
-    def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton and len(self.cord) == 0:
-            # print("click")
-            self.lastPoint = event.pos()
-            self.click = 0
-            self.drawing = True
-            self.update()
-            
-
-    def start(self):
-        self.cord.append(self.drft)
-        self.chk = abs(self.lastPoint.x() - self.drft.x()) + abs(self.lastPoint.y() - self.drft.y()) + 100
-        self.threads = cThread()
-        self.threads.x = self.chk
-        self.threads.updt_chk.connect(self.move)
-        self.threads.start()
-
-    def mouseReleaseEvent(self, event):
-        if event.button == Qt.LeftButton:
-            self.drawing = False
-
 class PyQtController(object):
     def setupUi(self, Controller):
         Controller.setObjectName("Controller")
@@ -220,13 +116,9 @@ class PyQtController(object):
         self.lblLogs.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
         self.lblLogs.setObjectName("lblLogs")
         self.verticalLayout2.addWidget(self.lblLogs)
-        # self.txtLogs = QtWidgets.QTextEdit(self.centralwidget)
-        # self.txtLogs.setReadOnly(True)
-        # self.txtLogs.setObjectName("txtLogs")
-        # self.verticalLayout2.addWidget(self.txtLogs)
-        self.grdlayController.addLayout(self.verticalLayout2, 4, 0, 1, 1)
-        self.verticalLayout1 = QtWidgets.QVBoxLayout()
-        self.verticalLayout1.setObjectName("verticalLayout1")
+        self.grdlayController.addLayout(self.verticalLayout2, 4, 1, 1, 1)
+        self.gridLayout1 = QtWidgets.QGridLayout()
+        self.gridLayout1.setObjectName("gridLayout1")
         self.btnConnect = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -234,31 +126,31 @@ class PyQtController(object):
         sizePolicy.setHeightForWidth(self.btnConnect.sizePolicy().hasHeightForWidth())
         self.btnConnect.setSizePolicy(sizePolicy)
         self.btnConnect.setObjectName("btnConnect")
-        self.verticalLayout1.addWidget(self.btnConnect)
+        self.gridLayout1.addWidget(self.btnConnect, 0, 0)
         self.frmHeight = QtWidgets.QFormLayout()
         self.frmHeight.setObjectName("frmHeight")
         self.lblMinHover = QtWidgets.QLabel(self.centralwidget)
         self.lblMinHover.setObjectName("lblMinHover")
         self.frmHeight.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.lblMinHover)
-        self.spboxMinHover = QtWidgets.QSpinBox(self.centralwidget)
+        self.spboxMinHover = QtWidgets.QDoubleSpinBox(self.centralwidget)
         self.spboxMinHover.setObjectName("spboxMinHover")
         self.frmHeight.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.spboxMinHover)
         self.lblDesiredHover = QtWidgets.QLabel(self.centralwidget)
         self.lblDesiredHover.setObjectName("lblDesiredHover")
         self.frmHeight.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.lblDesiredHover)
-        self.spboxDesiredHover = QtWidgets.QSpinBox(self.centralwidget)
+        self.spboxDesiredHover = QtWidgets.QDoubleSpinBox(self.centralwidget)
         self.spboxDesiredHover.setObjectName("spboxDesiredHover")
         self.frmHeight.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.spboxDesiredHover)
         self.lblMaxHover = QtWidgets.QLabel(self.centralwidget)
         self.lblMaxHover.setObjectName("lblMaxHover")
         self.frmHeight.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.lblMaxHover)
-        self.spboxMaxHover = QtWidgets.QSpinBox(self.centralwidget)
+        self.spboxMaxHover = QtWidgets.QDoubleSpinBox(self.centralwidget)
         self.spboxMaxHover.setObjectName("spboxMaxHover")
         self.frmHeight.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.spboxMaxHover)
-        self.verticalLayout1.addLayout(self.frmHeight)
+        self.gridLayout1.addLayout(self.frmHeight, 1, 0, 3, 1)
         self.btnConfiguration = QtWidgets.QPushButton(self.centralwidget)
         self.btnConfiguration.setObjectName("btnConfiguration")
-        self.verticalLayout1.addWidget(self.btnConfiguration)
+        self.gridLayout1.addWidget(self.btnConfiguration, 4, 0)
         self.hlayArm = QtWidgets.QHBoxLayout()
         self.hlayArm.setObjectName("hlayArm")
         self.btnArm = QtWidgets.QPushButton(self.centralwidget)
@@ -269,23 +161,20 @@ class PyQtController(object):
         self.btnDisarm = QtWidgets.QPushButton(self.centralwidget)
         self.btnDisarm.setObjectName("btnDisarm")
         self.hlayArm.addWidget(self.btnDisarm)
-        self.verticalLayout1.addLayout(self.hlayArm)
+        self.gridLayout1.addLayout(self.hlayArm, 0, 1)
         self.btnTakeOff = QtWidgets.QPushButton(self.centralwidget)
         self.btnTakeOff.setObjectName("btnTakeOff")
-        self.verticalLayout1.addWidget(self.btnTakeOff)
+        self.gridLayout1.addWidget(self.btnTakeOff, 1, 1)
         self.btnAutoExplore = QtWidgets.QPushButton(self.centralwidget)
         self.btnAutoExplore.setObjectName("btnAutoExplore")
-        self.verticalLayout1.addWidget(self.btnAutoExplore)
-        self.btnAutoMove = QtWidgets.QPushButton(self.centralwidget)
-        self.btnAutoMove.setObjectName("btnAutoMove")
-        self.verticalLayout1.addWidget(self.btnAutoMove)
+        self.gridLayout1.addWidget(self.btnAutoExplore, 2, 1)
         self.btnCompulsiveMove = QtWidgets.QPushButton(self.centralwidget)
         self.btnCompulsiveMove.setObjectName("btnCompulsiveMove")
-        self.verticalLayout1.addWidget(self.btnCompulsiveMove)
+        self.gridLayout1.addWidget(self.btnCompulsiveMove, 3, 1)
         self.btnLand = QtWidgets.QPushButton(self.centralwidget)
         self.btnLand.setObjectName("btnLand")
-        self.verticalLayout1.addWidget(self.btnLand)
-        self.grdlayController.addLayout(self.verticalLayout1, 3, 0, 1, 1)
+        self.gridLayout1.addWidget(self.btnLand, 4, 1)
+        self.grdlayController.addLayout(self.gridLayout1, 3, 1, 1, 1)
         self.horizontalLayout1 = QtWidgets.QHBoxLayout()
         self.horizontalLayout1.setSpacing(10)
         self.horizontalLayout1.setObjectName("horizontalLayout1")
@@ -342,14 +231,16 @@ class PyQtController(object):
         self.pbarBattery.setObjectName("pbarBattery")
         self.horizontalLayout1.addWidget(self.pbarBattery)
         self.grdlayController.addLayout(self.horizontalLayout1, 0, 0, 1, 2)
+        
+        self.spboxMinHover.setDecimals(1)
+        self.spboxMinHover.setStepType(QAbstractSpinBox.AdaptiveDecimalStepType)
+        self.spboxDesiredHover.setDecimals(1)
+        self.spboxDesiredHover.setStepType(QAbstractSpinBox.AdaptiveDecimalStepType)
+        self.spboxMaxHover.setDecimals(1)
+        self.spboxMaxHover.setStepType(QAbstractSpinBox.AdaptiveDecimalStepType)
 
-        self.Mn = Menu()
-        self.grdlayController.addWidget(self.Mn, 3, 1, 3, 1)
-
-        self.grdlayController.setColumnStretch(1, 1)
         Controller.setCentralWidget(self.centralwidget)
 
-        self.btnCompulsiveMove.clicked.connect(self.Mn.start)
 
         ##logging start
         self.logTextBox = QTextEditLogger(self.centralwidget)
@@ -363,6 +254,7 @@ class PyQtController(object):
 
         self.retranslateUi(Controller)
         QtCore.QMetaObject.connectSlotsByName(Controller)
+
 
 
     def retranslateUi(self, Controller):
@@ -388,10 +280,10 @@ class PyQtController(object):
         self.btnDisarm.setText(self._translate("Controller", "Disarm"))
         self.btnTakeOff.setText(self._translate("Controller", "Take-Off"))
         self.btnAutoExplore.setText(self._translate("Controller", "Autonomous Explore"))
-        self.btnAutoMove.setText(self._translate("Controller", "Autonomous Move"))
+        # self.btnAutoMove.setText(self._translate("Controller", "Autonomous Move"))
         self.btnCompulsiveMove.setText(self._translate("Controller", "Compulsive Move"))
         self.btnLand.setText(self._translate("Controller", "Land"))
-        self.lblLogo.setText(self._translate("Controller", "Logo"))
+        self.lblLogo.setPixmap(QPixmap("logo.png").scaled(40,40,1))
         self.lblConnection.setText(self._translate("Controller", "Connection:"))
         self.lblDroneState.setText(self._translate("Controller", "Drone State:"))
         self.txtDroneState.setText(self._translate("Controller", "-"))
