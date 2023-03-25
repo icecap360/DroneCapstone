@@ -42,12 +42,13 @@ class aThread(QThread): #enable background processing
             if x > 1:
                 x = 0
 
-class bThread(QThread): #enable background processing
-    updt_chk = pyqtSignal(int)
+class cThread(QThread): #enable background processing
+    updt_chk = pyqtSignal()
+    x = 0
     def run(self):
-        for i in range(0, 100):
+        for i in range(0,self.x):
             time.sleep(0.05)
-            self.updt_chk.emit(i)
+            self.updt_chk.emit()
 
 class Menu(QWidget):
 
@@ -56,17 +57,25 @@ class Menu(QWidget):
 
         self.drawing = False
         self.lastPoint = QPoint()
+        self.drft = QPoint(75, 75)
         self.cord = []
         self.chk = 0
         self.image = QPixmap("image4.png")
-        self.marker = QPixmap("mrkr1.png").scaled(24,24)
+        self.drone = QPixmap("drone.png").scaled(40, 40, 1)
+        self.dest = QPixmap("dest.png").scaled(40, 40, 1)
+
+        # self.label = QLabel()
+        # self.label.setPixmap(self.image)
+
+        # self.grid = QGridLayout()
+        # self.grid.addWidget(self.label,1,1)
+        # self.setLayout(self.grid)
 
         # self.setGeometry(100, 100, 500, 300)
         # self.resize(self.image.width(), self.image.height())
-        # self.show()
         self.threads = aThread()
-        self.threads.start()
         self.threads.updt_chk.connect(self.updt)
+        self.threads.start()
 
     def updt(self, x):
         painter = QPainter(self.image)
@@ -80,65 +89,70 @@ class Menu(QWidget):
         painter.drawEllipse(50, 50, 25, 25)
         self.update()
 
-
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.drawPixmap(self.rect(), self.image)
+        painter.drawPixmap(self.image.rect(), self.image)
         painter.setPen(QPen(Qt.black, 3, Qt.SolidLine))
-        # painter.drawPoint(self.lastPoint)
+        # painter.drawPixmap(self.start.x()-10, self.start.y()-40, self.drone)
         if self.drawing:
-            painter.drawPixmap(self.lastPoint, self.marker)
+            painter.drawPixmap(self.lastPoint.x()-10, self.lastPoint.y()-40, self.dest)
             for i in self.cord:
                 painter.drawPoint(i)
+                # print(i)
+        painter.drawPixmap(self.drft.x()-10, self.drft.y()-40, self.drone)
 
-    def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            self.drawing = True
-            self.lastPoint = event.pos()
-            # self.label.update()
-            self.update()
+    def move(self):
+        cty = self.lastPoint - self.drft
+        sst = QPoint(0, 0)
 
-    def mouseMoveEvent(self, event):
-        if len(self.cord) < 100 and self.chk == len(self.cord):
-            self.cord.append(event.pos())
+        if cty.x() > sst.x(): sst.setX(0+1)
+        elif cty.x() < sst.x(): sst.setX(0-1)
+
+        if cty.y() > sst.y(): sst.setY(0+1)
+        elif cty.y() < sst.y(): sst.setY(0-1)
+
+        if self.drft != self.lastPoint:
+            self.cord.append(self.drft + sst)
+            self.drft = self.cord[len(self.cord) - 1]
+            # print(sst, ",", cty, ",", self.lastPoint, ",", self.drft, "," , self.cord[len(self.cord) - 1], ",", self.click)
         else:
-            self.cord[self.chk] = event.pos()
+            if len(self.cord) > 0:self.cord.pop(0)
+
+        if len(self.cord) > 100:self.cord.pop(0)
+
+        if self.drft == self.lastPoint and len(self.cord) == 0:
+            self.threads.terminate()
 
         self.update()
-        # print(self.cord[self.chk], ' | ', self.chk)
 
-        if self.chk < 99:
-            self.chk += 1
-        else:
-            self.chk = 0
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton and len(self.cord) == 0:
+            # print("click")
+            self.lastPoint = event.pos()
+            self.click = 0
+            self.drawing = True
+            self.update()
+            
+
+    def start(self):
+        self.cord.append(self.drft)
+        self.chk = abs(self.lastPoint.x() - self.drft.x()) + abs(self.lastPoint.y() - self.drft.y()) + 100
+        self.threads = cThread()
+        self.threads.x = self.chk
+        self.threads.updt_chk.connect(self.move)
+        self.threads.start()
 
     def mouseReleaseEvent(self, event):
         if event.button == Qt.LeftButton:
             self.drawing = False
-            self.chk = 0
-        self.threads = bThread()
-        self.threads.updt_chk.connect(self.relupdt)
-        self.threads.start()
-
-    def relupdt(self, i):
-        if len(self.cord) > i:
-            if len(self.cord) < 100:
-                self.cord[i] = self.cord[self.chk-1]
-            else:
-                if i + self.chk < 100:
-                    self.cord[i + self.chk] = self.cord[self.chk-1]
-                else:
-                    self.cord[i + self.chk - 100] = self.cord[self.chk-1]
-            self.update()
-
 
 class PyQtController(object):
     def setupUi(self, Controller):
         Controller.setObjectName("Controller")
         Controller.setEnabled(True)
-        Controller.resize(1000, 530)
-        Controller.setFixedSize(1000, 750)
-        # Controller.setMinimumSize(QtCore.QSize(1000, 0))
+        # Controller.resize(1000, 530)
+        # Controller.setFixedSize(1000, 750)
+        Controller.setMinimumSize(QtCore.QSize(1000, 0))
         self.centralwidget = QtWidgets.QWidget(Controller)
         self.centralwidget.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.centralwidget.setObjectName("centralwidget")
@@ -328,30 +342,14 @@ class PyQtController(object):
         self.pbarBattery.setObjectName("pbarBattery")
         self.horizontalLayout1.addWidget(self.pbarBattery)
         self.grdlayController.addLayout(self.horizontalLayout1, 0, 0, 1, 2)
-        
 
-        # self.widget = QtWidgets.QWidget(self.centralwidget)
-        # self.widget.setObjectName("widget")
-
-        # self.imglbl1 = QtWidgets.QLabel(self.centralwidget)
-        # self.imglbl1.setObjectName("imglbl1")
-        # self.imglbl1.setPixmap(QPixmap("image5.png").scaled(720,720))
-
-        # self.imglbl2 = QtWidgets.QLabel(self.centralwidget)
-        # self.imglbl2.setObjectName("imglbl2")
-        # self.imglbl2.setPixmap(QPixmap("image4.png"))
-
-        # # self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.widget)
-        # # self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-
-        # self.grdlayController.addWidget(self.imglbl1, 3, 1, 3, 1)
-        # self.grdlayController.addWidget(self.imglbl2, 3, 1, 3, 1, QtCore.Qt.AlignRight)
-
-        
-        self.grdlayController.addWidget(Menu(), 3, 1, 3, 1)
+        self.Mn = Menu()
+        self.grdlayController.addWidget(self.Mn, 3, 1, 3, 1)
 
         self.grdlayController.setColumnStretch(1, 1)
         Controller.setCentralWidget(self.centralwidget)
+
+        self.btnCompulsiveMove.clicked.connect(self.Mn.start)
 
         ##logging start
         self.logTextBox = QTextEditLogger(self.centralwidget)
@@ -365,14 +363,6 @@ class PyQtController(object):
 
         self.retranslateUi(Controller)
         QtCore.QMetaObject.connectSlotsByName(Controller)
-
-        # self.imglbl1.mousePressEvent = self.getPos
-        # self.imglbl2.mousePressEvent = self.getPos
-
-    def getPos(self , event):
-        x = event.pos().x()
-        y = event.pos().y()
-        print(x,",",y) 
 
 
     def retranslateUi(self, Controller):
