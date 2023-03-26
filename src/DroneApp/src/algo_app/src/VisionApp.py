@@ -21,10 +21,11 @@ class VisionApp:
         #self.camera.init()
     def process(self):
         # image processing code goes here  
-        self.droneCamera.read()
-        self.processImage(self.droneCamera.image)
+        #self.droneCamera.read()
+        #self.processImage(self.droneCamera.image)
         
         # self.parkLotDetected = True
+        pass
     
     def publish(self):
         self.topicInterface.parkLotDetectedPub.publish(self.getParkLotDet()) #always publish this, as a default transition depends on this

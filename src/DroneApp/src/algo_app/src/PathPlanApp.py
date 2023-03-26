@@ -3,6 +3,7 @@ from std_msgs.msg import Bool
 from MapperApp import MapperApp
 from Utils.Common import LogDebug
 from geometry_msgs.msg import PoseStamped
+from mavros_msgs.msg import GlobalPositionTarget
 
 class PathPlanApp:
     def __init__(self):
@@ -28,13 +29,27 @@ class PathPlanApp:
         # The final localPose should be published by the FSM under all states except Autonomous Explore, within which it is calculated from this module
         if  droneState== 'AutonomousExplore':
             self.topicInterface.localPosPub.publish(self.autonomousExplorePose)
-        elif (droneState in ['Hover', 'DesiredLocationError', 
-                'NoParkingLotDetected','CompulsiveMove','AutonomousMove'] and 
-                desPoseFSM != localPose):
-            localPose = desPoseFSM
-            LogDebug('NEXT POSE:\n'+ str(localPose))
-            self.topicInterface.localPosPub.publish(localPose)
-        
+        elif (droneState in [ 'DesiredLocationError', 
+                'NoParkingLotDetected','CompulsiveMove'] and 
+                desPoseFSM != localPose and 
+                desPoseFSM.pose.position.latitude != 0.0 and 
+                desPoseFSM.pose.position.longitude!=0.0):
+            
+            #LogDebug('NEXT POSE:\n'+ str(desPoseFSM))
+            
+            # self.topicInterface.localPosPub.publish(localPose)
+            
+            # localPose = desPoseFSM
+            desPoseFSM.header.stamp = rospy.Time.now()
+            self.topicInterface.globalPosPub.publish(desPoseFSM)
+            
+            # desPose = GlobalPositionTarget()
+            # desPose.altitude = desPoseFSM.pose.position.altitude
+            # desPose.latitude, desPose.longitude= desPoseFSM.pose.position.latitude, desPoseFSM.pose.position.longitude
+            # desPose.yaw = desPoseFSM.pose.orientation.w
+            # desPose.header.stamp = rospy.Time.now()
+            # self.topicInterface.globalPosPubRaw.publish(desPose)
+
         # Reset variables when error state is exited
         if self.prevDroneState != droneState:
             if self.prevDroneState == 'DesiredLocationError':

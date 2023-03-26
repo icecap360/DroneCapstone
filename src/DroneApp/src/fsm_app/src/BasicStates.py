@@ -5,6 +5,8 @@ from rospy_message_converter import message_converter
 import json
 from Utils.Common import *
 from geometry_msgs.msg import PoseStamped
+from geographic_msgs.msg import GeoPoseStamped
+
 
 class FlightState(State):
     # abstract state, created to prevent code duplication for flight states
@@ -58,7 +60,10 @@ class Idle(State):
         super().init()
     def evalNewState(self):
         if not self.context.opAppInterface.isConnected():
+            self.context.healthStatus = HealthStatusCode.COMMUNICATION_LOST
             return None
+        else:
+            self.context.healthStatus = HealthStatusCode.HEALTHY
         command = self.context.opAppInterface.getMessage()
         if (command != None and command['Type'] == 'Arm' and
                 self.context.topicInterface.getBatteryInfo().percentage > 0.2):
@@ -116,7 +121,7 @@ class Hover(FlightState):
         super().__init__(context, command, name)
     def init(self):
         self.context.servInterface.setMode('GUIDED')
-        self.context.topicInterface.desPosePub.publish(self.context.topicInterface.getLocalPose())
+        #self.context.topicInterface.desPosePub.publish(self.context.topicInterface.getLocalPose())
         super().init()
     def evalNewState(self):
         #if not self.context.topicInterface.getHealthStatus():
@@ -173,16 +178,26 @@ class Land(State):
 
 class CompulsiveMove(FlightState):
     def __init__(self,context, command,name='CompulsiveMove'):
-        self.X, self.Y, self.W = float(command['X']), float(command['Y']), float(command['w'])
+        self.lat, self.long, self.W = float(command['Lat']), float(command['Long']), float(command['w'])
         super().__init__(context, command, name)
     def init(self):
         self.context.servInterface.setMode('GUIDED')
-        desPose = PoseStamped()
-        desPose.pose.position.z = self.context.desiredHoverHeight
-        desPose.pose.position.x, desPose.pose.position.y = self.X, self.Y
+        # desPose = PoseStamped()
+        # desPose.pose.position.z = self.context.desiredHoverHeight
+        # desPose.pose.position.x, desPose.pose.position.y = self.X, self.Y
+        # desPose.pose.orientation.w = self.W
+        # desPose.header.stamp = rospy.Time.now()
+        # self.context.topicInterface.desPosePub.publish(desPose)
+
+        desPose = GeoPoseStamped()
+        desPose.pose.position.altitude = self.context.topicInterface.convertToAMSL(
+            self.lat, self.long, self.context.topicInterface.getPose().altitude)
+        #self.context.topicInterface.getPose().altitude
+        desPose.pose.position.latitude, desPose.pose.position.longitude= self.lat, self.long
         desPose.pose.orientation.w = self.W
         desPose.header.stamp = rospy.Time.now()
         self.context.topicInterface.desPosePub.publish(desPose)
+
         super().init()
     def evalNewState(self):
         #if not self.context.topicInterface.getHealthStatus():

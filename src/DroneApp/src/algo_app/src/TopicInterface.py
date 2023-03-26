@@ -1,7 +1,9 @@
 import rospy
+from pygeodesy.geoids import GeoidPGM 
 from std_msgs.msg import String
 from geometry_msgs.msg import PoseStamped
-from mavros_msgs.msg import State
+from geographic_msgs.msg import GeoPoseStamped
+from mavros_msgs.msg import State, GlobalPositionTarget
 from threading import Semaphore
 from algo_app.msg import OccupancyMap 
 from std_msgs.msg import Bool
@@ -19,13 +21,14 @@ class TopicInterface:
     '''
     
     def __init__(self):
+        self._egm96 = GeoidPGM('/usr/share/GeographicLib/geoids/egm96-5.pgm', kind=-3)
         self.drone_state = String()
         self.sem_drone_state = Semaphore()
         self.current_state_sub = rospy.Subscriber("/fsm_app/drone_state", String, callback = self.drone_state_cb)
 
-        self.des_pose = PoseStamped()
+        self.des_pose = GeoPoseStamped()
         self.sem_des_pose = Semaphore()
-        self.des_pose_sub = rospy.Subscriber("/fsm_desired_pose/desired_pose", PoseStamped, callback = self.des_pose_cb)
+        self.des_pose_sub = rospy.Subscriber("/fsm_desired_pose/desired_pose", GeoPoseStamped, callback = self.des_pose_cb)
 
         self.local_pose = PoseStamped()
         self.sem_local_pose = Semaphore()
@@ -35,7 +38,9 @@ class TopicInterface:
         self.parkLotDetectedPub.publish(False) #initialize to Talse
         self.desLocInboundPub = rospy.Publisher('/algo_app/desired_loc_inbound', Bool, queue_size=10)
         self.desLocInboundPub.publish(True) # initialize to True
-        self.localPosPub = rospy.Publisher("/mavros/setpoint_position/local", PoseStamped, queue_size=10)
+        #self.localPosPub = rospy.Publisher("/mavros/setpoint_position/local", PoseStamped, queue_size=10)
+        self.globalPosPub = rospy.Publisher("/mavros/setpoint_position/global", GeoPoseStamped, queue_size=10)
+        self.globalPosPubRaw = rospy.Publisher("/mavros/setpoint_raw/global", GlobalPositionTarget, queue_size=10)
         self.occupancyMapPub = rospy.Publisher("/algo_app/occupancy_map", OccupancyMap, queue_size=10)
         self.visionAppHealth = rospy.Publisher("/algo_app/vision_app_health", Bool, queue_size=10)
         self.mapperAppHealth = rospy.Publisher("/algo_app/mapper_app_health", Bool, queue_size=10)
