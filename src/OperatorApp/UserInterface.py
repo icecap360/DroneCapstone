@@ -1,6 +1,7 @@
 import sys
 sys.path.append('..')
 from PyQt5 import QtCore, QtGui, QtWidgets, QtWebEngineWidgets, QtWebChannel#pip install  PyQtWebEngine
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import *
 import json, os
 from pathlib import Path
@@ -18,84 +19,29 @@ import haversine as hs
 import threading
 from math import sqrt, cos, radians
 import cv2
+import subprocess
 
 def StartDroneCameraDisplay(Camera, platform="PI"):  
+    # list_files = subprocess.Popen (
+    #     ["gst-launch-1.0.exe","-v", "udpsrc port=9000 caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264\" ! rtph264depay ! avdec_h264 ! videoconvert ! autovideosink sync=f"
+    #      ])
     Camera.init()
     try:
         while True:
-            Camera.read()
-            cv2.imshow('DroneView', Camera.image)
+            print('About to read, is opened:', Camera.cap_receive.isOpened())
+            ret = Camera.read()
+            print('In drone camera:', ret)
+            if ret:
+                cv2.imshow('DroneView', Camera.image)
+            print('cv2.waitKey(1)&0xFF ')
             if cv2.waitKey(1)&0xFF == ord('q'):
                 break
+            print('Processed ret')
     except KeyboardInterrupt:
-            LogDebug("Keyboard Interrupt")
-
-class MapManager(QtCore.QObject):
-    def __init__(self, window, initLat, initLong):
-        super().__init__(window)
-        self.droneLat, self.desLat, self.homeLat = initLat, initLat, initLat
-        self.droneLong, self.desLong, self.homeLong = initLong, initLong, initLong
-        self.semDrone= Semaphore()
-        self.semDes = Semaphore()
-        self.semHome = Semaphore()
-    def setDroneLatLong(self, latitdue, longitude):
-        self.semDrone.acquire()
-        self.droneLat = latitdue
-        self.droneLong = longitude
-        self.semDrone.release()
-    def setHomeLatLong(self, latitdue, longitude):
-        self.semHome.acquire()
-        self.homeLat = latitdue
-        self.homeLong = longitude
-        self.semHome.release()
-    @QtCore.pyqtSlot(result=float)
-    def getDroneLat(self):
-        self.semDrone.acquire()
-        t= self.droneLat
-        self.semDrone.release()
-        return t
-    @QtCore.pyqtSlot(result=float)
-    def getDroneLong(self):
-        self.semDrone.acquire()
-        t = self.droneLong
-        self.semDrone.release()
-        return t
-    @QtCore.pyqtSlot(str)
-    def processClick(self, json_data):
-        data = json.loads(json_data)
-        self.semDes.acquire()
-        self.desLat = data["lat"]
-        self.desLong =  data["lng"]
-        self.semDes.release()
-    def getDesLat(self):
-        self.semDes.acquire()
-        t = self.desLat
-        self.semDes.release()
-        return t
-    def getDesLong(self):
-        self.semDes.acquire()
-        t = self.desLong
-        self.semDes.release()
-        return t
-    def getRelXYDist(self):
-        # Due to small distance, the simplified formula is used
-        # Higher fidelity use libraries geopy or haversine
-        self.semDes.acquire()
-        self.semDrone.acquire()
-        x = abs((radians(self.homeLong) - radians(self.desLong)) * cos(0.5 * (radians(self.droneLat) + radians(self.desLat))))
-        y = abs(radians(self.homeLat) - radians(self.desLat))
-        if self.homeLong > self.desLong:
-            x = -x
-        if self.homeLat > self.desLat:
-            y = -y
-        t = (6371*x*1000, 6371*y*1000)# 6371 is radius of the earth in km
-        self.semDes.release()
-        self.semDrone.release()
-        return t
-
+        LogDebug("Keyboard Interrupt")
 
 class UIController(PyQtInterface.PyQtController):
-    def setupUi(self, MainWindow, droneInterface, displayWindow):
+    def setupUi(self, MainWindow, droneInterface, mapWindow):
         super().setupUi(MainWindow)
         self.droneIsConnected = False
         #self.thread = QThread()
@@ -119,53 +65,18 @@ class UIController(PyQtInterface.PyQtController):
         #self.thread.start()
 
         self.checkWifi(0)
-        ##folium start
-        # coordinate = (43.2617, -79.9228)
-        # self.m = folium.Map(
-        # 	tiles='https://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}',
-        #     attr='Google Satellite Map',
-        #     zoom_start=16,
-        #     max_zoom=22,
-        #     location=coordinate
-        # )
-        # iconeDroneLoc = folium.Icon( icon='fa-circle', color="blue",prefix='fa')
-        # folium.Marker(location=coordinate,popup='Drone Location', icon=iconeDroneLoc).add_to(self.m)
-        # iconeDesLoc = folium.Icon( icon='fa-location-crosshairs', color="red",prefix='fa')
-        # folium.Marker(location=coordinate,popup='Target Location', icon=iconeDesLoc).add_to(self.m)
-        #fmtr = "function(num) {return L.Util.formatNum(num, 3) + ' º ';};"
-        #MousePosition(position='topright', separator=' | ', prefix="Mouse:",
-        #lat_formatter=fmtr, lng_formatter=fmtr).add_to(self.m)
-        #ClickForMarker(popup='<b>Lat:</b> ${lat}<br /><b>Lon:</b> ${lng}').add_to(self.m)
-        #self.m.save('index.html')
 
-        self.mapManager = MapManager(self, 43.2617, -79.9228)
-        self.webView = QtWebEngineWidgets.QWebEngineView(self.centralwidget)
-        channel = QtWebChannel.QWebChannel(self.webView)
-        channel.registerObject("mapManager", self.mapManager)
-        self.webView.page().setWebChannel(channel)
-        filename = os.fspath(Path(__file__).resolve().parent / "index.html")
-        url = QtCore.QUrl.fromLocalFile(filename)
-        self.webView.load(url)
-        #self.webView.setHtml(data.getvalue().decode())
-
-        self.horizontalLayout_3.addWidget(self.webView)
-        self.grdlayController.addWidget(self.widget, 3, 1, 3, 1)
-        self.grdlayController.setColumnStretch(1, 1)
-        #self.gridLayout_1.addWidget(self.webView, 1, 1, 2, 1)
-        #self.gridLayout_1.setColumnStretch(1, 1)
-
+        self.mapWindow = mapWindow
+        
         self.btnConnect.clicked.connect(self.btnCb_connection)
         self.btnConfiguration.clicked.connect(self.btnCb_configure)
         self.btnArm.clicked.connect(self.btnCb_arm)
         self.btnDisarm.clicked.connect(self.btnCb_disarm)
         self.btnTakeOff.clicked.connect(self.btnCb_takeoff)
         self.btnAutoExplore.clicked.connect(self.btnCb_autoExplore)
-        self.btnAutoMove.clicked.connect(self.btnCb_autoMoveBtn)
         self.btnCompulsiveMove.clicked.connect(self.btnCb_compulsiveBtn)
         self.btnLand.clicked.connect(self.btnCb_landBtn)
         
-        self.displayWindow = displayWindow
-
         ##logging start
         # self.logTextBox = QTextEditLogger(self.centralwidget)
         # self.textEdit = self.logTextBox.widget
@@ -186,27 +97,42 @@ class UIController(PyQtInterface.PyQtController):
                 'MaxHoverHeight':self.spboxMaxHover.value()
                 })
     def btnCb_arm(self):
-        if self.getIsConnected():
+        if self.getIsConnected() and self.mapWindow.windowCreated:
             self.droneComm.sendAsyncSig.emit({'Type':'Arm'})
     def btnCb_disarm(self):
         if self.getIsConnected():
             self.droneComm.sendAsyncSig.emit({'Type':'Disarm'})
     def btnCb_takeoff(self):
-        if self.getIsConnected():
+        if self.getIsConnected() and self.mapWindow.windowCreated:
             self.droneComm.sendAsyncSig.emit({'Type':'Takeoff'})
     def btnCb_autoExplore(self):
         if self.getIsConnected():
             self.droneComm.sendAsyncSig.emit({'Type':'AutonomousExplore'})
-    def btnCb_autoMoveBtn(self):
-        if self.getIsConnected():
-            t = self.mapManager.getRelXYDist()
-            self.droneComm.sendAsyncSig.emit({'Type':'AutonomousMove',
-                'X':t[0],'Y':t[1], 'w':float(0)})
+    def moveCommand(self, command):
+        if 'yes' in command.text().lower():
+            self.droneComm.sendAsyncSig.emit(
+                    {'Type':'CompulsiveMove','Lat':self.desLoc[0],'Long':self.desLoc[1], 'w':float(0)}
+                    ) 
     def btnCb_compulsiveBtn(self):
         if self.getIsConnected():
-            t = self.mapManager.getRelXYDist()
-            self.droneComm.sendAsyncSig.emit({'Type':'CompulsiveMove',
-                'X':t[0],'Y':t[1], 'w':float(0)})
+            self.desLoc = self.mapWindow.getDesLocGps()
+            if self.desLoc == None:
+                return
+            locationValid = self.mapWindow.isDesLocInbound()
+            if not locationValid:
+                msg = QMessageBox()
+                msg.setWindowTitle("Compulsive Move")
+                msg.setText("The internal satellite map suggests that the requested location is not within a parking lot."
+                            " \nAre you sure you want to move to the location?")
+                msg.setIcon(QMessageBox.Question)
+                msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No) 
+                msg.setDefaultButton(QMessageBox.Yes)
+                msg.buttonClicked.connect(self.moveCommand)
+                msg.exec_()
+            else:
+                self.droneComm.sendAsyncSig.emit(
+                    {'Type':'CompulsiveMove','Lat':self.desLoc[0],'Long':self.desLoc[1], 'w':float(0)}
+                    ) 
     def btnCb_landBtn(self):
         if self.getIsConnected():
             self.droneComm.sendAsyncSig.emit({'Type':'Land'})
@@ -230,15 +156,17 @@ class UIController(PyQtInterface.PyQtController):
         if 'ArduMode' in data.keys():
             self.setLabelText(self.txtArdupilotMode, data['ArduMode'])
         if 'OccMap' in data.keys():
-            self.displayWindow.updateOccupancyMap(data['OccMap'])
+            pass
+            #self.displayWindow.updateOccupancyMap(data['OccMap'])
         if 'RelAlt' in data.keys():
             self.setLabelText(self.txtAltitude, data['RelAlt'])
         if 'Arm' in data.keys():
             self.setLabelText(self.txtArmed, str(data['Arm']))
         if 'Lat' in data.keys() and 'Long' in data.keys():
-            self.mapManager.setDroneLatLong(data['Lat'], data['Long'])
+            self.mapWindow.processDroneLoc(data['Lat'], data['Long'])
         if 'HomeLat' in data.keys() and 'HomeLong' in data.keys():
-            self.mapManager.setHomeLatLong(data['HomeLat'], data['HomeLong'])
+            pass
+            #self.mapManager.setHomeLatLong(data['HomeLat'], data['HomeLong'])
         if 'RelX' in data.keys():
             self.setLabelText(self.txtRelativeX, round(data['RelX'], 4))
         if 'RelY' in data.keys():
@@ -316,10 +244,9 @@ class UIDisplayer( PyQtInterface.PyQtDisplayer):
         #LogDebug('UIDisplayer\n'+str(occMap))
 
 class UIApp(QtWidgets.QMainWindow, UIController): #the method for the main app
-    def __init__(self, droneInterface, parent=None):
-        displayWindow = DroneDisplayer()
+    def __init__(self, droneInterface, mapWindow, parent=None):
         super(UIApp, self).__init__(parent)
-        self.setupUi(self, droneInterface, displayWindow)
+        self.setupUi(self, droneInterface, mapWindow)
         self.show()
         
 class DroneDisplayer(QtWidgets.QMainWindow, UIDisplayer): #the method for the sub app
