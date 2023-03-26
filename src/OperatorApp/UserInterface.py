@@ -28,15 +28,12 @@ def StartDroneCameraDisplay(Camera, platform="PI"):
     Camera.init()
     try:
         while True:
-            print('About to read, is opened:', Camera.cap_receive.isOpened())
             ret = Camera.read()
-            print('In drone camera:', ret)
             if ret:
                 cv2.imshow('DroneView', Camera.image)
             print('cv2.waitKey(1)&0xFF ')
             if cv2.waitKey(1)&0xFF == ord('q'):
                 break
-            print('Processed ret')
     except KeyboardInterrupt:
         LogDebug("Keyboard Interrupt")
 
