@@ -70,7 +70,6 @@ class UIController(PyQtInterface.PyQtController):
         self.btnArm.clicked.connect(self.btnCb_arm)
         self.btnDisarm.clicked.connect(self.btnCb_disarm)
         self.btnTakeOff.clicked.connect(self.btnCb_takeoff)
-        self.btnAutoExplore.clicked.connect(self.btnCb_autoExplore)
         self.btnCompulsiveMove.clicked.connect(self.btnCb_compulsiveBtn)
         self.btnLand.clicked.connect(self.btnCb_landBtn)
         
