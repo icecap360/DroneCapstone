@@ -70,8 +70,7 @@ class MarkerList:
 class MapWindow:
     def __init__(self):
         self.windowCreated = False
-        plt.ion()
-        plt.show()
+        self.gpsX, self.gpsY = -1,-1
     def init(self,  gpsX, gpsY):   
         if self.windowCreated:
             return     
@@ -109,6 +108,8 @@ class MapWindow:
 
         self.ax.imshow(self.stitchManager.getStitchedImage())
         self.windowCreated = True
+        plt.ion()
+        plt.show()
 
     def on_close(self, event):
         self.windowCreated = False
@@ -141,10 +142,10 @@ class MapWindow:
 
 if __name__=='__main__':
     mapWindow = MapWindow()
-    mapWindow.init(0,0)
-    x = input()
     for i in range(20):
-        mapWindow.process(1920/3+i*5, 1920/2, False, 1920/3+i*5, 1900)
-        print(mapWindow.getDesLoc())
+        mapWindow.processDroneLoc(43.26, -79.902)
+        mapWindow.processOccupancy(False, 43.26, -79.901)
+        mapWindow.processOccupancy(True, 43.261, -79.902)
+        print(mapWindow.getDesLocGps())
         x=input()
         
