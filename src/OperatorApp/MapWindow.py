@@ -102,26 +102,28 @@ class MapWindow:
         self.droneLocMarker = MoveableMarker("d", 14, (0/255, 0/255, 255/255, 1))
         self.desLocMarker = MoveableMarker("X", 14, (255/255, 195/255, 0/255, 1))
         self.desLocMarker.moveTuple(self.stitchManager.getCenterPixel())
-        self.trace = MarkerList("o", 7,(0/255, 255/255, 255/255, 1))
+        self.trace = MarkerList("o", 7,(0/255, 255/255, 255/255, 1), length=1000)
         self.fig.canvas.mpl_connect('button_press_event', self.desLocMarker.moveEvent)
-        self.fig.canvas.mpl_connect('close_event', self.on_close)
+        self.fig.canvas.mpl_connect('close_event', self.close)
 
         self.ax.imshow(self.stitchManager.getStitchedImage())
         self.windowCreated = True
         plt.ion()
         plt.show()
 
-    def on_close(self, event):
+    def close(self, event):
         self.windowCreated = False
     def isDesLocInbound(self):
         if not self.windowCreated:
             return False
-        return self.stitchManager.LocationInbound(self.desLocMarker.x, self.desLocMarker.y)
+        return self.stitchManager.isPixelsInbound(self.desLocMarker.x, self.desLocMarker.y)
     def getDesLocGps(self):
         if not self.windowCreated:
             return None
         return self.stitchManager.pixel2Gps(self.desLocMarker.x, self.desLocMarker.y)
     def processDroneLoc(self, droneGpsLat, droneGpsLong):
+        if droneGpsLat==0.0 or droneGpsLong==0.0:
+            return
         if not self.windowCreated:
             # recreate the stitch window if it was closed
             self.init(droneGpsLat, droneGpsLong)
@@ -129,6 +131,8 @@ class MapWindow:
         self.trace.update(self.droneLocMarker)
     
     def processOccupancy(self,  isOccupied=None, occupancyLat=None, occupancyLong=None):
+        if occupancyLat==0.0 or occupancyLong==0.0:
+            return
         if not self.windowCreated:
             return
         if isOccupied==False:

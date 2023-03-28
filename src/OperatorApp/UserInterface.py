@@ -31,7 +31,6 @@ def StartDroneCameraDisplay(Camera, platform="PI"):
             ret = Camera.read()
             if ret:
                 cv2.imshow('DroneView', Camera.image)
-            print('cv2.waitKey(1)&0xFF ')
             if cv2.waitKey(1)&0xFF == ord('q'):
                 break
     except KeyboardInterrupt:

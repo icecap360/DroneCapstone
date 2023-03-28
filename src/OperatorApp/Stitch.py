@@ -6,7 +6,7 @@ import urllib.request
 from io import BytesIO
 import sys
 import cv2
-from VisionAppPC import VisionAppPC
+from Utils import VisionAppPC
 import numpy as np
 
 class StitchCreator:
@@ -112,12 +112,14 @@ class StitchManager:
                 self.latFactorBott = float(info[4])
                 self.img=cv2.imread(self.fname)
                 self.status=True
+        self.visionApp =VisionAppPC()
 
     def getStitchedImage(self):
         if self.status==True:
-            vApp=VisionAppPC()
-            # self.contours=vApp.processImage(self.img)
+            self.visionApp.process(self.img)
+            # self.contours=vApp.process(self.img)
             # self.img=cv2.drawContours(self.img, contours, -1, (0, 0, 255), 2)
+            cv2.drawContours(self.img, self.visionApp.getContours(), -1, (0, 255, 0), 3)
             return self.img
         else:            
             blank_image = np.zeros((self.stitchCreator.sz*3,self.stitchCreator.sz*3,3), np.uint8)+255
@@ -204,13 +206,12 @@ class StitchManager:
             pointLat = centerLat - degreesPerPixelY*(py-patchSz/2)
         return (pointLat, pointLng)
 
-    def LocationInbound(self, px, py):
-        return True
+    def isPixelsInbound(self, px, py):
         if self.status==True:
-            if cv2.pointPolygonTest(self.contours, (px,py), False)<0:
-                return False #The value is negative if the point is outside the contour
+            if self.visionApp.isPixelsInbound(px,py):
+                return True 
             else:
-                return True
+                return False
         else:            
             return None 
     def getCenterPixel(self):

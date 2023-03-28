@@ -19,6 +19,9 @@ if __name__ == '__main__':
         # Camera = OperatorCameraSITL()
         # p_camera = Process(target=UserInterface.StartDroneCameraDisplay, args=(Camera, 'SITL',))
         # p_camera.start()
+        Camera = OperatorCameraPi()
+        p_camera = Process(target=UserInterface.StartDroneCameraDisplay, args=(Camera, 'PI',))
+        p_camera.start()
     else:
         droneInterface = Utils.MessageSocket("OPERATOR",HOST="navio")
         Camera = OperatorCameraPi()
@@ -39,5 +42,6 @@ if __name__ == '__main__':
     app.exec_()
 
     # GUI Closed
+    mapWindow.close(None)
     uiApp.close()
     p_camera.terminate()
