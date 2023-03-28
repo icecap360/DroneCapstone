@@ -190,8 +190,9 @@ class CompulsiveMove(FlightState):
         # self.context.topicInterface.desPosePub.publish(desPose)
 
         desPose = GeoPoseStamped()
-        desPose.pose.position.altitude = self.context.topicInterface.convertToAMSL(
-            self.lat, self.long, self.context.topicInterface.getPose().altitude)
+        desPose.pose.position.altitude = self.context.topicInterface.getPose().altitude#
+            #self.context.topicInterface.convertToAMSL(
+            #self.lat, self.long, self.context.desiredHoverHeight)
         #self.context.topicInterface.getPose().altitude
         desPose.pose.position.latitude, desPose.pose.position.longitude= self.lat, self.long
         desPose.pose.orientation.w = self.W
