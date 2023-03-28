@@ -30,7 +30,7 @@ class AlgorithmApp:
         self.visionApp.process()
         self.mapperApp.process()
         self.pathPlanApp.process()
-        
+
         self.visionApp.publish()
         self.mapperApp.publish()
         self.pathPlanApp.publish()

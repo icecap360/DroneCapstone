@@ -7,6 +7,8 @@ import threading
 from PyQt5.QtWidgets import QApplication, QWidget
 import UserInterface #import the setup code for the app
 from Utils import OperatorCameraPi, OperatorCameraSITL
+from MapWindow import MapWindow
+from Stitch import StitchManager
 
 if __name__ == '__main__':
     platform = 'SITL'
@@ -17,14 +19,21 @@ if __name__ == '__main__':
         # Camera = OperatorCameraSITL()
         # p_camera = Process(target=UserInterface.StartDroneCameraDisplay, args=(Camera, 'SITL',))
         # p_camera.start()
+        Camera = OperatorCameraPi()
+        p_camera = Process(target=UserInterface.StartDroneCameraDisplay, args=(Camera, 'PI',))
+        p_camera.start()
     else:
         droneInterface = Utils.MessageSocket("OPERATOR",HOST="navio")
         Camera = OperatorCameraPi()
         p_camera = Process(target=UserInterface.StartDroneCameraDisplay, args=(Camera, 'PI',))
         p_camera.start()
 
+
     app = QApplication(sys.argv)
-    uiApp = UserInterface.UIApp(droneInterface)
+
+    mapWindow = MapWindow()
+
+    uiApp = UserInterface.UIApp(droneInterface, mapWindow)
 
     #droneDisplayer = UserInterface.DroneDisplayer()
     #t1 = threading.Thread(target=uiApp.processDroneMessages, args=())
@@ -33,5 +42,6 @@ if __name__ == '__main__':
     app.exec_()
 
     # GUI Closed
+    mapWindow.close(None)
     uiApp.close()
     p_camera.terminate()

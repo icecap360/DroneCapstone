@@ -83,16 +83,27 @@ class AnnotProcessor:
                 pair.saveAnnotatedImage(self.annotationFolder,pair.natureAnnot,  'AnnotNAT')
 
 if __name__=='__main__':
-    dataset = AnnotProcessor(imgFolder='SattaliteImagery', annotationFolder='AnnotationSattaliteImagery',annotationFileName='labels_ali-satellite-imagery_2023-03-08-10-35-12.json')#labels_prk+nat_2023-03-04-11-58-06.json')
-    dataset.init()
-    dataset.updateAnnotatedImages() 
-
-    # dataset = AnnotProcessor(annotationFileName='labels_parking-lot-hawk.json')#labels_prk+nat_2023-03-04-11-58-06.json')
+    # dataset = AnnotProcessor(imgFolder='SattaliteImagery', annotationFolder='AnnotationSattaliteImagery',annotationFileName='labels_ali-satellite-imagery_2023-03-08-10-35-12.json')#labels_prk+nat_2023-03-04-11-58-06.json')
     # dataset.init()
     # dataset.updateAnnotatedImages() 
 
-    # dataset = AnnotProcessor(annotationFileName='labels_prk+nat_2023-03-04-11-58-06.json')
-    # dataset.init()
-    # dataset.updateAnnotatedImages()
+    dataset = AnnotProcessor(annotationFileName='labels_parking-lot-hawk.json')#labels_prk+nat_2023-03-04-11-58-06.json')
+    dataset.init()
+    dataset.updateAnnotatedImages() 
 
-        
+    dataset = AnnotProcessor(annotationFileName='labels_prk+nat_2023-03-04-11-58-06.json')
+    dataset.init()
+    dataset.updateAnnotatedImages()
+
+    dataset = AnnotProcessor(annotationFileName='Fady.json')
+    dataset.init()
+    dataset.updateAnnotatedImages()
+
+    dataset = AnnotProcessor(annotationFileName='labels_parkinglotbatch01_2023-03-06-12-16-05-Winnie.json')
+    dataset.init()
+    dataset.updateAnnotatedImages()
+
+    dataset = AnnotProcessor(annotationFileName='labels_my-project-name_2023-03-07-08-36-07-Zaid.json')
+    dataset.init()
+    dataset.updateAnnotatedImages()
+   

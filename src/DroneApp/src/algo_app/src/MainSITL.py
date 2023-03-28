@@ -26,11 +26,15 @@ if __name__ == "__main__":
     #fly in circle testcase
     #stateMachine.TestCircularMotion()
 
+    while not rospy.is_shutdown():
+        algorithmApp.process()
+        rate.sleep()
+
     #test launch 
-    try:
-        while True:
-            algorithmApp.process()
-            rate.sleep()
-            #algorithmApp.rate.sleep(1)
-    except KeyboardInterrupt:
-        print('Keyboard expection')
+    # try:
+    #     while not rospy.is_shutdown():
+    #         algorithmApp.process()
+    #         rate.sleep()
+    #         #algorithmApp.rate.sleep(1)
+    # except KeyboardInterrupt:
+    #     print('Keyboard expection')

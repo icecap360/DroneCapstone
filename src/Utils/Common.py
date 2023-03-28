@@ -5,7 +5,7 @@ from enum import Enum
 def LogError(msg):
     print(msg +'!')
 def LogDebug(msg):
-    print(msg)
+    #print(msg)
     return 
 def LogMessage(msg):
     print(msg)

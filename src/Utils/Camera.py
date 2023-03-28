@@ -1,21 +1,24 @@
 from multiprocessing import Process
-import cv2
+import cv2, io
 from multiprocessing import Queue, Lock
 import threading, time
-#import Utils.Common as Common
+import numpy as np
+import Utils.Common as Common
 
 class Camera:
     def __init__(self):
-        self.q = Queue()
         self.lock = Lock()
         self.image = None
+        self.rawImage = None
+        self.newRawImage = False
 
     def read(self):
         ret = False
         self.lock.acquire()
-        if not self.q.empty():
+        if self.newRawImage:
+            self.image = self.rawImage
+            self.newRawImage = False
             ret = True
-            self.image = self.q.get_nowait()
         self.lock.release()
         return ret
 
@@ -35,20 +38,16 @@ class Camera:
             if not ret:
                 Common.LogError('ret is not Okay')
                 continue
-            try:
-                self.lock.acquire()
-                self.q.get_nowait() # discard previous (unprocessed) frame
-                self.lock.release()
-            except: # if QueueEmpty
-                pass
+            
             self.lock.acquire()
-            self.q.put(frame)
-            self.send(frame)
+            self.rawImage = frame
+            self.newRawImage =True
             self.lock.release()
 
 
 class OperatorCameraPi(Camera):
     def init(self):
+        print('OperatorCameraPi')
         cap = cv2.VideoCapture('udpsrc port=9000 caps="application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264" ! rtph264depay ! avdec_h264 ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
         super().init(cap)
 class OperatorCameraSITL(Camera):
@@ -61,10 +60,6 @@ class DroneCamera(Camera):
         from picamera.array import PiRGBArray
         from picamera import PiCamera
         time.sleep(0.1)
-        self.camera = PiCamera()
-        self.camera.resolution = (640, 480)
-        self.camera.framerate = 30
-        self.rawCapture = PiRGBArray(self.camera, size=(640, 480))
         gst_pipe = "appsrc ! videoconvert ! v4l2h264enc ! video/x-h264,level=(string)4 ! ' \
           'h264parse ! matroskamux ! tcpserversink host=0.0.0.0 port=7000"
         gst_pipe = "appsrc ! ' \
@@ -73,10 +68,22 @@ class DroneCamera(Camera):
         #gst_pipe = "appsrc ! videoconvert ! v4l2h264enc ! h264parse ! rtph264pay config-interval=10 pt=96 ! udpsink host=192.168.137.1 port=9000"
         gst_pipe = "appsrc ! videoconvert ! v4l2h264enc ! video/x-h264,width=640,height=480,framerate=30/1 ! rtph264pay config-interval=10 pt=96 ! udpsink host=192.168.137.1 port=9000"
         fourcc = cv2.VideoWriter_fourcc(*'H264')
-        self.cap_send = cv2.VideoWriter(gst_pipe, cv2.CAP_GSTREAMER, 0, 30, self.camera.resolution, True)
-        self.thread = threading.Thread(target=self._backendReader)
-        self.thread.daemon = True
-        self.thread.start()
+        self.cap_send = cv2.VideoWriter(gst_pipe, cv2.CAP_GSTREAMER, 0, 30, (640, 480), True)
+        self.camera = PiCamera()
+        self.camera.resolution = (640, 480)
+        self.camera.framerate = 30
+        #self.camera.exposure_mode = 'sports'
+        #self.camera.image_effect = 'colorbalance'
+        #self.camera.image_effect_params = (1, 2, 1, 1)
+        time.sleep(2.1)
+        self.rawCapture = PiRGBArray(self.camera, size=(640, 480))
+        self.rawCapture.truncate(0)
+        self.readThread = threading.Thread(target=self._backendReader)
+        self.readThread.daemon = True
+        self.readThread.start()
+        #self.writeThread = threading.Thread(target=self._backendWriter)
+        #self.writeThread.daemon = True
+        #self.writeThread.start()
         time.sleep(0.1)
     def send(self, img):
         self.cap_send.write(img)
@@ -87,18 +94,29 @@ class DroneCamera(Camera):
                 # grab the raw NumPy array representing the image, then initialize the timestamp
                 # and occupied/unoccupied text
                 self.lock.acquire()
-                try:
-                    self.q.get_nowait() # discard previous (unprocessed) frame
-                except: # if QueueEmpty
-                    pass
-                self.q.put(frame.array)
-                self.send(frame.array)
+                self.rawImage = frame.array
+                self.send(self.rawImage)
+                self.newRawImage = True
+                self.rawCapture.truncate(0)
                 self.lock.release()
-                self.rawCapture.truncate(0) 
+
             self.cap_send.release()
         except KeyboardInterrupt:
             self.cap_send.release()
-
+    def _backendWriter(self):
+        try:
+            while True:
+                self.lock.acquire()
+                if self.newRawImage:
+                    print('Writing image')
+                    self.send(self.rawImage)
+                    self.newRawImage = False
+                else:
+                    time.sleep(0.01)
+                self.lock.release()
+            self.cap_send.release()
+        except KeyboardInterrupt:
+            self.cap_send.release()
 if __name__ == '__main__':
     platform = 'PI'
     if platform == 'PI':
