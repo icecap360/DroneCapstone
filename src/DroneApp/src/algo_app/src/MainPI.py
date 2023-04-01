@@ -4,10 +4,9 @@ sys.path.append('/home/pi/DroneCapstone/src')
 import rospy
 from std_msgs.msg import String
 from AlgorithmApp import AlgorithmApp
-from VisionApp import VisionApp
 from MapperApp import MapperApp
 from PathPlanApp import PathPlanApp
-from Utils import DroneCamera
+from Utils import DroneCamera, VisionAppPI
 from TopicInterface import TopicInterface
 from threading import Event
 
@@ -16,7 +15,7 @@ if __name__ == "__main__":
     rate = rospy.Rate(10)
     stopNodeEvent = Event()
     algorithmApp = AlgorithmApp()
-    visionApp = VisionApp()
+    visionApp = VisionAppPI()
     mapperApp = MapperApp()
     pathPlanApp = PathPlanApp()
     droneCamera = DroneCamera()
@@ -26,4 +25,5 @@ if __name__ == "__main__":
     while not rospy.is_shutdown():
         algorithmApp.process()
         rate.sleep()
-        time.sleep(1)
+        time.sleep(0.5)
+    droneCamera.close()

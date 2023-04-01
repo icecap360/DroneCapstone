@@ -15,7 +15,8 @@ class PathPlanApp:
     def init(self, mapperApp, topicInterface):
         self.mapperApp = mapperApp
         self.topicInterface = topicInterface
-        #self.camera.init()
+        self.prevPose = None
+        print("Pathplan initialized")
     def process(self):
         # plan the path if in compulsive move (update desired self.desLocInbound)
         # plan the path if in autonomous mode (update self.autonomousExplorePose)
@@ -29,23 +30,25 @@ class PathPlanApp:
         # The final localPose should be published by the FSM under all states except Autonomous Explore, within which it is calculated from this module
         if  droneState== 'AutonomousExplore':
             self.topicInterface.localPosPub.publish(self.autonomousExplorePose)
-        elif (droneState in [ 'DesiredLocationError', 
+        elif (droneState in [ 'Hover', 'Takeoff', 'DesiredLocationError', 
                 'NoParkingLotDetected','CompulsiveMove'] and 
-                desPoseFSM != localPose and 
+                self.prevPose != desPoseFSM and
                 desPoseFSM.pose.position.latitude != 0.0 and 
                 desPoseFSM.pose.position.longitude!=0.0):
             
-            #LogDebug('NEXT POSE:\n'+ str(desPoseFSM))
+            LogDebug('NEXT POSE:\n'+ str(desPoseFSM))
             
-            # self.topicInterface.localPosPub.publish(localPose)
+            #self.topicInterface.localPosPub.publish(localPose)
             
             # localPose = desPoseFSM
             desPoseFSM.header.stamp = rospy.Time.now()
+            self.prevPose = desPoseFSM
             self.topicInterface.globalPosPub.publish(desPoseFSM)
             
             # desPose = GlobalPositionTarget()
             # desPose.altitude = desPoseFSM.pose.position.altitude
             # desPose.latitude, desPose.longitude= desPoseFSM.pose.position.latitude, desPoseFSM.pose.position.longitude
+            # desPose.type_mask = 1024 & 2048
             # desPose.yaw = desPoseFSM.pose.orientation.w
             # desPose.header.stamp = rospy.Time.now()
             # self.topicInterface.globalPosPubRaw.publish(desPose)

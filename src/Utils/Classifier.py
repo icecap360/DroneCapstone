@@ -22,7 +22,7 @@ class Classifier:
         print(filter)
         plt.show()
     def classify(self, segmenter, name='' ):
-        centerX, centerY = segmenter.img.shape[0]//2, segmenter.img.shape[1]//2
+        centerX, centerY = segmenter.getResult().shape[0]//2, segmenter.getResult().shape[1]//2
         halfFilSz = self.filterSz//2
         centerSquare = np.zeros((self.filterSz, self.filterSz))
         for i in range(self.filterSz):
@@ -33,7 +33,7 @@ class Classifier:
         prob = np.sum(np.multiply(centerSquare,self.filter))
         #print(name+'Prob:', prob)
         return prob>self.threshold
-
+        
 
 if __name__ =='__main__':
     pass

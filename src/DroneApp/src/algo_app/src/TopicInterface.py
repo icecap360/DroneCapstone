@@ -8,6 +8,8 @@ from threading import Semaphore
 from algo_app.msg import OccupancyMap 
 from std_msgs.msg import Bool
 from geometry_msgs.msg import PoseStamped
+from sensor_msgs.msg import NavSatFix
+
 class TopicInterface:
     '''
     This class is supposed to read from topics that come from the FCU and other nodes
@@ -33,7 +35,11 @@ class TopicInterface:
         self.local_pose = PoseStamped()
         self.sem_local_pose = Semaphore()
         self.local_pose_sub = rospy.Subscriber("/mavros/local_position/pose", PoseStamped, callback = self.local_pose_cb)
-        
+
+        self.global_pose = NavSatFix()
+        self.sem_global_pose = Semaphore()
+        self.global_pose_sub = rospy.Subscriber("/mavros/global_position/global", NavSatFix, callback = self.global_pose_cb)
+
         self.parkLotDetectedPub = rospy.Publisher('/algo_app/parking_lot_detected', Bool, queue_size=10)
         self.parkLotDetectedPub.publish(False) #initialize to Talse
         self.desLocInboundPub = rospy.Publisher('/algo_app/desired_loc_inbound', Bool, queue_size=10)
@@ -45,7 +51,10 @@ class TopicInterface:
         self.visionAppHealth = rospy.Publisher("/algo_app/vision_app_health", Bool, queue_size=10)
         self.mapperAppHealth = rospy.Publisher("/algo_app/mapper_app_health", Bool, queue_size=10)
         self.pathPlanAppHealth = rospy.Publisher("/algo_app/path_plan_app_health", Bool, queue_size=10)
-
+    def convertToAMSL(self,lat, lon, height) -> float:
+        return height - self._egm96.height(lat, lon)
+    def convertToEllipsoid(self, lat, lon, height) -> float:
+        return height + self._egm96.height(lat, lon)
     def drone_state_cb(self, msg):
         self.sem_drone_state.acquire()
         self.drone_state = msg.data
@@ -73,4 +82,14 @@ class TopicInterface:
         self.sem_local_pose.acquire()
         t = self.local_pose
         self.sem_local_pose.release()
+        return t
+    def global_pose_cb(self, msg):
+        self.sem_global_pose.acquire()
+        msg.altitude = self.convertToAMSL(msg.latitude, msg.longitude, msg.altitude) 
+        self.global_pose = msg
+        self.sem_global_pose.release()
+    def getGlobalPose(self) -> NavSatFix:
+        self.sem_global_pose.acquire()
+        t = self.global_pose
+        self.sem_global_pose.release()
         return t

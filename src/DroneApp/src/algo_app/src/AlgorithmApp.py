@@ -1,6 +1,6 @@
 from threading import Semaphore
 from TopicInterface import TopicInterface
-from VisionApp import VisionApp
+from Utils import VisionAppPI
 from MapperApp import MapperApp
 from PathPlanApp import PathPlanApp
 from Utils.Common import LogMessage
@@ -18,7 +18,6 @@ class AlgorithmApp:
         self.topicInterface = topinterf
         self.droneCamera.init()
         # create segmented image publisher
-        # create occupancy map publisher
         self.visionApp.init( self.droneCamera, self.topicInterface)
         self.mapperApp.init(self.visionApp, self.topicInterface)
         self.pathPlanApp.init(self.pathPlanApp, self.topicInterface)
@@ -26,7 +25,6 @@ class AlgorithmApp:
     def pathplan(self):
         pass
     def process(self):
-        # Run the algorithms
         self.visionApp.process()
         self.mapperApp.process()
         self.pathPlanApp.process()

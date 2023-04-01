@@ -34,13 +34,10 @@ class VisionApp:
         return self.parkLotDetected
     def getHealth(self):
         return self.health
-    def processImage(self, img, cropImage=True, exeParkLot=True, exeNature=True):
-        if exeParkLot:
-            self.parkLotSegmenter.process(img, cropImage)
-            self.parkLotDetected  = self.classifier.classify(self.parkLotSegmenter.getResult())
-        if exeNature:
-            self.natureSegmenter.process(img, cropImage)
-            self.natureDetected  = self.classifier.classify(self.natureSegmenter.getResult())
-        if exeNature and exeParkLot:
-            self.occupiedDetected = (not self.natureDetected) and (not self.parkLotDetected)
+    def processImage(self, img, cropImage=True):
+        self.parkLotSegmenter.process(img, cropImage)
+        self.parkLotDetected  = self.classifier.classify(self.parkLotSegmenter.getResult())
+        self.natureSegmenter.process(img, cropImage)
+        self.natureDetected  = self.classifier.classify(self.natureSegmenter.getResult())
+        self.occupiedDetected = (not self.natureDetected) and (not self.parkLotDetected)
 
