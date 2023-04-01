@@ -21,13 +21,17 @@ class Classifier:
                             ha="center", va="center", color="w", fontsize=5)
         print(filter)
         plt.show()
-    def classify(self, img):
-        centerX, centerY = img.shape[0]//2, img.shape[1]//2
+    def classify(self, segmenter, name='' ):
+        centerX, centerY = segmenter.img.shape[0]//2, segmenter.img.shape[1]//2
         halfFilSz = self.filterSz//2
-        centerSquare = img[(centerX-halfFilSz):(centerX+halfFilSz+1),(centerY-halfFilSz):(centerY+halfFilSz+1)]
-        binCenterSq = centerSquare>1 #turn into boolean
-        prob = np.sum(np.multiply(binCenterSq,self.filter))
-        print('Prob:', prob)
+        centerSquare = np.zeros((self.filterSz, self.filterSz))
+        for i in range(self.filterSz):
+            for j in range(self.filterSz):
+                centerSquare[i][j] = segmenter.isPixelsInbound(centerX-halfFilSz+i,centerY-halfFilSz+j)
+        #centerSquare = segmenter.getResult()[(centerX-halfFilSz):(centerX+halfFilSz+1),(centerY-halfFilSz):(centerY+halfFilSz+1)]
+        #binCenterSq = centerSquare>0 #turn into boolean
+        prob = np.sum(np.multiply(centerSquare,self.filter))
+        print(name+'Prob:', prob)
         return prob>self.threshold
         
 

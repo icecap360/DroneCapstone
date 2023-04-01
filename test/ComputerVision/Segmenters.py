@@ -3,15 +3,17 @@ import cv2
 from matplotlib import pyplot as plt
 from PIL import Image
 from abc import ABC, abstractmethod
-
+import copy
 class Segmenter(ABC):
-	def __init__(self, kernels) -> None:
+	def __init__(self, kernels, areaThreshold, iterations) -> None:
 		self.img = None
 		self.thresh = None
 		self.sureBG = None
 		self.sureFG = None
 		self.segmentedImg  = None
 		self.kernels = kernels
+		self.iterations = iterations
+		self.areaThreshold = areaThreshold
 	def debugShow(self, img):
 		cv2.imshow("Debug", img)
 		cv2.waitKey(0)
@@ -21,10 +23,9 @@ class Segmenter(ABC):
 		cv2.imshow("Debug", self.img)
 		cv2.waitKey(0)
 	def crop(self, cropW, cropH):
-		center = self.img.shape
-		x = int(center[1]/2 - cropW/2)
-		y = int(center[0]/2 - cropH/2)
-		self.img = self.img[int(y):int(y+cropH), int(x):int(x+cropW)]
+		x_min = int(self.img.shape[1]/2 - cropW/2)
+		y_min = int(self.img.shape[0]/2 - cropH/2)
+		self.img = self.img[int(y_min):int(y_min+cropH), int(x_min):int(x_min+cropW)]
 	def preprocessRawImg(self):
 		hsv = cv2.cvtColor(self.img, cv2.COLOR_RGB2HSV)
 		hsv[:][:][2] = cv2.equalizeHist(hsv[:][:][2])
@@ -40,12 +41,12 @@ class Segmenter(ABC):
 		# Finding sure foreground area
 		#dist_transform = cv2.distanceTransform(opening,cv2.DIST_L2,5)
 		#ret, sure_fg = cv2.threshold(dist_transform,0.7*dist_transform.max(),255,0)
-		self.sureFG = cv2.erode(closing,self.kernels["Erode"],iterations=4)
+		self.sureFG = cv2.erode(closing,self.kernels["Erode"],iterations=self.iterations)
 	def createSureBackground(self):
 		#kernel = np.ones((3,3),np.uint8)
 		opening = cv2.morphologyEx(self.thresh,cv2.MORPH_OPEN,self.kernels["Open"], iterations = 2)
 		# sure background area
-		self.sureBG = cv2.dilate(opening,self.kernels["Dilate"],iterations=4)
+		self.sureBG = cv2.dilate(opening,self.kernels["Dilate"],iterations=self.iterations)
 	def watershed(self):
 		# Finding unknown region
 		self.sureFG = np.uint8(self.sureFG)
@@ -53,6 +54,7 @@ class Segmenter(ABC):
 
 		# Marker labelling
 		ret, markers = cv2.connectedComponents(self.sureFG)
+
 		# Add one to all labels so that sure background is not 0, but 1
 		markers = markers+1
 		# Now, mark the region of unknown with zero
@@ -61,141 +63,116 @@ class Segmenter(ABC):
 		self.markers = cv2.watershed(self.img,markers)
 		#self.img[markers == -1] = [255,0,0]
 
-	def process(self, img, cropImage):
+	def findGroups(self):
+		self.groups = []
+		for group in range(np.max(self.markers)):
+			area = np.equal(self.markers, group)
+			if np.sum(area) == 0:
+				continue
+			areaOfInterest = np.logical_and( area, self.thresh)
+			percInterest = np.sum(areaOfInterest) / np.sum(area)
+			if percInterest > self.areaThreshold:
+				self.groups.append(group)
+	def isPixelsInbound(self, px, py):
+		return self.segmentedImg[int(px)][int(py)][0]>0
+
+	def getSegmentation(self):
+		self.segmentedImg = np.zeros((self.thresh.shape[0], self.thresh.shape[1], 1), np.uint8)
+		for group in self.groups:
+			self.segmentedImg[self.markers == group] = 255
+	
+	def findContours(self):
+		self.contours, _ = cv2.findContours(self.segmentedImg, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+	
+	def process(self, img, cropImage=False, preprocess=False, findContours=False):
 		self.img = img
 		if cropImage:
 			# By cropping the image, one cannot directly compare to the original image
 			self.crop(200,200)
-		self.preprocessRawImg()
+		if preprocess:
+			self.preprocessRawImg()
 		self.threshold()
 		self.createSureBackground()
 		self.createSureForeground()
 		self.watershed()
+		self.findGroups()
+		self.getSegmentation()
+		if findContours:
+			self.findContours()
+			
 
-		_, self.segmentedImg = cv2.threshold(np.uint8(self.markers), 1, 255, cv2.THRESH_BINARY)
-		# plt.hist(self.markers.ravel(),256,[0,256])
-		# plt.show()
-		# cv2.imshow('temp', np.uint8(self.markers))
-		# cv2.waitKey(0)
-
-		# self.segmentedImg = np.zeros(self.img.shape, dtype=np.uint8)
-		# ret, m2 = cv2.threshold(self.markers.astype(np.uint8), 0, 255, cv2.THRESH_BINARY|cv2.THRESH_OTSU)
-		# contours, _ = cv2.findContours(m2, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-		# for c in contours:
-		#     #cv2.drawContours(self.segmentedImg, c, -1, (0, 255, 0), 2)
-		#     cv2.fillConvexPoly(self.segmentedImg, points=np.int32(c), color=(255,255,255))
-		# cv2.imshow('self.segmentedImg', self.segmentedImg)
-		# cv2.waitKey(0)
 	def getResult(self):
 		return self.segmentedImg
+	def getContours(self):
+		return self.contours
 
-class ParkingLotSegmenter(Segmenter):
+class ParkingLotSegmenterPI(Segmenter):
 	def threshold(self):
 		self.hsv = cv2.cvtColor(self.img, cv2.COLOR_RGB2HSV)
 		# define range of gray color in HSV
 		lower_gray = np.array([0, 0, 40])
-		upper_gray = np.array([255, 40, 255])
+		upper_gray = np.array([255, 80, 160])
 		# Threshold the HSV image to get only gray colors
 		self.thresh = cv2.inRange(self.hsv, lower_gray, upper_gray)
+	def __init__(self):
+		kernels = {
+			"Open": np.ones((3,3), np.uint8),
+			"Close": np.ones((3,3), np.uint8),
+			"Dilate": np.ones((3,3), np.uint8),
+			"Erode": np.ones((3,3), np.uint8)
+		}
+		super().__init__(kernels, areaThreshold=0.6, iterations=3)
 
 
 class NatureSegmenter(Segmenter):
 	def threshold(self):
 		hsv = cv2.cvtColor(self.img, cv2.COLOR_RGB2HSV)
 		# define range of gray color in HSV
-		lower_nat = np.array([20, 50, 50])
+		lower_nat = np.array([20, 80, 40])
 		upper_nat = np.array([100, 255, 255])
 		# Threshold the HSV image to get only brown,yellow,green colors
 		self.thresh = cv2.inRange(hsv, lower_nat, upper_nat)
+	def __init__(self):
+		kernels = {
+			"Open": np.ones((3,3), np.uint8),
+			"Close": np.ones((3,3), np.uint8),
+			"Dilate": np.ones((3,3), np.uint8),
+			"Erode": np.ones((3,3), np.uint8)
+		}
+		super().__init__(kernels, areaThreshold=0.6, iterations=2)
 
-class ParkingLotBounds(Segmenter):
-	def __init__(self, kernels, maxSaturation, areaThreshold) -> None:
-		super().__init__(kernels)
-		self.maxSaturation = maxSaturation
-		self.areaThreshold = areaThreshold
+class ParkingLotSegmenterPC(Segmenter):
+	def __init__(self) -> None:
+		kernels = {
+			"Open": np.ones((6,6), np.uint8),
+			"Close": np.ones((6,6), np.uint8),
+			"Dilate": np.ones((12,12), np.uint8),
+			"Erode": np.ones((9,9), np.uint8)
+		}
+		super().__init__(kernels, areaThreshold=0.6,iterations=4)
+		self.maxSaturation = 35
 		self.max_contour = None
 		self.debug = 0
 
 	def threshold(self):
 		img_hsv = cv2.cvtColor(self.img, cv2.COLOR_BGR2HSV)
-		threshHSV = cv2.inRange(img_hsv, (0, 0, 0), (180, self.maxSaturation, 255))
+		threshHSV = cv2.inRange(img_hsv, (0, 0, 40), (180, self.maxSaturation, 255))
 
 		# close original image to remove noise
 		closedImg = cv2.morphologyEx(threshHSV, cv2.MORPH_CLOSE, np.ones((3,3), np.uint8), iterations = 3)
 
 		self.thresh = closedImg
 
-	def calcWhiteAreaInContour(self, contour, threshImg):
-		# check all pixels if inside contour
-		# if inside, check corresponding pixel on original thresholded image
-		# find combined area of white blobs (parking lot) within original thresholded image, bounded by contour
-		whiteArea = 0
-		for i in range(0, threshImg.shape[0]):
-			for j in range(0, threshImg.shape[1]):
-				# (x,y)
-				pt = (j, i)
-				# returns 1 if inside, 0 if on contour, -1 if outside
-				within = cv2.pointPolygonTest(contour, pt, False)
-				if within == 0 or within == 1:
-					whiteArea += threshImg[i,j]/255
-
-		# calc percetange area of contour that is white (parking lot)
-		return whiteArea / cv2.contourArea(contour)
-
-	def findLargestParkingContour(self, markers, threshImg, areaThreshold):
-		# contouring
-		#binaryImg = threshHSV;
-		binaryImg = np.zeros((threshImg.shape[0], threshImg.shape[1], 1), np.uint8)
-		binaryImg[markers == -1] = 255
-		contours, hier = cv2.findContours(binaryImg, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-		cv2.drawContours(binaryImg, contours, -1, 150, 1)
-
-		# get largest contour
-		maxArea = 0
-		maxContour = contours[0]
-		for cnt in contours:
-			area = cv2.contourArea(cnt)
-			#if area == 11410:
-			#	bp()
-			if area == ( (binaryImg.shape[0]-1) * (binaryImg.shape[1]-1) ):
-				# contour is around the whole image
-				continue
-			# checks if contour is surrounding parking lot area or non-parking lot area
-			if area > maxArea:
-				percentageArea = self.calcWhiteAreaInContour(cnt, threshImg)
-				if self.debug >= 2:
-					print("Percentage area = " + str(percentageArea))
-				if (percentageArea >= areaThreshold):
-					maxArea = area
-					maxContour = cnt
-			# debugging for displaying all contours
-			if self.debug == 3:
-				tempImg = np.zeros((threshImg.shape[0], threshImg.shape[1], 1), np.uint8)
-				cv2.drawContours(tempImg, [cnt], 0, 255, 3)
-				cv2.imshow("currentContour", tempImg)
-				cv2.waitKey(0)
-
-		if self.debug:
-			cv2.drawContours(binaryImg, [maxContour], 0, 255, 3)
-			cv2.imshow("maxContour", binaryImg)
-
-		return maxContour
-
 	def process(self, img):
-		self.img = img
-
-		self.preprocessRawImg()
-		self.threshold()
-		self.createSureBackground()
-		self.createSureForeground()
-		self.watershed()
-
-		self.maxContour = self.findLargestParkingContour(self.markers, self.thresh, self.areaThreshold)
-
+		super().process(img, findContours=True)
 		if self.debug:
-			cv2.drawContours(self.img, [self.maxContour], 0, (0, 255, 0), 3)
-			cv2.imshow("parkinglotSeg", self.img)
-			cv2.waitKey(0)
+			plt.imshow(self.segmentedImg)
+			# plt.imsave('segmentedImg.png', np.stack((self.segmentedImg, 
+			# 		   np.zeros(self.segmentedImg.shape), 
+			# 		   np.zeros(self.segmentedImg.shape)), axis=2))
+			cv2.imwrite('segmentedImg.png',self.segmentedImg)
+			plt.show()
+			cv2.drawContours(self.img, self.getContours(), -1, (0, 255, 0), 3)
+			plt.imshow( self.img)
+			plt.show()
 
-	def getContour(self):
-		return self.maxContour

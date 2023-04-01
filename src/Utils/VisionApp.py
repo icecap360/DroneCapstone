@@ -8,38 +8,39 @@ from Utils.Classifier import Classifier
 
 class VisionAppPI:
 	def __init__(self) -> None:
-		kernels = {
-			"Open": np.ones((3,3), np.uint8),
-			"Close": np.ones((3,3), np.uint8),
-			"Dilate": np.ones((3,3), np.uint8),
-			"Erode": np.ones((3,3), np.uint8)
-		}
-		self.parkLotSegmenter = ParkingLotSegmenterPI(kernels)
-		self.natureSegmenter = NatureSegmenter(kernels)
+		self.parkLotSegmenter = ParkingLotSegmenterPI()
+		self.natureSegmenter = NatureSegmenter()
 		self.classifier = Classifier()
 		self.parkLotDetected = None
 		self.natureDetected = None
 		self.occupiedDetected = None
-	def process(self, img, cropImage=True, exeParkLot=True, exeNature=True):
+	def init(self, droneCamera, topicInterface):
+		self.droneCamera = droneCamera
+		self.topicInterface = topicInterface
+	def process(self):
+		self.droneCamera.read()
+		self.processImage(self.droneCamera.image)
+	def processImage(self, img, cropImage=True, exeParkLot=True, exeNature=True):
 		if exeParkLot:
 			self.parkLotSegmenter.process(img, cropImage)
-			self.parkLotDetected  = self.classifier.classify(self.parkLotSegmenter.getResult())
+			self.parkLotDetected  = self.classifier.classify(self.parkLotSegmenter)
 		if exeNature:
 			self.natureSegmenter.process(img, cropImage)
-			self.natureDetected  = self.classifier.classify(self.natureSegmenter.getResult())
+			self.natureDetected  = self.classifier.classify(self.natureSegmenter)
 		if exeNature and exeParkLot:
 			self.occupiedDetected = (not self.natureDetected) and (not self.parkLotDetected)
-
-
+	
+	def publish(self):
+		self.topicInterface.parkLotDetectedPub.publish(self.getParkLotDet()) #always publish this, as a default transition depends on this
+		self.topicInterface.visionAppHealth.publish(self.health)
+	def getParkLotDet(self):
+		return self.parkLotDetected
+	def getHealth(self):
+		return self.health
+	
 class VisionAppPC:
 	def __init__(self) -> None:
-		kernels = {
-			"Open": np.ones((6,6), np.uint8),
-			"Close": np.ones((6,6), np.uint8),
-			"Dilate": np.ones((12,12), np.uint8),
-			"Erode": np.ones((9,9), np.uint8)
-		}
-		self.parkLotBounds = ParkingLotSegmenterPC(kernels,  areaThreshold=0.6, maxSaturation=35,)
+		self.parkLotBounds = ParkingLotSegmenterPC()
 	def process(self, img):
 		self.parkLotBounds.process(img)
 		#self.maxContour = self.parkLotBounds.getContour()
