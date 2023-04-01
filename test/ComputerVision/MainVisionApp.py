@@ -1,7 +1,7 @@
 import os
 from DataSetManager import DataSetManager
 from AccuracyMetric import *
-from VisionApp import VisionAppPi
+from VisionApp import VisionAppPI
 import numpy as np
 import cv2
 
@@ -19,10 +19,10 @@ def extractClass(fname:str):
     return 'Occupied'
 
 if __name__ == "__main__":
-    analyzeClassification = False
+    analyzeClassification = True
     analyzeSegments = True
-    datasetManager = DataSetManager(imgFolder='SattaliteImagery', annotationFolder='AnnotationSattaliteImagery')
-    visionApp = VisionAppPi()
+    datasetManager = DataSetManager(imgFolder='PublicDataset', annotationFolder='AnnotationPublicDataset')
+    visionApp = VisionAppPI()
 
     if analyzeClassification:
         with open('ClassifierResult.csv', 'w') as res:
@@ -32,6 +32,7 @@ if __name__ == "__main__":
             res.write('Image Name, Type, Acc, Prec, Rec \n')
     datasetManager.init()
 
+    correct, total = 0,0
     for pair in datasetManager.data:
         visionApp.processImage(pair.getImage(),False,True,True)
 
@@ -48,9 +49,14 @@ if __name__ == "__main__":
                                     str(visionApp.natureDetected), 
                                     str(visionApp.occupiedDetected), 
                                     str(acc)]) + '\n' )
-                print(visionApp.parkLotSegmenter.getResult().shape)
-                cv2.imshow('yeh', visionApp.parkLotSegmenter.getResult())
-                cv2.waitKey(0)
+
+                # visionApp.parkLotSegmenter.debugHSV(200,320)
+
+                if acc:
+                    correct +=1
+                total+=1
+                #cv2.imshow('yeh', visionApp.parkLotSegmenter.getResult())
+                #cv2.waitKey(0)
 
         if analyzeSegments:
             with open('SegmenterAccuracy.csv', 'a') as res:
@@ -59,43 +65,51 @@ if __name__ == "__main__":
                     
                     pred = visionApp.parkLotSegmenter.getResult()
                     ground = pair.getParkLotAnnot()
+                    pred = np.reshape(pred, ground.shape)
                     acc = calculateAccuracy(pred, ground)
                     prec = calculatePrec(pred, ground)
                     rec = calculateRecall(pred, ground)
                     res.write(','.join([pair.getImageName(),'Park Lot', str(acc), str(prec), str(rec)])+'\n')
                     print(pair.getImageName(),'Park Lot Accuracy:', acc, 'Prec:', prec, 'Rec:', rec, 'Pred:', visionApp.parkLotDetected)
-                    # numpy_horizontal_concat = np.concatenate((pred, ground), axis=1)
+                    numpy_horizontal_concat = np.concatenate((pred, ground), axis=1)
                     # cv2.imshow('Parking Lot Predictions', numpy_horizontal_concat)
+                    # cv2.imshow('markers', visionApp.parkLotSegmenter.markers.astype(np.uint8))
+                    # cv2.imshow('thresh', visionApp.parkLotSegmenter.thresh.astype(np.uint8))
                     # cv2.waitKey(0)
-                    #visionApp.parkLotSegmenter.debugHSV(50,600)
-                    #visionApp.parkLotSegmenter.debugShow(visionApp.parkLotSegmenter.thresh)
+                    # visionApp.parkLotSegmenter.debugHSV(200,320)
+                    # visionApp.parkLotSegmenter.debugShow(visionApp.parkLotSegmenter.thresh)
                     
                     pred = visionApp.natureSegmenter.getResult()
                     ground = pair.getNatureAnnot()
+                    pred = np.reshape(pred, ground.shape)
                     acc = calculateAccuracy(pred, ground)
                     prec = calculatePrec(pred, ground)
                     rec = calculateRecall(pred, ground)
                     res.write(','.join([pair.getImageName(),'Nature', str(acc), str(prec), str(rec)])+'\n')
                     print(pair.getImageName(),'Nature Accuracy:', acc, 'Prec:', prec, 'Rec:', rec, 'Pred:', visionApp.natureDetected)
-                    #numpy_horizontal_concat = np.concatenate((pred, ground), axis=1)
-                    # visionApp.parkLotSegmenter.debugHSV(100,300)
+                    # numpy_horizontal_concat = np.concatenate((pred, ground), axis=1)
+                    #visionApp.natureSegmenter.debugHSV(200,320)
                     # cv2.imshow('Nature Predictions', numpy_horizontal_concat)
                     # cv2.waitKey(0)
                 elif pair.hasParkLotAnnot():
                     visionApp.processImage(pair.getImage(),False,True,False)
-
                     pred = visionApp.parkLotSegmenter.getResult()
                     ground = pair.getParkLotAnnot()
+                    pred = np.reshape(pred, ground.shape)
                     acc = calculateAccuracy(pred, ground)
                     prec = calculatePrec(pred, ground)
                     rec = calculateRecall(pred, ground)
                     print(pair.getImageName(),'Park Lot Accuracy:', acc, 'Prec:', prec, 'Rec:', rec, 'Pred:', visionApp.parkLotDetected)
                     res.write(','.join([pair.getImageName(),'Park Lot', str(acc), str(prec), str(rec)])+'\n')
                     numpy_horizontal_concat = np.concatenate((pred, ground), axis=1)
-                    # visionApp.parkLotSegmenter.debugHSV(100,300)
+                    # visionApp.parkLotSegmenter.debugHSV(200,320)
                     # visionApp.parkLotSegmenter.debugShow(visionApp.parkLotSegmenter.thresh)
                     # visionApp.parkLotSegmenter.debugShow(visionApp.parkLotSegmenter.sureBG)
                     # visionApp.parkLotSegmenter.debugShow(visionApp.parkLotSegmenter.sureFG)
                     # visionApp.parkLotSegmenter.debugShow(visionApp.parkLotSegmenter.getResult())
-                    cv2.imshow('ParkLot Predictions', numpy_horizontal_concat)
-                    cv2.waitKey(0)
+                    #cv2.imshow('ParkLot Predictions', numpy_horizontal_concat)
+                    #cv2.waitKey(0)
+                
+    
+    
+    print('Final Accuracy', correct/total, correct, total)

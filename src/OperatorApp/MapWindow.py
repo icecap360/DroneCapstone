@@ -102,7 +102,7 @@ class MapWindow:
         self.droneLocMarker = MoveableMarker("d", 14, (0/255, 0/255, 255/255, 1))
         self.desLocMarker = MoveableMarker("X", 14, (255/255, 195/255, 0/255, 1))
         self.desLocMarker.moveTuple(self.stitchManager.getCenterPixel())
-        self.trace = MarkerList("o", 7,(0/255, 255/255, 255/255, 1), length=1000)
+        self.trace = MarkerList("o", 7,(0/255, 255/255, 255/255, 1), length=500)
         self.fig.canvas.mpl_connect('button_press_event', self.desLocMarker.moveEvent)
         self.fig.canvas.mpl_connect('close_event', self.close)
 
