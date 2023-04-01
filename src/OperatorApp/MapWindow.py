@@ -127,19 +127,20 @@ class MapWindow:
         if not self.windowCreated:
             # recreate the stitch window if it was closed
             self.init(droneGpsLat, droneGpsLong)
+            if not self.windowCreated:
+                return
         self.droneLocMarker.moveTuple(self.stitchManager.gps2Pixel(droneGpsLat, droneGpsLong))
         self.trace.update(self.droneLocMarker)
     
-    def processOccupancy(self,  isOccupied=None, occupancyLat=None, occupancyLong=None):
-        if occupancyLat==0.0 or occupancyLong==0.0:
+    def processOccupancy(self, isOccupied, occupancyLat, occupancyLong):
+        if occupancyLat<=0.01 or occupancyLong<=0.01:
             return
         if not self.windowCreated:
             return
-        if isOccupied==False:
-            self.unoccupiedGen.addTuple(self.stitchManager.gps2Pixel(occupancyLat,occupancyLong))
-        elif isOccupied == True:
+        if isOccupied:
             self.occupiedGen.addTuple(self.stitchManager.gps2Pixel(occupancyLat,occupancyLong))
-    
+        else:
+            self.unoccupiedGen.addTuple(self.stitchManager.gps2Pixel(occupancyLat,occupancyLong))
     def end(self):
         plt.close()
 

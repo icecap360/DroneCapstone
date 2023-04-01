@@ -21,7 +21,7 @@ from math import sqrt, cos, radians
 import cv2
 import subprocess
 
-def StartDroneCameraDisplay(Camera, platform="PI"):  
+def StartDroneCameraDisplay(Camera):  
     # list_files = subprocess.Popen (
     #     ["gst-launch-1.0.exe","-v", "udpsrc port=9000 caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264\" ! rtph264depay ! avdec_h264 ! videoconvert ! autovideosink sync=f"
     #      ])
@@ -151,7 +151,16 @@ class UIController(PyQtInterface.PyQtController):
         if 'ArduMode' in data.keys():
             self.setLabelText(self.txtArdupilotMode, data['ArduMode'])
         if 'OccMap' in data.keys():
-            pass
+            self.mapWindow.processOccupancy(data['OccMap']['isOccupied'],
+                                            data['OccMap']['Latitude'], 
+                                            data['OccMap']['Longitude'])
+            if data['OccMap']['isParkLot']:
+                print('ParkingLot', end=' ')
+            if data['OccMap']['isNature']:
+                print('Nature', end=' ')
+            if data['OccMap']['isOccupied']:
+                print('Occupied', end=' ')
+            print('', end='\n')
             #self.displayWindow.updateOccupancyMap(data['OccMap'])
         if 'RelAlt' in data.keys():
             self.setLabelText(self.txtAltitude, data['RelAlt'])

@@ -6,8 +6,8 @@ import urllib.request
 from io import BytesIO
 import sys
 import cv2
-from Utils import VisionAppPC
 import numpy as np
+from Utils import VisionAppPC
 
 class StitchCreator:
     def __init__(self, lat, long):
@@ -218,19 +218,19 @@ class StitchManager:
         return self.stitchCreator.sz*1.5,self.stitchCreator.sz*1.5 
 
 if __name__ == '__main__':
-    # sc = StitchCreator(43.263082,-79.918871)
-    # sc.StitchAndSave()
-    sm = StitchManager()
-    sm.init(43.263082,-79.918871)
+    sc = StitchCreator(43.4956482 ,-79.7181996)
+    sc.StitchAndSave()
+    # sm = StitchManager()
+    # sm.init(43.263082,-79.918871)
 
-    img = sm.getStitchedImage()
-    cv2.drawMarker(img, position=(960,960),color=(0,0,255),markerType=cv2.MARKER_CROSS,thickness=30)
-    t = sm.pixel2Gps(60,1500)
-    print(t)
-    print(sm.gps2Pixel(t[0], t[1]))
+    # img = sm.getStitchedImage()
+    # cv2.drawMarker(img, position=(960,960),color=(0,0,255),markerType=cv2.MARKER_CROSS,thickness=30)
+    # t = sm.pixel2Gps(60,1500)
+    # print(t)
+    # print(sm.gps2Pixel(t[0], t[1]))
 
-    img = cv2.resize( img, (500,500))
-    cv2.imshow('Stitched image',img)
-    cv2.waitKey(0)
+    # img = cv2.resize( img, (500,500))
+    # cv2.imshow('Stitched image',img)
+    # cv2.waitKey(0)
 
-    print(sm.status)
+    # print(sm.status)
