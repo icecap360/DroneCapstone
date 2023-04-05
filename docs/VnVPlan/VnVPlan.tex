@@ -215,7 +215,7 @@ The team plans to verify the design through structured review processes and a ch
 \begin{todolist}
     \item The product shall implement an Idle state.
     \item The product shall implement a Hover State.
-    \item The product shall implement a Manual Move State.
+    \item The product shall implement an Autonomous Move State.
     \item The product shall implement an Autonomous Explore State.
     \item The product shall implement a Configure state.
     \item The product shall implement an Off state.
@@ -232,8 +232,8 @@ The team plans to verify the design through structured review processes and a ch
     \item Upon the m\_PowerOn becoming true, the drone shall enter the Idle state.
     \item Upon the m\_Launch becoming true, the drone shall enter the Hover state if the i\_Mode was set to normal, and enters the Configure state if the i\_Mode was set to configure.
     \item If in the Hover state, and c\_ParkingLotDetected is equal to true, the product shall enter the Autonomous Explore state and explore the detected lot.
-    \item Once the user enters or changes m\_DesiredUserLoc and m\_CompulsiveMove is asserted as false, the drone shall automatically enter the Manual Move state.
-    \item If while in the Manual Move state and the product determines that m\_DesiredUserLoc is outside parking lot boundaries, the product shall enter the Desired Location Error state.
+    \item Once the user enters or changes m\_DesiredUserLoc and m\_CompulsiveMove is asserted as false, the drone shall automatically enter the Autonomous Move state.
+    \item If while in the Autonomous Move state and the product determines that m\_DesiredUserLoc is outside parking lot boundaries, the product shall enter the Desired Location Error state.
     \item When m\_AutonomousExplore is set to true and c\_ParkingLotDetected is equal to true, the product shall enter the Autonomous Explore state.
     \item When m\_AutonomousExplore is set to true but c\_ParkingLotDetected is equal to false, the product shall enter the No Parking Lot Detected Error state.
     \item Upon m\_Land being true, the product shall enter the Land state.
@@ -256,7 +256,7 @@ Internally within the team, a more detailed checklist shall be conducted that in
     \item The product shall maintain a longitudinal and lateral position within a 1.5m radius during the Hover State.
     \item While the product is not hovering (moving from one location to another), it shall always maintain an altitude between i\_MaxHoverHeight and i\_MinHoverHeight, within a tolerance of ±5\%.
     \item The product shall be operable within requirements within non-inclement weather.
-    \item The product shall maintain a longitudinal and lateral position within a 1.5m radius once the product has reached m\_DesiredUserLoc while in the Manual Move State or Compulsive Move State.
+    \item The product shall maintain a longitudinal and lateral position within a 1.5m radius once the product has reached m\_DesiredUserLoc while in the Autonomous Move State or Compulsive Move State.
 \end{todolist}
 \item Does the design implement all the design constraints listed below?
 \begin{todolist}
@@ -326,7 +326,7 @@ The team shall also conduct code reviews of the changes before the changes are m
 \subsection{Automated Testing and Verification Tools}
 \label{automatedVerificationTools}
 
-The team shall implement a variety of tools to automate the testing and verification process. Discussed upon within the \nameref{codingStandard}, the team shall use a common IDE within the team, with integrated linters for both Python and C++. This ensures that static analyzers and coding standards are implemented automatically by the IDE and linter. A unit testing framework shall also be used to aid in the testing of the modules. Due to the usage of ROS within the product, the team shall use GTest for C++ modules, UnitTest for Python modules, and RosTest for ROS specific modules and communication. These three frameworks directly integrate within the ROS workflow, allowing for automatic execution of these tests during the compilation of the ROS packages. To further aid in the compilation of the various ROS packages, CMake shall be used to automate and simplify the compilation process. In addition to these tools, the team shall also produce a custom testing framework to test the visual perception algorithms. The custom tool shall automate the process of feeding in hardcoded input images into the algorithm, and record the algorithm outputs within a CSV file for easy manipulation and analysis of the outputs. 
+The team shall implement a variety of tools to automate the testing and verification process. Discussed upon within the \nameref{sec:codingStandard}, the team shall use a common IDE within the team, with integrated linters for both Python and C++. This ensures that static analyzers and coding standards are implemented automatically by the IDE and linter. A unit testing framework shall also be used to aid in the testing of the modules. Due to the usage of ROS within the product, the team shall use GTest for C++ modules, UnitTest for Python modules, and RosTest for ROS specific modules and communication. These three frameworks directly integrate within the ROS workflow, allowing for automatic execution of these tests during the compilation of the ROS packages. To further aid in the compilation of the various ROS packages, CMake shall be used to automate and simplify the compilation process. In addition to these tools, the team shall also produce a custom testing framework to test the visual perception algorithms. The custom tool shall automate the process of feeding in hardcoded input images into the algorithm, and record the algorithm outputs within a CSV file for easy manipulation and analysis of the outputs. 
 
 \subsection{Software Validation Plan}
 
@@ -349,6 +349,33 @@ The system shall be verified by two main methods. A guided review process shall 
 \end{figure}
 
 \clearpage
+
+\subsection{Software in The Loop Testing}
+\label{subsec:sitl}
+
+In conjuncture with unit testing the modules and performing tests on the physical drone, a Software in The Loop (SITL) environment is created to replace the physical drone during testing. The software running on the drone and within SITL is exactly the same, ensuring that a test passed within SITL testing will pass on the physical drone.
+
+The SITL environment replaces the physical drone only, thus all communication methods between the Operator's PC and the drone, and software for the Operator's Application and drone are not affected. This is accomplished through establishing a Gazebo and ROS connection, where Gazebo is a 3D physics simulation platform. An example of this Gazebo and the entire environment is shown within Figures \ref{fig:gazebo} and \ref{fig:sitlEnv}.
+
+\begin{figure}[h!]
+  \begin{center} 
+  \caption{Gazebo Environment}
+  \label{fig:gazebo}
+        \includegraphics[width=1\textwidth]{VnVPlan/gazebo.png}
+  \end{center}
+\end{figure}
+
+\begin{figure}[h!]
+  \begin{center} 
+  \caption{SITL Environment Including a Satellite Map and Console}
+  \label{fig:sitlEnv}
+        \includegraphics[width=1\textwidth]{VnVPlan/SITLEnv.png}
+  \end{center}
+\end{figure}
+
+\clearpage
+
+The key difference between testing within SITL and with the physical drone is that the drone's flight performance are not involved. In many cases, this is an advantage as it increases the ease of testing and reduces the risk involved if a failed test occurs. Furthermore, custom environments can be created within Gazebo, offering increased flexibility in testing the visual perception. However, the SITL environment and the real world does not translate exactly, thus lowering the confidence in the test result. Nonetheless, the SITL environment is used for many test cases in the proceeding sections if the team is unable to test it with the physical drone.
 
 \section{System Test Description}
 \label{systemTest}
@@ -413,16 +440,14 @@ Once the output variables have been measured and the test is complete, assert m_
 Test case derivation & As per SRS, while in the Hover state, the drone will enter the Autonomous Explore state if it sees a parking lot. The purpose of placing the drone in a non-parking lot area was to keep the drone in the Hover state rather than entering the Autonomous Explore state.
 
 While hovering the drone should stay within a 1.5 m radius laterally, without the presence of any external forces such as wind.
-
-This test is an extension of STC_001, where this test is conducted within a controlled environment, and STC_001 is conducted within the actual environment with external forces. \\ 
+ \\ 
 \hline
-Purpose of test and/or relationship to other tests &  • Assesses and verifies the flight dynamics in an indoor scenario, which won't have the gusts and winds of outdoor test cases.
+Purpose of test and/or relationship to other tests &  • Assesses and verifies the that drone is able to fly. An indoor scenario, was selected because to minimize the influence of gusts and winds of outdoors.
 
-• Verifies the states Off, Idle, Hover, Configure and Land as well as the transitions between them (\nameref{STA_000}, \nameref{STA_001}, \nameref{STA_004}, \nameref{STA_005}, \nameref{STA_006}, \nameref{TRANS_002}, \nameref{TRANS_003}, \nameref{TRANS_009}).
-
-• Verifies a corner case in the parking lot detection algorithm, that it correctly detects no parking lot when there is no parking lot (\nameref{GEN_001}).
-
-• Elucidates how the drone operates in a non-parking lot area.
+Verifies the states Off, Idle, Hover, Configure, and Land as well as the transitions between them (\nameref{STA_000}, \nameref{STA_001}, \nameref{STA_004}, \nameref{STA_005}, \nameref{STA_006}, \nameref{TRANS_002}, \nameref{TRANS_003}, \nameref{TRANS_009}). 
+Verifies a corner case in the parking lot detection algorithm where it correctly detects no parking lot when there is no parking lot.
+Verifies the NFR requiring the product to take off to i\_MaxHoverHeight within 25 seconds (\nameref{PERF_002}).
+Verifies configuring the height variables (\nameref{GEN_003}, \nameref{GEN_004}).
 \\ 
 \hline
 \end{tabular}
@@ -532,13 +557,13 @@ Initial State & The product is in any of its flying states.   \\
 \hline
 Input & Set m\_CompulsiveMove as false. Change m\_DesiredUserLoc to a location within the parking lot and to the diagonal front right of the drone at least 20m away.  \\ 
 \hline
-Output & The drone should enter the Manual Move state upon a change to m\_DesiredUserLoc. The drone should move to and stay within 1.5m radially of the specified location. 
+Output & The drone should enter the Autonomous Move state upon a change to m\_DesiredUserLoc. The drone should move to and stay within 1.5m radially of the specified location. 
 The user should also see a visual trace of the drone's movement; it should be a roughly straight line (shortest path).
 Measure the time takes to reach the specified GPS location and calculate the average speed. As per SRS, ensure it is more than 4 m/sec.  \\ 
 \hline
 How test will be performed & Input section contains enough detail. \\ 
 \hline
-Test case derivation & As per SRS, the drone should enter Manual Move state whenever m\_DesiredUserLoc is changed and m\_CompulsiveMove is false. In this state the drone should travel to m\_DesiredUserLoc and hover with an accuracy of 1.5m. 
+Test case derivation & As per SRS, the drone should enter Autonomous Move state whenever m\_DesiredUserLoc is changed and m\_CompulsiveMove is false. In this state the drone should travel to m\_DesiredUserLoc and hover with an accuracy of 1.5m. 
 
 A visual trace of the drone's movement in the past 60 seconds should be displayed on the Operator's PC Application. It should appear as a relatively straight diagonal line toward the hover location, as the drone's path planning should make it take the shortest path. 
 
@@ -548,7 +573,7 @@ Using the time taken, the average speed of the drone can be calculated as distan
 Purpose of test and/or relationship to other tests & 
 \begin{itemize}
     \item Assesses the ability of the drone to move to forward as well as move rightward in a stable and efficient manner toward a specified GPS location.
-    \item Helps verify the Manual Move state and transitions related to proceeding to a given location when the location is within the parking lot (\nameref{STA_002}, \nameref{TRANS_005}).
+    \item Helps verify the Autonomous Move state and transitions related to proceeding to a given location when the location is within the parking lot (\nameref{STA_002}, \nameref{TRANS_005}).
     \item Verifies the NFRs related to lateral accuracy (\nameref{PERF_008}). 
     \item Verifies the NFRs related to height accuracy during movement (\nameref{PERF_006}). 
     \item Verifies the visual trace requirement (\nameref{USE_001}. 
@@ -681,7 +706,7 @@ How test will be performed & For example, if Wifi is used as the communication m
 Test case derivation & As per SRS, the drone should enter the Communication Lost state when communication is lost for more than 5 sec. The Communication Lost state must log an error to c_Log, set c\_HealthStatus to Unhealthy, and move back toward the launch location. \\ 
 \hline
 Purpose of test and/or relationship to other tests & 
-• Assess drone operation when communication is lost abruptly.
+• Assess the drone's ability to transition to the communication lost state when the wifi connection is cut.
 
 • Verifies the Communication Lost state as well as transitions related to entering it (\nameref{STA_010}, \nameref{TRANS_010}).  
 \\ 
@@ -711,7 +736,7 @@ How test will be performed & Close the PC Application's main window or close the
 \hline
 Test case derivation & As per SRS the drone should enter the Communication Lost state when communication is lost for more than 5 sec. The Communication Lost state must log an error to c_Log, set c_HealthStatus to Unhealthy, and move back toward the launch location. \\ 
 \hline
-Purpose of test and/or relationship to other tests &  • Assess drone operation when communication is lost abruptly.
+Purpose of test and/or relationship to other tests &  • Assess the drone's ability to transition to the communication lost state when the ParkingLotHawk Application is closed abruptly.
 
 • Verifies the Communication Lost state as well as transitions related to entering it (\nameref{STA_010}, \nameref{TRANS_010}).  
 \\ 
@@ -787,34 +812,20 @@ Control & Manual \\
 \hline
 Initial State & The product is in any of its flying states.   \\ 
 \hline
-Input & Set m\_CompulsiveMove as false. Change m\_DesiredUserLoc to a location outside the parking lot and in front of the drone.  \\ 
+Input & Change m\_DesiredUserLoc to a location outside the parking lot. Attempt to fly the drone to that location by using the Compulsive Move state (asserting m\_CompulsieveMove) and selecting "Yes" when the prompt opens.  \\ 
 \hline
-Output & The drone should enter the Manual Move State upon a change to m\_DesiredUserLoc. The drone should move forward towards the location until it is close to the edge of the parking lot after which the drone should enter the Desired Location Error State. Upon entry to this state, it logs an error to the user in c\_Log and sets c\_UserError to Desired\_Location\_Out\_Of\_Bounds. 
+Output & The drone should log an error message indicating the location is not within a parking lot in  c\_Log and set c\_UserError to Desired\_Location\_Out\_Of\_Bounds. A prompt should open up asking if the user desires the drone to move to the location. When the user selected "Yes", the drone should fly to the location. \\
 
-There should be a straight line in the visual trace of the past GPS location if the path planning algorithm is correctly optimized to take the shortest path toward the GPS location. 
-
-Monitor the FPS of the c\_CameraView output; it should be more than 0.5 FPS.  \\ 
 \hline
 How test will be performed & Input section contains enough detail. \\ 
 \hline
-Test case derivation & As per SRS, the drone should enter Manual Move whenever m\_DesiredUserLoc is changed and m\_CompulsiveMove is false. Given the GPS location is in front of the drone, it should fly forward, but when it recognizes that the requested GPS location is outside the parking lot, it should enter the Desired Location Error State. Within this state, the SRS specifies that the drone should inform the user that their movement command is not possible (through a message in c\_Log), and begin hovering in place.
+Test case derivation & As per SRS, the drone should prompt the user with a message if the location they desire the drone to fly toward is invalid. It should also change c\_UserError and log a message to c\_Log. If the user answers "Yes" to the prompt, the drone should fly toward the location.  
 
-A visual trace of the drone's movement in the past 60 seconds should be displayed on the Operator's PC Application. It should appear as a relatively straight line toward the hover location, as the drone's path planning should make it take the shortest path. 
-As per SRS, the FPS should be more than 0.5.
  \\ 
 \hline
 Purpose of test and/or relationship to other tests & 
-• Assesses the ability of the drone to fly to forward.
 
-• Verifies the drone’s ability to identify Parking Lot boundaries (\nameref{GEN_001}).
-
-• Helps verify the Manual Move state and transitions related to it, specifically its ability to detect and report the error when the requested location is invalid (\nameref{STA_002}, \nameref{TRANS_005}).
-
-• Verifies the Desired Location Error state and related transitions (\nameref{STA_007}, \nameref{TRANS_006}). 
-
-• Verifies the visual trace requirement (\nameref{USE_001}). 
-
-• Verifies the NFR specifying the minimum required FPS of c\_CurrentView to be at least 0.5 (\nameref{PERF_004}).
+• Helps verify the Compulsive Move state and transitions related to it, specifically its ability to detect and report the error when the requested location is invalid (\nameref{STA_013}, \nameref{TRANS_005}).
 \\ 
 \hline
 \end{tabular}
@@ -855,9 +866,7 @@ As per SRS, the Compulsive Move state should be entered if the m\_DesiredUserLoc
 Purpose of test and/or relationship to other tests & 
 • This test case is not designed to test the accuracy of flight dynamics, as the drone moves too quickly and too far to accurately measure GPS.
 
-• Assess the accuracy of the visual perception algorithm in recognizing parking lot area (\nameref{GEN_001}).
-
-• Helps to verify the Autonomous explore state as well as the transition to it from the input m\_AutonomousExplore (\nameref{STA_003}, \nameref{TRANS_004}). 
+• Helps to verify the transition into the Autonomous explore state (\nameref{STA_003}, \nameref{TRANS_004}). 
 
 • Verifies the Compulsive Move state as well as transitions related to it (\nameref{STA_011}, \nameref{TRANS_012}).
 
@@ -895,22 +904,26 @@ Test case derivation & As per SRS, while in the hover state, the drone should en
  \\ 
 \hline
 Purpose of test and/or relationship to other tests & 
-\item Assesses the accuracy of the visual perception algorithm to segment the parking lot, accuracy in recognizing unoccupied parking spots, and accuracy in its generated occupancy map (c\_OccupancyMap) (\nameref{GEN_005}, \nameref{GEN_006}).
+\item • Assesses the accuracy of the visual perception algorithm to segment the parking lot, accuracy in recognizing unoccupied parking spots, and accuracy in its generated occupancy map (c\_OccupancyMap) (\nameref{GEN_005}, \nameref{GEN_006}) in a real physical environment.
 
-• Assesses the accuracy of the path planning algorithm (does it ever explore the same area twice, does it explore the parking lot in a systematic and predictable way, etc.) (\nameref{STA_003}).
+• Assesses the accuracy of the path planning algorithm (does it ever explore the same area twice, does it explore the parking lot in a systematic and predictable way, etc.) (\nameref{STA_003}) in a real physical environment.
 
-• Verifies the drone’s ability to identify Parking Lot boundaries (\nameref{GEN_001}).
+• Verifies the drone’s ability to identify Parking Lot boundaries (\nameref{GEN_001}) in a real physical environment.
+
+• Verifies the ability to create and updating c_OccupancyMap (\nameref{GEN_002}).
 
 • Helps to verify the Autonomous explore state as well as the transition to it from the Hover state (\nameref{STA_003}, \nameref{TRANS_004}).
 
 • Verifies the NFR specifying the minimum required FPS of c\_CurrentView to be 0.5 (\nameref{PERF_004}).
 
-• Verifies the NFR requiring that the drone explores up to 1400m\^2 of the parking lot assuming enough time and a small enough size of the parking lot (\nameref{PERF_001}).
+• Verifies the NFR requiring that the drone explores up to 1400m\^2 of the parking lot assuming enough time and a small enough size of the parking lot (\nameref{PERF_001}) in a real physical environment.
 \\ 
 \hline
 \end{tabular}
 \end{center}
 \end{table}
+
+
 
 \begin{table}[!h]
 \begin{center}
@@ -922,17 +935,18 @@ ID & \nameref{tab:STC_014} \\
 \hline
 Control & Manual \\ 
 \hline
-Initial State & The drone is on the ground in its idle state, on a street with yellow and white lines but over 50m away from a parking lot. \\ 
+Initial State & Disconnect the propellers from the drone. Carry the drone to an area that has grass,  a roadway with lane markings, and a parking lot within walking distance.  \\ 
 \hline
-Input & Launching is accomplished by asserting m_Launch to true, wait for 1 min 25 sec. \\ 
+Input & Hold the drone on a grass pasture. The walk and stand in the middle of a street with yellow and white lines. Then walk into a parking lot. \\ 
 \hline
-Output & The drone should remain in its hover state. \\ 
+Output & The Operator's PC should display c\_ParkLotDetected as false in all places except when the drone is inside a parking lot. \\ 
 \hline
-How test will be performed & Input steps are self-explanatory. \\ 
+How test will be performed & The recreation of the initial state requires modifying the transition code such that the Idle state is never exited, to ensure safety while the tester handles the drone. The outputs of the system will be observed through the Operator’s application. \\ 
 \hline
-Test case derivation & As per SRS, the drone should hover within 25 seconds of being launched. By waiting for another 1 minute the tester ensures the drone has sufficient time to enter the hover state and process the input images for many frames. 
+Test case derivation & As per SRS, the drone should be able to detect and differentiate between parking lots and non-parking lots. 
 
-As per SRS, the drone should remain in the hover state as it shouldn't detect any parking lots.
+The drone analyses and segments parking lot area on pre-downloaded sattaliete imagery. Thus the  GPS location alone (not visual perception) is needed to help the drone determine if a given location is within the parking lot.
+
  \\ 
 \hline
 Purpose of test and/or relationship to other tests & 
@@ -945,6 +959,8 @@ Purpose of test and/or relationship to other tests &
 \end{center}
 \end{table}
 
+
+
 \begin{table}[!h]
 \begin{center}
 \caption {STC\_015}
@@ -955,29 +971,22 @@ ID & \nameref{tab:STC_015} \\
 \hline
 Control & Automatic \\ 
 \hline
-Initial State & The drone is in the Idle state, and visual perception features and camera technology is functional.
+Initial State & The drone is in the Idle state, propellars are disconnected, the visual perception code is active, and live camera is functional.
 \\ 
 \hline
 Input & Hold the drone over a printed picture of a parking lot. i\_DesiredHoverHeight is set to 0m. \\ 
 \hline
-Output & The drone should output c\_CurrentView, c\_OccupancyMap, and c\_ParkingLotDetected. c\_CurrentView should feature the input image with overlays for the parking lot slots and the boundaries of the parking lot. c\_OccupancyMap should indicate all visible parking lots, and whether each parking lot is occupied or not. c\_ParkingLotDetected should be true. The specific outputs will be determined by which input image is being passed in. \\ 
+Output & The live camera view, c\_CurrentView, should feature the printed image. The drone should also identify if the location it is hovering over is occupied by an object or not.   \\ 
 \hline
-How test will be performed & The recreation of the initial state may require modifying code. The idle state has no requirements related to the usage of the visual perception features. If the Idle state does not enable the usage of the camera and visual perception features already, modify the Idle state's code (creating a stub) to do this. Furthermore, in order to enhance safety, keep the drone on the ground several meters away, remove the propellers and modify the transition code such that the Idle state is never exited.  The outputs of the system will be observed through the Operator's application.  \\ 
+How test will be performed & The recreation of the initial state may require modifying code. The idle state has no requirements related to the usage of the visual perception features. If the Idle state does not enable the usage of the camera and visual perception features already, modify the Idle state's code (creating a stub) to do this. Furthermore, in order to enhance safety, keep the drone on the ground several meters away, remove the propellers and modify the transition code such that the Idle state is never exited. The outputs of the system will be observed through the Operator's application.  \\ 
 \hline
-Test case derivation & As per SRS, the drone should process the visual input from the camera to determine the parking lot information and display that information to the Operator's application. This includes the parking lot slot identifications, the occupancy map, and the parking lot bounds. To ensure repeatability in this test, hard-coded inputs are used instead of the real environment. This prevents any changes to the environment from affecting the results of this test.  \\ 
+Test case derivation & As per SRS, the drone should process the visual input from the camera to determine the parking lot information and display that information to the Operator's application. This includes the parking lot identifications, and occupancy classification.  \\ 
 \hline
-Purpose of test and/or relationship to other tests &  • Verifies the pipeline that communicates outputs from the visual perception feature to the Operator's PC application.
+Purpose of test and/or relationship to other tests &  • Verifies the data pipeline that communicates outputs from the visual perception feature to the Operator's PC application.
 
-• Helps to gauge the accuracy and performance of the visual perception on datasets of varying weather, number of vehicles, types of vehicles, camera height, etc. By using hardcoded datasets, the perception algorithms create  consistency between tests, as different versions of the algorithm can be compared on the same inputs.
+• Verifies the ability to identify non-occupied and occupied parking spots (\nameref{GEN_005}, \nameref{SR_009}).
 
-• Verifies the ability to recognize clear boundaries (\nameref{GEN_001}).
-
-• Verifies the live updating of the c_OccupancyMap (\nameref{GEN_002}).
-
-• Verifies the ability to identify non-occupied parking spots (\nameref{Gen_005}, \nameref{SR_009}).
-
-• Verifies display of non-occupied parking spots on the Operator's application (\nameref{GEN_006}).
-\\ 
+• Verifies display of the live camera view (c\_CameraView). \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -1035,12 +1044,12 @@ Purpose of test and/or relationship to other tests &  • Usage of the 3D SITL a
 \hline
 Functional Requirement & Test Case to Verify \\
 \hline
-\nameref{GEN_001} & \nameref{tab:STC_001}, \nameref{tab:STC_011}, \nameref{tab:STC_012}, \nameref{tab:STC_013}, \nameref{tab:STC_014}, \nameref{tab:STC_015}, \nameref{tab:STC_016} \\ \hline
-\nameref{GEN_002} & \nameref{tab:STC_015}, \nameref{tab:ST16} \\ \hline
+\nameref{GEN_001} & \nameref{tab:STC_014}, \nameref{tab:STC_016} \\ \hline
+\nameref{GEN_002} & \nameref{tab:STC_013}, \nameref{tab:STC_016} \\ \hline
 \nameref{GEN_003} & \nameref{tab:STC_001}, \nameref{tab:STC_003} \\ \hline
 \nameref{GEN_004} & \nameref{tab:STC_001}, \nameref{tab:STC_002} \\ \hline
 \nameref{GEN_005} & \nameref{tab:STC_013}, \nameref{tab:STC_016}, \nameref{tab:STC_015} \\ \hline
-\nameref{GEN_006} & \nameref{tab:STC_013}, \nameref{tab:STC_016}, \nameref{tab:STC_015} \\ \hline
+\nameref{GEN_006} & \nameref{tab:STC_013}, \nameref{tab:STC_016}\\ \hline
 \nameref{STA_000} & \nameref{tab:STC_001}, \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
 \nameref{STA_001} & \nameref{tab:STC_001}, \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
 \nameref{STA_002} & \nameref{tab:STC_005}, \nameref{tab:STC_011} \\ \hline
@@ -1053,7 +1062,9 @@ Functional Requirement & Test Case to Verify \\
 \nameref{STA_009} & \nameref{tab:STC_006} \\ \hline
 \nameref{STA_010} & \nameref{tab:STC_008}, \nameref{tab:STC_009}, \nameref{tab:STC_010} \\ \hline
 \nameref{STA_011} & \nameref{tab:STC_012} \\ \hline
-\nameref{TRANS_001} & \nameref{tab:STC_001}, \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
+\nameref{STA_012} & \nameref{tab:STC_001}, \nameref{tab:STC_003} \\ \hline
+\nameref{STA_013} & \nameref{tab:STC_001}, \nameref{tab:STC_003} \\ \hline
+\nameref{TRANS_001} &  \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
 \nameref{TRANS_002} & \nameref{tab:STC_001}, \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
 \nameref{TRANS_003} & \nameref{tab:STC_001}, \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
 \nameref{TRANS_004} & \nameref{tab:STC_013}, \nameref{tab:STC_012} \\ \hline
@@ -1065,6 +1076,9 @@ Functional Requirement & Test Case to Verify \\
 \nameref{TRANS_010} & \nameref{tab:STC_008}, \nameref{tab:STC_009}, \nameref{tab:STC_010} \\ \hline
 \nameref{TRANS_011} & \nameref{tab:STC_008}, \nameref{tab:STC_009}, \nameref{tab:STC_010} \\ \hline
 \nameref{TRANS_012} & \nameref{tab:STC_012}, \nameref{tab:STC_010} \\ \hline
+\nameref{TRANS_013} & \nameref{tab:STC_001}, \nameref{tab:STC_003} \\ \hline
+\nameref{TRANS_014} & \nameref{tab:STC_001}, \nameref{tab:STC_003} \\ \hline
+\nameref{TRANS_015} & \nameref{tab:STC_003} \\ \hline
 \end{tabular}
 \end{center}
 \end{table}
@@ -1086,9 +1100,9 @@ Control & Manual \\
 \hline
 Initial State & Two volunteers are available for two hours. The drone is in its Off state. \\ 
 \hline
-Input & Volunteers read the user manual, attempt to install the Operator's Application, and then attempt to conduct \nameref{tab:STC_009} without any support from developers. \\ 
+Input & Volunteers read the user manual, attempt to install the Operator's Application, and then attempt to conduct \nameref{tab:STC_012} without any support from developers. \\ 
 \hline
-Output &  All volunteers read the user manual, install the necessary software and successfully conduct \nameref{tab:STC_009} within 2 hours. 
+Output &  All volunteers read the user manual, install the necessary software and successfully conduct \nameref{tab:STC_012} within 2 hours. 
  \\ 
 \hline
 How test will be performed & Input section is self-explanatory.\\ 
@@ -1098,9 +1112,9 @@ Test case derivation & As per SRS, a new non-technical user shall be able to ope
 \hline
 Purpose of test and/or relationship to other tests &  • Build confidence that the user manual is readable and that the product is well documented.
 
-• \nameref{tab:STC_009} is one of the most complicated states, as it involves multiple inputs, the ability to operate the drone in two flight states, and the operation of an error state. 
+• \nameref{tab:STC_012} is one of the most complicated states, as it involves multiple inputs, the ability to operate the drone in two flight states, and the operation of an error state. 
 
-• Verifies NFR requiring a new user to be able to operate the drone within 2 hours (\nameref{USE_004}. 
+• Verifies NFR requiring a new user to be able to operate the drone within 2 hours (\nameref{USE_004}). 
 \\ 
 \hline
 \end{tabular}
@@ -1214,9 +1228,9 @@ ID & \nameref{tab:STC_021} \\
 \hline
 Control & Static \\ 
 \hline
-Initial State & Drone is any flight state, and 10 people in their cars are stationed around the parking lot. \\ 
+Initial State & Drone is any flight state, and 5 people in their cars are stationed around the parking lot. \\ 
 \hline
-Input & Survey the 10 people as to whether the drone (sight or noise) would negatively influence their driving in a serious way. \\ 
+Input & Survey the 5 people as to whether the drone (sight or noise) would negatively influence their driving in a serious way. \\ 
 \hline
 Output &  No participants respond to the survey question with yes to the question. \\ 
 \hline
@@ -1239,7 +1253,7 @@ ID & \nameref{tab:STC_022} \\
 \hline
 Control & Manual \\ 
 \hline
-Initial State & Drone is any flight state. \\ 
+Initial State & - \\ 
 \hline
 Input & Assert m_SaveOutput. Attempt to save the raw visuals (c_OccupancyMap and c_CurrentView) in any folder.
  \\ 
@@ -1271,9 +1285,9 @@ Certain requirements do not have a corresponding test case. A reason is specifie
 Non-Functional Requirement & Test Case to Verify \\
 \hline
 \nameref{PERF_001} & \nameref{tab:STC_013} \\ \hline
-\nameref{PERF_002} & \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
+\nameref{PERF_002} & \nameref{tab:STC_001}, \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
 \nameref{PERF_003} & \nameref{tab:STC_004} \\ \hline
-\nameref{PERF_004} & \nameref{tab:STC_011}, \nameref{tab:STC_013} \\ \hline
+\nameref{PERF_004} &  \nameref{tab:STC_013} \\ \hline
 \nameref{PERF_005} & \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
 \nameref{PERF_006} & \nameref{tab:STC_004} \\ \hline
 \nameref{PERF_007} & \nameref{tab:STC_015} \\ \hline
@@ -1291,7 +1305,7 @@ Non-Functional Requirement & Test Case to Verify \\
 \nameref{SAFE_003} & \nameref{tab:STC_018} \\ \hline
 \nameref{SAFE_004} & \nameref{tab:STC_021} \\ \hline
 \nameref{SAFE_005} & None, pass or fail dependent on components bought. \\ \hline
-\nameref{USE_001} & \nameref{tab:STC_004}, \nameref{tab:STC_011} \\ \hline
+\nameref{USE_001} & \nameref{tab:STC_004} \\ \hline
 \nameref{USE_002} & \nameref{tab:STC_022} \\ \hline
 \nameref{USE_003} & \nameref{tab:STC_006} \\ \hline
 \nameref{USE_004} & \nameref{tab:STC_017} \\ \hline
@@ -1329,7 +1343,7 @@ Non-Functional Requirement & Test Case to Verify \\
 \section{Unit Test Description}
 \label{unitTest}
 
-Unit tests are important not just just for assessing the correctness of the final solution, but they also help developers narrow down issues during integration tests, such as \ref{systemTest}. Each unit test is designed to utilize a singular module, as specified in the MIS. Sometimes the unit test pertains to a leaf module and at other times, due to the tight coupling between modules, an entire intermediate module is tested. The Unit tests are designed to verify a large, representative, and important amount of functionality in a given module, as basic functionality should be sufficient to start the extensive system testing (\ref{systemTest}). Each unit test may verify multiple functional and non-functional requirements.
+Unit tests are important not just just for assessing the correctness of the final solution, but they also help developers narrow down issues during integration tests, such as those outlined within \nameref{systemTest}. Each unit test is designed to utilize a singular module, as specified in the MIS. Sometimes the unit test pertains to a leaf module and at other times, due to the tight coupling between modules, an entire intermediate module is tested. The Unit tests are designed to verify a large, representative, and important amount of functionality in a given module, as basic functionality should be sufficient to start the extensive system testing within \nameref{systemTest}. Each unit test may verify multiple functional and non-functional requirements.
 
 \subsection{Unit Testing Scope}
 
@@ -1425,7 +1439,7 @@ Output &  Compare the drone to the correct sensor values, they should be relativ
 \hline
 How test will be performed & The correct compass and GPS readings can be estimated using a smartphone. Using a measuring tape, an estimate of the correct Barometer reading can be made.  \\ 
 \hline
-Test case derivation & This test case verifies that the Compass, Barometer, and GPS sensors are funcitonal. \\ 
+Test case derivation & This test case verifies that the Compass, Barometer, and GPS sensors are functional. \\ 
 \hline
 Requirements &  \\ 
 \hline
@@ -1445,7 +1459,7 @@ Type &  Functional, Manual, Dynamic  \\
 \hline
 Initial State & Lay the drone flat on a surface.\\ 
 \hline
-Input & Power on the drone using a USBC connector. SSH into the drone and utilize MavROS to read IMU Acceleration values. Pickup the drone slighly off the ground, move the drone forward, then place it on the ground. Pickup the drone slighly off the ground, move the drone rightward, then place it on the ground. Pickup the drone straight up. This concludes the test.\\ 
+Input & Power on the drone using a USB C connector. SSH into the drone and utilize MavROS to read IMU Acceleration values. Pickup the drone slighly off the ground, move the drone forward, then place it on the ground. Pickup the drone slighly off the ground, move the drone rightward, then place it on the ground. Pickup the drone straight up. This concludes the test.\\ 
 \hline
 Output &  When the drone is moved forward, the acceleration in the X should be positive. When the drone is moved rightward, the acceleration in the Y should be positive. When the drone is moved upward, the acceleration in the Z should be positive.\\ 
 \hline
@@ -1458,6 +1472,8 @@ Requirements &  \\
 \end{tabular}
 \end{center}
 \end{table}
+
+\clearpage
 
 \subsubsection{Operator Camera}
 
@@ -1473,7 +1489,7 @@ ID & \nameref{tab:UTC_005} \\
 \hline
 Type &  Functional, Manual, Static  \\ 
 \hline
-Initial State &  Power on the drone using a USBC connector. \\ 
+Initial State &  Power on the drone using a USB C connector. \\ 
 \hline
 Input & Pick up the drone so that one's face is within the camera view. Make various facial and hand gestures.\\ 
 \hline
@@ -1489,6 +1505,7 @@ Requirements &  \nameref{GEN_002}, \nameref{PERF_004} \\
 \end{center}
 \end{table}
 
+\clearpage
 
 \subsubsection{Drone Camera}
 
@@ -1505,11 +1522,11 @@ ID & \nameref{tab:UTC_006} \\
 \hline
 Type &  Functional, Manual, Static  \\ 
 \hline
-Initial State &  Power on the drone using a USBC connector. \\ 
+Initial State &  Power on the drone using a USB C connector. \\ 
 \hline
 Input & Pick up the drone so that one's face is within the camera view. Make various facial and hand gestures.\\ 
 \hline
-Output &  The various gestures should be visible within the JPEGs in a folder on the Raspberry PI. Furthermore, the JPEGs should have a speed of at least 0.5 FPS.\\ 
+Output &  The various gestures should be visible as JPEGs in a folder on the Raspberry PI. Furthermore, the JPEGs should have a speed of at least 0.5 FPS.\\ 
 \hline
 How test will be performed & Write a stub within the Drone Camera module store live images in as JPEGs within any folder on the Raspberry Pi. \\ 
 \hline
@@ -1521,6 +1538,7 @@ Requirements & \nameref{GEN_002}, \nameref{PERF_004} \\
 \end{center}
 \end{table}
 
+\clearpage
 
 \subsubsection{Message Socket}
 
@@ -1553,6 +1571,8 @@ Requirements & \nameref{PERF_004} \\
 \end{tabular}
 \end{center}
 \end{table}
+
+\clearpage
 
 \subsubsection{Interface Hiding}
 
@@ -1637,7 +1657,7 @@ Requirements &  \\
 \end{center}
 \end{table}
 
-
+\clearpage
 
 \subsubsection{Vision App}
 
@@ -1655,13 +1675,13 @@ Type &  Functional, Automatic, Static  \\
 \hline
 Initial State & -\\ 
 \hline
-Input &  200 images from any of the public parking lot image datasets are fed into the Occupancy Classifier feature, running on the Raspberry PI. At least 20 images should be during the night, at least 50 images should be during cloudy days, at least 50 images should be taken during sunny days, at least 20 images should be from above 15m, at least 20 images should have a camera altitude between 7m and 15m, and at least 40 images should been taken with the camera tilted.\\ 
+Input &  Atleast 50 images from any of the public parking lot camera datasets are fed into the Occupancy Classifier feature, running on the Raspberry PI. The Occupancy Classifier assigns the central pixel as either "Parking Lot", "Nature", or "Occupied". At least 20\% of the dataset should be during sunny conditions, and 20\% of the dataset should be from overcast decisions. The camera should be within at a height within 7m and 20m. Atleast 5\% of the dataset should be from low light conditions (evening or night) images. The camera can be tilted at any angle so long as the sky is not visible in the image.\\ 
 \hline
-Output &  Measure the time taken for the 200 images to be processed. The 200 images should have taken less than 400 seconds to be processed, to verify the 0.5 frames per second requirement. Also, measure the accuracy of the classification. \\ 
+Output &  Measure the average time taken processing a single image (FPS), and use it to verify the 0.5 frames per second requirement. Also, measure the accuracy of the classification. \\ 
 \hline
 How test will be performed & The test will be through a special unit testing script. The script should hardcode the image from one of the datasets, run the algorithm, and record the result on some kind of table. \\ 
 \hline
-Test case derivation & 200 images were selected because they are an ample testing size. The images consisted of varying weather conditions, altitudes and tilts.  \\ 
+Test case derivation & Atleast 50 images were selected because they are an ample testing size.   \\ 
 \hline
 Requirements & \nameref{GEN_005} \\ 
 \hline
@@ -1681,13 +1701,13 @@ Type &  Functional, Automatic, Static  \\
 \hline
 Initial State & -\\ 
 \hline
-Input &  100 satellite images of parking lots are fed into the Vision App's parking lot segmentation feature.\\ 
+Input &  12 satellite images of parking lots are fed into the Vision App's parking lot segmentation feature.\\ 
 \hline
-Output &  Measure the accuracy of the segmentation. \\ 
+Output &  Measure the accuracy of the segmentation, pixels correctly classified divided by the total number of pixels. \\ 
 \hline
 How test will be performed & The test will be through a special unit testing script. The script should hardcode the image to be a satellite image of a parking lot, run the algorithm, and record the result in some kind of table. \\ 
 \hline
-Test case derivation & 100 images were selected because they are an ample testing size.  \\ 
+Test case derivation & 12 images were selected because they are an ample testing size.  \\ 
 \hline
 Requirements & \nameref{GEN_001} \\ 
 \hline
@@ -1695,6 +1715,7 @@ Requirements & \nameref{GEN_001} \\
 \end{center}
 \end{table}
 
+\clearpage
 
 \subsubsection{Mapper App}
 
@@ -1726,9 +1747,10 @@ Requirements &  \\
 \end{center}
 \end{table}
 
-
+\clearpage
 
 \subsubsection{Path Plan App}
+\label{PathPlanAppUnitTest}
 There are no unit tests for the \nameref{Path Plan App} because it requires closed-loop testing. The \nameref{Path Plan App} suggests a subsequent path for exploration, assessing its performance requires the drone  to actually follows the suggested path at each time step (i.e. requires closed-loop testing in SITL or live with the drone). The \nameref{Path Plan App} is also a stretch goal, so it should be developed once all the other modules have been verified and tested. Thus \nameref{tab:STC_016} can be used as a test case for developing the \nameref{Path Plan App}. 
 
 
@@ -1776,7 +1798,7 @@ Type &  Functional, Automatic, Static  \\
 \hline
 Initial State & The drone is in the Idle State. \\ 
 \hline
-Input &  Send a user command to arm the drone, takeoff, move 5 m  to the left, and finally land at the original launch location. \\ 
+Input &  Send a user command to arm the drone, takeoff, move 5m to the left, and finally land at the original launch location. \\ 
 \hline
 Output &  The drone should arm, takeoff to the maximum hover height, move 5m left, and then land at the original location. \\ 
 \hline
@@ -1830,7 +1852,7 @@ Type &  Functional, Automatic, Static  \\
 \hline
 Initial State & The drone is in the Idle State. \\ 
 \hline
-Input &  Hardcode the Message Socket to be disconnected once the drone takeoff. \\ 
+Input &  Hardcode the Message Socket to be disconnected once the drone takeoffs. \\ 
 \hline
 Output &  The drone should arm and take off. After a sufficient amount of time, when the Message Socket is hardcoded to be disconnected, the drone should enter the Communication Lost state and land.\\  
 \hline
@@ -1897,6 +1919,7 @@ Requirements & \nameref{STA_003}, \nameref{TRANS_004} \\
 \end{center}
 \end{table}
 
+\clearpage
 
 \subsubsection{DDC Topic Interface}
 
@@ -1927,6 +1950,8 @@ Requirements &  \\
 \end{tabular}
 \end{center}
 \end{table}
+
+\clearpage
 
 \subsubsection{Algorithm Topic Interface}
 
@@ -1959,6 +1984,7 @@ Requirements &  \\
 \end{center}
 \end{table}
 
+\clearpage
 
 \subsubsection{DDC Service Interface}
 
@@ -1978,7 +2004,7 @@ Initial State & The drone is in the Idle state. \\
 \hline
 Input & Call each of the service routines to set the RtlAlt to 10m, call the mode service to set the mode to "Guided", call the arm service to arm the drone, call the takeoff service to takeoff the drone, and then call the landing service (using the callService_TypeCommand routine). \\ 
 \hline
-Output &  The drone should takeoff the ground to a height of 10m \\ 
+Output &  The drone should takeoff the ground to a height of 10m, and then lands. \\ 
 \hline
 How test will be performed & A unit testing script must be written to create a service interface object and then call each of the routines in the Input section in the chronological order it specified.\\ 
 \hline
@@ -1990,8 +2016,10 @@ Requirements &  \\
 \end{center}
 \end{table}
 
+\clearpage
+
 \subsection{Traceability Between Test Cases and Modules}
-This section contains summarizes the traceability between Test Cases and Modules, see \ref{tab:traceTC_Module}. 
+This section summarizes the traceability between Test Cases and Modules, see Table \ref{tab:traceTC_Module}. 
 
 
 \begin{table}[!h]
@@ -2022,9 +2050,13 @@ Algorithm Topic Interface &  \nameref{tab:UTC_021}\\
 \hline
 DDC Service Interface &  \nameref{tab:UTC_022}\\
 \hline
+
 \end{tabular}
 \end{center}
-\end{table}				
+\end{table}		
+
+\clearpage
+
 \bibliographystyle{plainnat}
 
 \bibliography{../../refs/References}
