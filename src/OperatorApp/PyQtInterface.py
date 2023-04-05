@@ -10,6 +10,8 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets, QtWebEngineWidgets, QtWebChannel#pip install  PyQtWebEngine
 from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 import json, os
 from pathlib import Path
 import io
@@ -28,6 +30,7 @@ class QTextEditLogger(logging.Handler): #update log file in logs textbox
         msg = self.format(record)
         self.widget.appendPlainText(msg)
         self.widget.moveCursor(QtGui.QTextCursor.End)
+
 class aThread(QThread): #enable background processing
     updt_chk = pyqtSignal(int)
     def run(self):
@@ -36,14 +39,15 @@ class aThread(QThread): #enable background processing
             time.sleep(2)
             self.updt_chk.emit(x)
             x+=1
-            if x > 3:
+            if x > 1:
                 x = 0
 
 class PyQtController(object):
     def setupUi(self, Controller):
         Controller.setObjectName("Controller")
         Controller.setEnabled(True)
-        Controller.resize(1000, 530)
+        # Controller.resize(1000, 530)
+        # Controller.setFixedSize(1000, 750)
         Controller.setMinimumSize(QtCore.QSize(1000, 0))
         self.centralwidget = QtWidgets.QWidget(Controller)
         self.centralwidget.setLayoutDirection(QtCore.Qt.LeftToRight)
@@ -112,24 +116,9 @@ class PyQtController(object):
         self.lblLogs.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
         self.lblLogs.setObjectName("lblLogs")
         self.verticalLayout2.addWidget(self.lblLogs)
-
-        # self.txtLogs = QtWidgets.QTextEdit(self.centralwidget)
-        # self.txtLogs.setReadOnly(True)
-        # self.txtLogs.setObjectName("txtLogs")
-        # self.verticalLayout2.addWidget(self.txtLogs)
-
-        self.lblLogs = QtWidgets.QLabel(self.centralwidget)
-        self.lblLogs.setObjectName("label_6")
-        self.logTextBox = QTextEditLogger(self.centralwidget)
-        self.textEdit = self.logTextBox.widget
-        self.textEdit.setReadOnly(True)
-        self.textEdit.setObjectName("textEdit")
-        self.verticalLayout2.addWidget(self.lblLogs)
-        self.verticalLayout2.addWidget(self.textEdit)
-
-        self.grdlayController.addLayout(self.verticalLayout2, 4, 0, 1, 1)
-        self.verticalLayout1 = QtWidgets.QVBoxLayout()
-        self.verticalLayout1.setObjectName("verticalLayout1")
+        self.grdlayController.addLayout(self.verticalLayout2, 4, 1, 1, 1)
+        self.gridLayout1 = QtWidgets.QGridLayout()
+        self.gridLayout1.setObjectName("gridLayout1")
         self.btnConnect = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -137,58 +126,49 @@ class PyQtController(object):
         sizePolicy.setHeightForWidth(self.btnConnect.sizePolicy().hasHeightForWidth())
         self.btnConnect.setSizePolicy(sizePolicy)
         self.btnConnect.setObjectName("btnConnect")
-        self.verticalLayout1.addWidget(self.btnConnect)
+        self.gridLayout1.addWidget(self.btnConnect, 0, 0)
         self.frmHeight = QtWidgets.QFormLayout()
         self.frmHeight.setObjectName("frmHeight")
         self.lblMinHover = QtWidgets.QLabel(self.centralwidget)
         self.lblMinHover.setObjectName("lblMinHover")
         self.frmHeight.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.lblMinHover)
-        self.spboxMinHover = QtWidgets.QSpinBox(self.centralwidget)
+        self.spboxMinHover = QtWidgets.QDoubleSpinBox(self.centralwidget)
         self.spboxMinHover.setObjectName("spboxMinHover")
         self.frmHeight.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.spboxMinHover)
         self.lblDesiredHover = QtWidgets.QLabel(self.centralwidget)
         self.lblDesiredHover.setObjectName("lblDesiredHover")
         self.frmHeight.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.lblDesiredHover)
-        self.spboxDesiredHover = QtWidgets.QSpinBox(self.centralwidget)
+        self.spboxDesiredHover = QtWidgets.QDoubleSpinBox(self.centralwidget)
         self.spboxDesiredHover.setObjectName("spboxDesiredHover")
         self.frmHeight.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.spboxDesiredHover)
         self.lblMaxHover = QtWidgets.QLabel(self.centralwidget)
         self.lblMaxHover.setObjectName("lblMaxHover")
         self.frmHeight.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.lblMaxHover)
-        self.spboxMaxHover = QtWidgets.QSpinBox(self.centralwidget)
+        self.spboxMaxHover = QtWidgets.QDoubleSpinBox(self.centralwidget)
         self.spboxMaxHover.setObjectName("spboxMaxHover")
         self.frmHeight.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.spboxMaxHover)
-        self.verticalLayout1.addLayout(self.frmHeight)
+        self.gridLayout1.addLayout(self.frmHeight, 1, 0, 3, 1)
         self.btnConfiguration = QtWidgets.QPushButton(self.centralwidget)
         self.btnConfiguration.setObjectName("btnConfiguration")
-        self.verticalLayout1.addWidget(self.btnConfiguration)
-        self.hlayArm = QtWidgets.QHBoxLayout()
-        self.hlayArm.setObjectName("hlayArm")
+        self.gridLayout1.addWidget(self.btnConfiguration, 4, 0)
         self.btnArm = QtWidgets.QPushButton(self.centralwidget)
         self.btnArm.setCheckable(False)
         self.btnArm.setChecked(False)
         self.btnArm.setObjectName("btnArm")
-        self.hlayArm.addWidget(self.btnArm)
+        self.gridLayout1.addWidget(self.btnArm, 0, 1)
         self.btnDisarm = QtWidgets.QPushButton(self.centralwidget)
         self.btnDisarm.setObjectName("btnDisarm")
-        self.hlayArm.addWidget(self.btnDisarm)
-        self.verticalLayout1.addLayout(self.hlayArm)
+        self.gridLayout1.addWidget(self.btnDisarm, 1, 1)
         self.btnTakeOff = QtWidgets.QPushButton(self.centralwidget)
         self.btnTakeOff.setObjectName("btnTakeOff")
-        self.verticalLayout1.addWidget(self.btnTakeOff)
-        self.btnAutoExplore = QtWidgets.QPushButton(self.centralwidget)
-        self.btnAutoExplore.setObjectName("btnAutoExplore")
-        self.verticalLayout1.addWidget(self.btnAutoExplore)
-        self.btnAutoMove = QtWidgets.QPushButton(self.centralwidget)
-        self.btnAutoMove.setObjectName("btnAutoMove")
-        self.verticalLayout1.addWidget(self.btnAutoMove)
+        self.gridLayout1.addWidget(self.btnTakeOff, 2, 1)
         self.btnCompulsiveMove = QtWidgets.QPushButton(self.centralwidget)
         self.btnCompulsiveMove.setObjectName("btnCompulsiveMove")
-        self.verticalLayout1.addWidget(self.btnCompulsiveMove)
+        self.gridLayout1.addWidget(self.btnCompulsiveMove, 3, 1)
         self.btnLand = QtWidgets.QPushButton(self.centralwidget)
         self.btnLand.setObjectName("btnLand")
-        self.verticalLayout1.addWidget(self.btnLand)
-        self.grdlayController.addLayout(self.verticalLayout1, 3, 0, 1, 1)
+        self.gridLayout1.addWidget(self.btnLand, 4, 1)
+        self.grdlayController.addLayout(self.gridLayout1, 3, 1, 1, 1)
         self.horizontalLayout1 = QtWidgets.QHBoxLayout()
         self.horizontalLayout1.setSpacing(10)
         self.horizontalLayout1.setObjectName("horizontalLayout1")
@@ -245,15 +225,30 @@ class PyQtController(object):
         self.pbarBattery.setObjectName("pbarBattery")
         self.horizontalLayout1.addWidget(self.pbarBattery)
         self.grdlayController.addLayout(self.horizontalLayout1, 0, 0, 1, 2)
-        self.widget = QtWidgets.QWidget(self.centralwidget)
-        self.widget.setObjectName("widget")
-        self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.widget)
-        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        self.grdlayController.addWidget(self.widget, 3, 1, 3, 1)
-        self.grdlayController.setColumnStretch(1, 1)
+        
+        self.spboxMinHover.setDecimals(1)
+        self.spboxMinHover.setStepType(QAbstractSpinBox.AdaptiveDecimalStepType)
+        self.spboxDesiredHover.setDecimals(1)
+        self.spboxDesiredHover.setStepType(QAbstractSpinBox.AdaptiveDecimalStepType)
+        self.spboxMaxHover.setDecimals(1)
+        self.spboxMaxHover.setStepType(QAbstractSpinBox.AdaptiveDecimalStepType)
+
         Controller.setCentralWidget(self.centralwidget)
 
+
+        ##logging start
+        self.logTextBox = QTextEditLogger(self.centralwidget)
+        self.textEdit = self.logTextBox.widget
+        self.verticalLayout2.addWidget(self.textEdit)
+        self.logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        logging.getLogger().addHandler(self.logTextBox)
+        logging.getLogger().setLevel(logging.DEBUG)
+        ##logging end
+
         self.retranslateUi(Controller)
+        QtCore.QMetaObject.connectSlotsByName(Controller)
+
+
 
     def retranslateUi(self, Controller):
         self._translate = QtCore.QCoreApplication.translate
@@ -277,11 +272,9 @@ class PyQtController(object):
         self.btnArm.setText(self._translate("Controller", "Arm"))
         self.btnDisarm.setText(self._translate("Controller", "Disarm"))
         self.btnTakeOff.setText(self._translate("Controller", "Take-Off"))
-        self.btnAutoExplore.setText(self._translate("Controller", "Autonomous Explore"))
-        self.btnAutoMove.setText(self._translate("Controller", "Autonomous Move"))
         self.btnCompulsiveMove.setText(self._translate("Controller", "Compulsive Move"))
         self.btnLand.setText(self._translate("Controller", "Land"))
-        self.lblLogo.setText(self._translate("Controller", "Logo"))
+        self.lblLogo.setPixmap(QPixmap("icons/logo.png").scaled(40,40,1))
         self.lblConnection.setText(self._translate("Controller", "Connection:"))
         self.lblDroneState.setText(self._translate("Controller", "Drone State:"))
         self.txtDroneState.setText(self._translate("Controller", "-"))
@@ -289,7 +282,7 @@ class PyQtController(object):
         self.txtDroneHealth.setText(self._translate("Controller", "-"))
         self.lblUserErrors.setText(self._translate("Controller", "User Errors:"))
         self.txtUserErrors.setText(self._translate("Controller", "-"))
-
+	
     def checkWifi(self, val):
         if val == 0:
             self.lblConnection.setPixmap(QtGui.QPixmap("icons/wifi0.png").scaled(32, 32))

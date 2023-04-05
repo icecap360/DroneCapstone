@@ -1,45 +1,39 @@
 import sys
 sys.path.append("..")
 import Utils
-import sys, time, cv2
+import sys, time
 from multiprocessing import Process
 import threading
 from PyQt5.QtWidgets import QApplication, QWidget
 import UserInterface #import the setup code for the app
-
-def DisplayCameraView(platform):
-    Camera = None
-    if platform == 'PI':
-        Camera = Utils.OperatorCameraPI()
-    elif platform == 'SITL':
-        Camera = Utils.OperatorCameraSITL()
-    Camera.init()
-    try:
-        while True:
-            Camera.read()
-            cv2.imshow('DroneView', Camera.image)
-            if cv2.waitKey(1)&0xFF == ord('q'):
-                break
-    except KeyboardInterrupt:
-            Utils.LogDebug("Keyboard Interrupt")
-
+from Utils import OperatorCameraPi, OperatorCameraSITL
+from MapWindow import MapWindow
+from Stitch import StitchManager
 
 if __name__ == '__main__':
     platform = 'SITL'
     droneInterface = None
     p_camera = None
     if platform == 'SITL':
-        droneInterface = Utils.OperatorSocket(HOST="192.168.56.101")
-        p_camera = Process(target=DisplayCameraView, args=('SITL',))
+        droneInterface = Utils.MessageSocket("OPERATOR", HOST="192.168.56.101")
+        # Camera = OperatorCameraSITL()
+        # p_camera = Process(target=UserInterface.StartDroneCameraDisplay, args=(Camera, 'SITL',))
+        # p_camera.start()
+        Camera = OperatorCameraPi()
+        p_camera = Process(target=UserInterface.StartDroneCameraDisplay, args=(Camera, 'PI',))
         p_camera.start()
     else:
-        droneInterface = Utils.OperatorSocket(HOST="navio")
-        p_camera = Process(target=DisplayCameraView, args=('PI',))
+        droneInterface = Utils.MessageSocket("OPERATOR",HOST="navio")
+        Camera = OperatorCameraPi()
+        p_camera = Process(target=UserInterface.StartDroneCameraDisplay, args=(Camera, 'PI',))
         p_camera.start()
 
 
     app = QApplication(sys.argv)
-    uiApp = UserInterface.UIApp(droneInterface)
+
+    mapWindow = MapWindow()
+
+    uiApp = UserInterface.UIApp(droneInterface, mapWindow)
 
     #droneDisplayer = UserInterface.DroneDisplayer()
     #t1 = threading.Thread(target=uiApp.processDroneMessages, args=())
@@ -48,5 +42,6 @@ if __name__ == '__main__':
     app.exec_()
 
     # GUI Closed
+    mapWindow.close(None)
     uiApp.close()
     p_camera.terminate()

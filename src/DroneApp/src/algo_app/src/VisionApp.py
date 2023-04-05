@@ -1,19 +1,43 @@
 import rospy
 from std_msgs.msg import Bool
+from Segmenters import ParkingLotSegmenter, NatureSegmenter
+from Classifier import Classifier
 
 class VisionApp:
     def __init__(self):
         self.parkLotDetected = False
+        self.health = True
+
+        self.parkLotSegmenter = ParkingLotSegmenter()
+        self.natureSegmenter = NatureSegmenter()
+        self.classifier = Classifier()
+        self.parkLotDetected = None
+        self.natureDetected = None
+        self.occupiedDetected = None
         #self.camera = Camera()
-    def init(self):
+    def init(self, droneCamera, topicInterface):
+        self.droneCamera = droneCamera
+        self.topicInterface = topicInterface
         #self.camera.init()
-        pass
-    def readCamera(self):
-        # this function is emant to be called before process
-        #self.camera.read()
-        pass
     def process(self):
         # image processing code goes here  
-        self.parkLotDetected = True
+        #self.droneCamera.read()
+        #self.processImage(self.droneCamera.image)
+        
+        # self.parkLotDetected = True
         pass
+    
+    def publish(self):
+        self.topicInterface.parkLotDetectedPub.publish(self.getParkLotDet()) #always publish this, as a default transition depends on this
+        self.topicInterface.visionAppHealth.publish(self.health)
+    def getParkLotDet(self):
+        return self.parkLotDetected
+    def getHealth(self):
+        return self.health
+    def processImage(self, img, cropImage=True):
+        self.parkLotSegmenter.process(img, cropImage)
+        self.parkLotDetected  = self.classifier.classify(self.parkLotSegmenter.getResult())
+        self.natureSegmenter.process(img, cropImage)
+        self.natureDetected  = self.classifier.classify(self.natureSegmenter.getResult())
+        self.occupiedDetected = (not self.natureDetected) and (not self.parkLotDetected)
 

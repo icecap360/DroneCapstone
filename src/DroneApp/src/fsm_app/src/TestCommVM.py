@@ -6,14 +6,14 @@ from sensor_msgs.msg import Imu
 
 import sys
 sys.path.append('/home/operator/DroneCapstone/src')
-import Utils.Sockets as Sockets
+import Utils.MessageSocket as MessageSocket
 from Utils.Common import *
 
 class DroneApp:
 	def __init__(self):
 		pass
 	def init(self):
-		self.OpAppInterface = Sockets.DroneSocket()
+		self.OpAppInterface = MessageSocket.DroneSocket()
 		self.OpAppInterface.init()
 		# In ROS, nodes are uniquely named. If two nodes with the same
 		# name are launched, the previous one is kicked off. The

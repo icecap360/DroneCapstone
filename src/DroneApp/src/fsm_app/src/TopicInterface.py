@@ -1,5 +1,6 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
+from geographic_msgs.msg import GeoPoseStamped
 from mavros_msgs.msg import State, HomePosition, OverrideRCIn
 from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest, CommandTOL, CommandTOLRequest
 from sensor_msgs.msg import NavSatFix, BatteryState
@@ -23,8 +24,8 @@ class TopicInterface:
     
     def __init__(self):
         self.currStatePub = rospy.Publisher("/fsm_app/drone_state", String, queue_size=10)
-        self.desPosePub = rospy.Publisher("/fsm_desired_pose/desired_pose", PoseStamped, queue_size=10)
-
+        self.desPosePub = rospy.Publisher("/fsm_desired_pose/desired_pose", GeoPoseStamped, queue_size=10)
+        
         self._egm96 = GeoidPGM('/usr/share/GeographicLib/geoids/egm96-5.pgm', kind=-3)
 
         self.state = State()
@@ -68,7 +69,6 @@ class TopicInterface:
         self.home_position_sub = rospy.Subscriber("/mavros/home_position/home", HomePosition, callback = self.home_position_cb)
         self.battery_sub = rospy.Subscriber("/mavros/battery", BatteryState, callback = self.battery_cb)
         self.rel_alt_sub = rospy.Subscriber("/mavros/global_position/rel_alt", Float64, callback = self.rel_alt_cb)
-
 
     def convertToAMSL(self,lat, lon, height) -> float:
         return height - self._egm96.height(lat, lon)

@@ -3,10 +3,12 @@
 import sys
 sys.path.append('/home/operator/DroneCapstone/src')
 from OperationManager import OperationManager
-import Utils.Sockets as Sockets
+from Utils.MessageSocket import MessageSocket
 from Utils import LogDebug
 import time
 from threading import Event, Thread
+from TopicInterface import TopicInterface
+from ServiceInterface import ServiceInterface
 
 def infOpManLoop(stopNodeEvent, operationManager):
     while not stopNodeEvent.is_set():
@@ -16,8 +18,11 @@ def infOpManLoop(stopNodeEvent, operationManager):
     operationManager.close()
 
 if __name__ == "__main__":
-    operationManager = OperationManager(Sockets.DroneSocket())
-    operationManager.init()
+    operationManager = OperationManager()
+    msgSock = MessageSocket("DRONE", "")
+    topicInterf = TopicInterface()
+    serviceInterf = ServiceInterface()
+    operationManager.init(msgSock, topicInterf, serviceInterf)
     stopNodeEvent = Event()
 
     #fly in circle testcase

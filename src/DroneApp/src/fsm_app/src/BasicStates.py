@@ -5,6 +5,8 @@ from rospy_message_converter import message_converter
 import json
 from Utils.Common import *
 from geometry_msgs.msg import PoseStamped
+from geographic_msgs.msg import GeoPoseStamped
+import Utils
 
 class FlightState(State):
     # abstract state, created to prevent code duplication for flight states
@@ -35,17 +37,18 @@ class Configure(State):
         self.maxHoverHeight = float(command['MaxHoverHeight'])
         super().__init__(context,command, name)
     def init(self):
-        if self.minHoverHeight<7 or self.desiredHoverHeight<7 or self.maxHoverHeight<7:
-            self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Height parameters must be atleast 7m'}) 
+        if self.minHoverHeight<1 or self.desiredHoverHeight<1 or self.maxHoverHeight<1:
+            self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Height parameters must be atleast 1m'}) 
             self.userError = UserErrorCode.HEIGHT_PARAMS_INVALID
-        elif self.minHoverHeight<self.desiredHoverHeight and self.desiredHoverHeight<self.maxHoverHeight:
-            self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Heaight parameters must be in ascending order: Min,Des,Max'}) 
+        elif not (self.minHoverHeight<=self.desiredHoverHeight and self.desiredHoverHeight<=self.maxHoverHeight):
+            self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Height parameters must be in ascending order: Min,Des,Max'}) 
+            print(self.minHoverHeight, self.maxHoverHeight, self.desiredHoverHeight)
             self.userError = UserErrorCode.HEIGHT_PARAMS_INVALID
         else:
             self.context.setAndSaveParams(self.minHoverHeight, 
                 self.desiredHoverHeight, 
                 self.maxHoverHeight)
-            self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Heaight parameters successfully updated'}) 
+            self.context.opAppInterface.sendMessageAsync({'Type':'ErrorLog', 'Message':'Height parameters successfully updated'}) 
             self.userError = UserErrorCode.NONE
         super().init()
     def evalNewState(self):
@@ -58,7 +61,10 @@ class Idle(State):
         super().init()
     def evalNewState(self):
         if not self.context.opAppInterface.isConnected():
+            self.context.healthStatus = HealthStatusCode.COMMUNICATION_LOST
             return None
+        else:
+            self.context.healthStatus = HealthStatusCode.HEALTHY
         command = self.context.opAppInterface.getMessage()
         if (command != None and command['Type'] == 'Arm' and
                 self.context.topicInterface.getBatteryInfo().percentage > 0.2):
@@ -115,8 +121,16 @@ class Hover(FlightState):
     def __init__(self,context, command,name='Hover'):
         super().__init__(context, command, name)
     def init(self):
+
+        desPose = GeoPoseStamped()
+        desPose.pose.position.altitude = self.context.topicInterface.getPose().altitude
+        desPose.pose.position.latitude = self.context.homeHoverPoseGlob.latitude
+        desPose.pose.position.longitude = self.context.homeHoverPoseGlob.longitude
+        desPose.header.stamp = rospy.Time.now()
+        LogDebug('Setting Hover location...')
+        self.context.topicInterface.desPosePub.publish(desPose)
+
         self.context.servInterface.setMode('GUIDED')
-        self.context.topicInterface.desPosePub.publish(self.context.topicInterface.getLocalPose())
         super().init()
     def evalNewState(self):
         #if not self.context.topicInterface.getHealthStatus():
@@ -173,16 +187,22 @@ class Land(State):
 
 class CompulsiveMove(FlightState):
     def __init__(self,context, command,name='CompulsiveMove'):
-        self.X, self.Y, self.W = float(command['X']), float(command['Y']), float(command['w'])
+        self.lat, self.long, self.W = float(command['Lat']), float(command['Long']), float(command['w'])
         super().__init__(context, command, name)
     def init(self):
         self.context.servInterface.setMode('GUIDED')
-        desPose = PoseStamped()
-        desPose.pose.position.z = self.context.desiredHoverHeight
-        desPose.pose.position.x, desPose.pose.position.y = self.X, self.Y
+
+        desPose = GeoPoseStamped()
+        desPose.pose.position.altitude = self.context.topicInterface.getPose().altitude
+            #self.context.topicInterface.convertToAMSL(
+            #self.lat, self.long, self.context.desiredHoverHeight)
+        #self.context.topicInterface.getPose().altitude
+        desPose.pose.position.latitude, desPose.pose.position.longitude= self.lat, self.long
         desPose.pose.orientation.w = self.W
         desPose.header.stamp = rospy.Time.now()
+        LogDebug('Setting Compulsive Move location...')
         self.context.topicInterface.desPosePub.publish(desPose)
+
         super().init()
     def evalNewState(self):
         #if not self.context.topicInterface.getHealthStatus():
@@ -198,7 +218,6 @@ class AutonomousMove(FlightState):
         desPose = PoseStamped()
         desPose.pose.position.z = self.context.desiredHoverHeight
         desPose.pose.position.x, desPose.pose.position.y = self.X, self.Y
-        desPose.pose.orientation.w = self.W
         desPose.header.stamp = rospy.Time.now()
         self.context.topicInterface.desPosePub.publish(desPose)
         super().init()
@@ -249,6 +268,15 @@ class Takeoff(State):
     def __init__(self,context, command,name='Takeoff'):
         super().__init__(context, command, name)
     def init(self):
+
+        # desPose = GeoPoseStamped()
+        # desPose.pose.position.altitude = self.context.desiredHoverHeight
+        # desPose.pose.position.latitude =  self.context.homeHoverPoseGlob.latitude
+        # desPose.pose.position.longitude = self.context.homeHoverPoseGlob.longitude
+        # desPose.header.stamp = rospy.Time.now()
+        # LogDebug('Setting Takeoff location...')
+        # self.context.topicInterface.desPosePub.publish(desPose)
+
         if self.context.topicInterface.getRelAlt() < 5:
             self.context.servInterface.sendTakeoffCmd(self.context.homeHoverPoseGlob)
         rospy.loginfo("Taking off")
@@ -261,7 +289,7 @@ class Takeoff(State):
         #    return Malfunction(self.context)
         if not self.context.topicInterface.getState().armed:
             return Arm(self.context, {})
-        elif self.context.topicInterface.getRelAlt() > self.context.homeHoverPoseGlob.altitude - 0.5:
+        elif self.context.topicInterface.getRelAlt() > self.context.homeHoverPoseGlob.altitude - 0.3:
             return Hover(self.context,{})
         else:
             return None
