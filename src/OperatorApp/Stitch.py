@@ -15,7 +15,7 @@ from Utils import VisionAppPC
 
 class StitchCreator:
     def __init__(self, lat, long):
-        # Enter your api key here
+        # Enter your api key here, hide it from the public!
         self.api_key = 'AIzaSyCDtvdqQzxtHOt9dMR4WQPU50tO-L5K_qU'
         self.url = "https://maps.googleapis.com/maps/api/staticmap?"
         self.center = "Dehradun"
@@ -33,12 +33,12 @@ class StitchCreator:
     def longfactor(self):
         return (self.sz*360) / (512* 2**(self.zoom - 1))
        
-    def FindCenter(self):
+    def findCenter(self):
         poilat = round(self.lat / self.latround) * self.latround
         poilong = round(self.long / self.longround) * self.longround
         return (poilat, poilong)
-    def StitchAndSave(self):
-        roundlat, roundlong = self.FindCenter()
+    def stitchAndSave(self):
+        roundlat, roundlong = self.findCenter()
         poilat, poilong = roundlat, roundlong
         
         positions=[]
@@ -94,7 +94,7 @@ class StitchManager:
         pass
     def init(self, lat, long):
         self.stitchCreator = StitchCreator(lat, long)
-        self.lat, self.long = self.stitchCreator.FindCenter()
+        self.lat, self.long = self.stitchCreator.findCenter()
         self.status = False
         self.imgLength= self.stitchCreator.sz*3
 
@@ -206,7 +206,7 @@ class StitchManager:
 
 if __name__ == '__main__':
     sc = StitchCreator(43.4956482 ,-79.7181996)
-    sc.StitchAndSave()
+    sc.stitchAndSave()
     # sm = StitchManager()
     # sm.init(43.263082,-79.918871)
 

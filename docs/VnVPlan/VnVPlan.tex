@@ -83,6 +83,10 @@
 \toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
 \midrule
 November 3, 2022 & 1.0 & Initial Revision \\
+February 26, 2023 & 2.0 & Adding unit tests. \\
+February 28, 2023 & 2.0 & Updating vision app unit test, dataset has changed. \\
+February 28, 2023 & 2.0 & Updating vision app unit test, dataset has changed. \\
+March 15, 2023 & 2.0 & Removing Autonomou Move state, defining what SITL is. Editting test cases to be more specific and less overlap.  \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -111,7 +115,7 @@ The Verification and Validation (VnV) Plan outlines the various methods that the
 
 \subsection{Summary}
 
-The ParkingLotHawk is an autonomous aerial drone that helps parking lot operators understand the state of their parking lot. The drone shall be able of full autonomy, where it automatically explores the parking lot, or by semi-autonomy, where the operator specifies the locations that the drone should go to. During flight, the drone shall transmit live information about the parking lot sections it detects, and display this information to the operator. 
+The ParkingLotHawk is an autonomous aerial drone that helps parking lot operators understand the state of their parking lot. The user can select a location for the drone to move toward using the user interface. As a stretch goal of this project, the drone autonomously shall be capable of full automatonomous explororation of a parking lot. During flight, the drone shall transmit live information about the parking lot sections it detects, and display this information to the operator. 
 
 \subsection{Objectives}
 
@@ -215,12 +219,10 @@ The team plans to verify the design through structured review processes and a ch
 \begin{todolist}
     \item The product shall implement an Idle state.
     \item The product shall implement a Hover State.
-    \item The product shall implement an Autonomous Move State.
     \item The product shall implement an Autonomous Explore State.
     \item The product shall implement a Configure state.
     \item The product shall implement an Off state.
     \item The product shall implement a Land state.
-    \item The product shall implement a Desired Location Error state.
     \item The product shall implement a No Parking Lot Detected Error state.
     \item The product shall implement a Malfunction state.
     \item The product shall implement a Communication Lost state.
@@ -230,10 +232,12 @@ The team plans to verify the design through structured review processes and a ch
 \begin{todolist}
     \item Upon the m\_PowerOn becoming false, the drone shall enter the Off state.
     \item Upon the m\_PowerOn becoming true, the drone shall enter the Idle state.
-    \item Upon the m\_Launch becoming true, the drone shall enter the Hover state if the i\_Mode was set to normal, and enters the Configure state if the i\_Mode was set to configure.
+    \item Upon the m\_Arm becoming true, the drone shall enter the Arm state.
+    \item Upon the m\_Configure becoming true, the drone shall enter the Configure state.
+    \item Upon the m\_Takeoff becoming true, the drone shall enter the Takoeff state.
     \item If in the Hover state, and c\_ParkingLotDetected is equal to true, the product shall enter the Autonomous Explore state and explore the detected lot.
-    \item Once the user enters or changes m\_DesiredUserLoc and m\_CompulsiveMove is asserted as false, the drone shall automatically enter the Autonomous Move state.
-    \item If while in the Autonomous Move state and the product determines that m\_DesiredUserLoc is outside parking lot boundaries, the product shall enter the Desired Location Error state.
+    \item Once the user asserts m\_CompulsiveMove the drone shall automatically enter the Compulsive Move state.
+    \item If upon asserting m\_CompulsiveMove, the drone  determines that m\_DesiredUserLoc is outside parking lot boundaries, the product shall enter the present a prompt to the user.
     \item When m\_AutonomousExplore is set to true and c\_ParkingLotDetected is equal to true, the product shall enter the Autonomous Explore state.
     \item When m\_AutonomousExplore is set to true but c\_ParkingLotDetected is equal to false, the product shall enter the No Parking Lot Detected Error state.
     \item Upon m\_Land being true, the product shall enter the Land state.
@@ -256,7 +260,7 @@ Internally within the team, a more detailed checklist shall be conducted that in
     \item The product shall maintain a longitudinal and lateral position within a 1.5m radius during the Hover State.
     \item While the product is not hovering (moving from one location to another), it shall always maintain an altitude between i\_MaxHoverHeight and i\_MinHoverHeight, within a tolerance of ±5\%.
     \item The product shall be operable within requirements within non-inclement weather.
-    \item The product shall maintain a longitudinal and lateral position within a 1.5m radius once the product has reached m\_DesiredUserLoc while in the Autonomous Move State or Compulsive Move State.
+    \item The product shall maintain a longitudinal and lateral position within a 1.5m radius once the product has reached m\_DesiredUserLoc while in the Compulsive Move State.
 \end{todolist}
 \item Does the design implement all the design constraints listed below?
 \begin{todolist}
@@ -424,15 +428,16 @@ How test will be performed & A stub must be created in the code to suppress the 
 
 The first step of the test, configuring height parameters, is accomplished by:
 \begin{enumerate}[topsep=0pt,itemsep=-1ex,partopsep=1ex,parsep=1ex]
-    \item Setting the input i\_Mode as Configure and turning the power switch of the drone to On.
-    \item Assert m\_Launch, so the drone enters the Configure state.
-    \item Setting the height parameters in the Operator's PC Application to \ref{Indoor_Hover_Params}.
+    \item Turn the power switch of the drone to On.
+    \item  On the user interface set the height parameters to \ref{Indoor_Hover_Params}.
+    \item Assert m\_Configure.
 \end{enumerate}
 The second step of the drone, having the drone enter and stay within the hover state, is accomplished by:
 \begin{enumerate}[topsep=0pt,itemsep=-1ex,partopsep=1ex,parsep=1ex]
-	\item Turning the power switch on the drone off. Then set i\_Mode as Normal and turn the power switch on, so the drone enters Idle state.
-	\item Placing the drone in a non-parking lot area. 
-	\item Asserting m\_Launch as true, then wait for 25 sec.
+	\item Turn the drone on if it hasn't been done yet. 
+	\item Place the drone in a non-parking lot area. 
+	\item Asserting m\_Arm as true to make the drone arm.
+        \item When the drone arms, assert m\_Takeoff then wait for 25 sec.
 	\item Wait for 35 sec. During this wait measure the output variables.
 \end{enumerate}
 Once the output variables have been measured and the test is complete, assert m_Land to true so the drone transitions to the land state.\\ 
@@ -473,14 +478,12 @@ Output & Both attempts to set the Hover Parameters should fail. \\
 How the test will be performed & 
 The first step of the test, configuring height parameters, is accomplished by:
 \begin{enumerate}[topsep=0pt,itemsep=-1ex,partopsep=1ex,parsep=1ex]
-    \item Setting the input i\_Mode as Configure and turning the power switch of the drone to On.
     \item Set the height parameters in the Operator's PC Application to \ref{Invalid_Hover_Params1}.
-    \item Assert m\_Launch, so the drone enters the Configure state.
+    \item Assert m\_Configure, so the drone enters the Configure state.
     \item Set the height parameters in the Operator's PC Application to \ref{Invalid_Hover_Params2}.
-    \item Assert m\_Launch, so the drone enters the Configure state.
+    \item Assert m\_Configure, so the drone enters the Configure state.
 \end{enumerate}
-Once the output variables have been measured and the test is complete:
-Assert m\_Land to true so that drone will enter the land state.\\ 
+Measure the output variables. \\
 \hline
 Test case derivation & As per SRS, the smallest possible height parameters are \ref{Min_Hover_Params}, thus an attempt to set them smaller, such as \ref{Invalid_Hover_Params1}, should fail and return an error to the user. 
 As per SRS, the i\_MaxHoverHeight must be bigger than i\_MinHoverHeight, violating this contains, as in  \ref{Invalid_Hover_Params1}, should fail and return an error to the user.
@@ -513,15 +516,14 @@ Output & The drone should take less than 25 seconds to reach and hover within 7+
 How test will be performed &
 The first step of the test, configuring height parameters, is accomplished by:
 \begin{enumerate}[topsep=0pt,itemsep=-1ex,partopsep=1ex,parsep=1ex]
-    \item Setting the input i\_Mode as Configure and turning the power switch of the drone to On.
-    \item Assert m\_Launch, so the drone enters the Configure state.
     \item Setting the height parameters in the Operator's PC Application to \ref{Med_Hover_Params}.
+    \item Assert m\_Configure, so the drone enters the Configure state.
 \end{enumerate}
 The second step of the drone, having the drone enter and stay within the hover state, is accomplished by:
 \begin{enumerate}[topsep=0pt,itemsep=-1ex,partopsep=1ex,parsep=1ex]
-	\item Turning the power switch on the drone off. Then set i\_Mode as Normal and turn the power switch on, so the drone enters Idle state.
+	\item Turning the power switch on the drone on. 
 	\item Placing the drone in a non-parking lot area. 
-	\item Asserting m\_Launch as true, then wait for 25 sec.
+	\item Asserting m\_Arm and m\_Takoeff as true, then wait for 25 sec.
 	\item Wait for 1 min. During this wait measure the output variables.
 \end{enumerate}
 Once the output variables have been measured and the test is complete:
@@ -531,7 +533,7 @@ Test case derivation & As per SRS, the drone should take less than 25 seconds to
 
 As per SRS, while in the Hover state, the drone will enter the Autonomous Explore state if it sees a parking lot. The purpose of placing the drone in a non-parking lot area is to keep the drone in the Hover state.
 
-While hovering the drone should stay a 1.5 m radius. In terms of height, it means that the drone should hover within i\_MaxHoverHeight-1.5m=20-1.5=18.5m and i\_MaxHoverHeight+1.5m=20+1.5=21.5m above the ground.  \\ 
+While hovering the drone should stay within a 1.5 m radius. In terms of height, it means that the drone should hover within i\_MaxHoverHeight-1.5m=20-1.5=18.5m and i\_MaxHoverHeight+1.5m=20+1.5=21.5m above the ground.  \\ 
 \hline
 Purpose of test and/or relationship to other tests & This test is very similar to \nameref{tab:STC_001}, except that the height parameters are configured to be much higher. The purpose of configuring the height parameters differently is to verify that the drone can hover accurately at different heights, that the drone can land safely from different heights, and that the Configure state is actually capable of configuring the height variables (\nameref{GEN_003}, \nameref{GEN_004}).
 
@@ -555,15 +557,15 @@ Control & Manual \\
 \hline
 Initial State & The product is in any of its flying states.   \\ 
 \hline
-Input & Set m\_CompulsiveMove as false. Change m\_DesiredUserLoc to a location within the parking lot and to the diagonal front right of the drone at least 20m away.  \\ 
+Input &  Change m\_DesiredUserLoc to a location within the parking lot and to the diagonal front right of the drone at least 20m away. Set m\_CompulsiveMove as true. \\ 
 \hline
-Output & The drone should enter the Autonomous Move state upon a change to m\_DesiredUserLoc. The drone should move to and stay within 1.5m radially of the specified location. 
+Output & The drone should enter the Compulsive Move state. The drone should move to and stay within 1.5m radially of the specified location. 
 The user should also see a visual trace of the drone's movement; it should be a roughly straight line (shortest path).
 Measure the time takes to reach the specified GPS location and calculate the average speed. As per SRS, ensure it is more than 4 m/sec.  \\ 
 \hline
 How test will be performed & Input section contains enough detail. \\ 
 \hline
-Test case derivation & As per SRS, the drone should enter Autonomous Move state whenever m\_DesiredUserLoc is changed and m\_CompulsiveMove is false. In this state the drone should travel to m\_DesiredUserLoc and hover with an accuracy of 1.5m. 
+Test case derivation & As per SRS, the drone should enter Compulsive Move state whenever m\_CompulsiveMove is true and the drone is in hover. In this state the drone should travel to m\_DesiredUserLoc and hover with an accuracy of 1.5m. 
 
 A visual trace of the drone's movement in the past 60 seconds should be displayed on the Operator's PC Application. It should appear as a relatively straight diagonal line toward the hover location, as the drone's path planning should make it take the shortest path. 
 
@@ -573,7 +575,7 @@ Using the time taken, the average speed of the drone can be calculated as distan
 Purpose of test and/or relationship to other tests & 
 \begin{itemize}
     \item Assesses the ability of the drone to move to forward as well as move rightward in a stable and efficient manner toward a specified GPS location.
-    \item Helps verify the Autonomous Move state and transitions related to proceeding to a given location when the location is within the parking lot (\nameref{STA_002}, \nameref{TRANS_005}).
+    \item Helps verify the Compulsive Move state and transitions related to proceeding to a given location when the location is within the parking lot (\nameref{STA_011}).
     \item Verifies the NFRs related to lateral accuracy (\nameref{PERF_008}). 
     \item Verifies the NFRs related to height accuracy during movement (\nameref{PERF_006}). 
     \item Verifies the visual trace requirement (\nameref{USE_001}. 
@@ -758,9 +760,9 @@ Control & Manual \\
 \hline
 Initial State & The drone is on the ground of a non-parking lot and in its idle state. \\ 
 \hline
-Input & Launch the drone by setting m_Launch to true. After which wait 25 sec.  Assert m_CompulsiveMove as true. Change the value of m_DesiredUserLoc to a location at least 2km forward. \\ 
+Input & Launch the drone. After which wait 25 sec.   Change the value of m_DesiredUserLoc to a location at least 2km forward. Assert m_CompulsiveMove as true. \\ 
 \hline
-Output & Once the value of m_DesiredUserLoc is changed, the drone will enter the Compulsive Move state. The drone will continue to move forward. 
+Output & Once the value of m_CompulsiveMove is set, the drone will enter the Compulsive Move state. The drone will continue to move forward. 
 
 When the drone loses connection, the drone will enter the Communication Lost state, in which an error will be logged to c_Log, c_HealthStatus changes to Unhealthy and the drone will move back toward the launch location. 
 
@@ -864,6 +866,8 @@ As per SRS, the Compulsive Move state should be entered if the m\_DesiredUserLoc
  \\ 
 \hline
 Purpose of test and/or relationship to other tests & 
+This test verifies behavior needed for a stretch goal of this project, thus passing it is not necessary for a minimum viable product.
+
 • This test case is not designed to test the accuracy of flight dynamics, as the drone moves too quickly and too far to accurately measure GPS.
 
 • Helps to verify the transition into the Autonomous explore state (\nameref{STA_003}, \nameref{TRANS_004}). 
@@ -876,6 +880,37 @@ Purpose of test and/or relationship to other tests &
 \end{tabular}
 \end{center}
 \end{table}
+
+\begin{table}[!h]
+\begin{center}
+\caption {STC\_023}
+\label{tab:STC_023}
+\begin{tabular}{ | m{1.5cm} | m{15cm} | } 
+\hline
+ID & \nameref{tab:STC_023} \\ 
+\hline
+Control & Manual \\ 
+\hline
+Initial State & The drone is in the Idle in an area without satellite imagery downloaded. \\ 
+\hline
+Input & Attempt to arm the drone (assert m\_Arm). \\ 
+\hline
+Output & The drone should remain in the Idle state and log a descriptive error message to c\_Log indicating that satellite imagery has not been downloaded.  \\ 
+\hline
+How test will be performed & Input steps are self-explanatory.
+ \\ 
+\hline
+Test case derivation & As per SRS, the drone should not launch unless it has satellite imagery pre-downloaded.
+ \\ 
+\hline
+Purpose of test and/or relationship to other tests &  • 
+• Verifies \nameref{SR_001}.
+\\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
 
 \clearpage
 
@@ -1033,6 +1068,7 @@ Purpose of test and/or relationship to other tests &  • Usage of the 3D SITL a
 \end{center}
 \end{table}
 
+
 \clearpage
 
 \subsection{Traceability between Test Cases and Functional Requirements}
@@ -1052,16 +1088,14 @@ Functional Requirement & Test Case to Verify \\
 \nameref{GEN_006} & \nameref{tab:STC_013}, \nameref{tab:STC_016}\\ \hline
 \nameref{STA_000} & \nameref{tab:STC_001}, \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
 \nameref{STA_001} & \nameref{tab:STC_001}, \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
-\nameref{STA_002} & \nameref{tab:STC_005}, \nameref{tab:STC_011} \\ \hline
 \nameref{STA_003} & \nameref{tab:STC_016}, \nameref{tab:STC_012}, \nameref{tab:STC_013} \\ \hline
 \nameref{STA_004} & \nameref{tab:STC_001}, \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
 \nameref{STA_005} & \nameref{tab:STC_001}, \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
 \nameref{STA_006} & \nameref{tab:STC_001}, \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
-\nameref{STA_007} & \nameref{tab:STC_011} \\ \hline
 \nameref{STA_008} & \nameref{tab:STC_012} \\ \hline
 \nameref{STA_009} & \nameref{tab:STC_006} \\ \hline
 \nameref{STA_010} & \nameref{tab:STC_008}, \nameref{tab:STC_009}, \nameref{tab:STC_010} \\ \hline
-\nameref{STA_011} & \nameref{tab:STC_012} \\ \hline
+\nameref{STA_011} & \nameref{tab:STC_012}, \nameref{tab:STC_004} \\ \hline
 \nameref{STA_012} & \nameref{tab:STC_001}, \nameref{tab:STC_003} \\ \hline
 \nameref{STA_013} & \nameref{tab:STC_001}, \nameref{tab:STC_003} \\ \hline
 \nameref{TRANS_001} &  \nameref{tab:STC_002}, \nameref{tab:STC_003} \\ \hline
@@ -1321,6 +1355,7 @@ Non-Functional Requirement & Test Case to Verify \\
 \hline
 Non-Functional Requirement & Test Case to Verify \\
 \hline
+\nameref{SR_001} & \nameref{tab:STC_023} \\ \hline
 \nameref{SR_002} & \nameref{tab:STC_018} \\ \hline
 \nameref{SR_003} & \nameref{tab:STC_005}, \nameref{tab:STC_006} \\ \hline
 \nameref{SR_004} & None, pass or fail determined by the components bought. \\ \hline
@@ -1903,15 +1938,15 @@ ID & \nameref{tab:UTC_019} \\
 \hline
 Type &  Functional, Automatic, Static  \\ 
 \hline
-Initial State & The drone is in the Idle State. \\ 
+Initial State & The drone is in the Idle State, on the right end of a parking lot. Hardcode the algorithm app to suggest a path 5m left and assert c\_ParkLotDetected as true. \\ 
 \hline
-Input &  Arm and takeoff the drone. The Vision App should constantly be returning parking lot detected while the path planning algorithm should suggest a path of 5m to the left. \\ 
+Input &  Arm and takeoff the drone.  Assert m\_AutonomousExplore.  \\ 
 \hline
-Output &  After the drone takes off, it should enter the Autonomous Explore state and begin to move left 5m.\\  
+Output &  After the drone takes off, asserting m\_AutonomousExplore should cause the drone to enter the Autonomous Explore state. The Vision App should constantly be returning parking lot detected while the path planning algorithm should suggest a path of 5m to the left.\\  
 \hline
-How test will be performed & A stub will need to be written in the Message Socket to arm the drone and then takeoff. The Vision App will need a stub to constantly publish "Parking Lot Detected" on the Algorithm Topic Interface. The Mapper App will need a stub to constantly publish a suggested exploration path of 5m left.  Although the drone can be monitored by the SITL window, a stub can also be written to print the current drone location, the current state, and the current altitude to the console.\\ 
+How test will be performed & A stub will need to be written in the Message Socket to arm the drone and then takeoff. Although the drone can be monitored by the SITL window, a stub can also be written to print the current drone location, the current state, and the current altitude to the console.\\ 
 \hline
-Test case derivation &  The test case is designed to verify the Autonomous Explore state. This state is entered when automatically when the drone is hovering and detects a parking lot. \\ 
+Test case derivation &  The test case is designed to verify the Autonomous Explore state. \\ 
 \hline
 Requirements & \nameref{STA_003}, \nameref{TRANS_004} \\ 
 \hline

@@ -1,10 +1,42 @@
 \documentclass{article}
-\usepackage[a4paper, total={6in, 8in}]{geometry}
-
+\usepackage[utf8]{inputenc}
+\usepackage{fullpage}
+\usepackage{amsmath, mathtools}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{colortbl}
+\usepackage{xr}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{xfrac}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{pdflscape}
+\usepackage{afterpage}
+\usepackage{seqsplit}
+\usepackage{underscore}
+\usepackage{lscape}
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
 \usepackage{booktabs}
 \usepackage{tabularx}
-\usepackage{lipsum}
-\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{nameref}
+
+\hypersetup{
+    colorlinks=true,       % false: boxed links; true: colored links
+    linkcolor=red,          % color of internal links (change box color with linkbordercolor)
+    citecolor=green,        % color of links to bibliography
+    filecolor=magenta,      % color of file links
+    urlcolor=cyan           % color of external links
+}
+
+\input{../Comments}
+\input{../Common}
 
 \title{Development Plan\\\progname}
 
@@ -12,34 +44,37 @@
 
 \date{}
 
-\input{../Comments}
-\input{../Common}
-
 \begin{document}
 
-\begin{table}[hp]
-\caption{Revision History} \label{TblRevisionHistory}
-\begin{tabularx}{\textwidth}{llX}
-\toprule
-\textbf{Date} & \textbf{Developer(s)} & \textbf{Change}\\
+\maketitle
+\thispagestyle{empty}
+
+~\newpage
+
+\pagenumbering{roman}
+
+\begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
+\toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
 \midrule
-September 27, 2022 & Winnie Trandinh & Added Sections 1 to 4\\
-September 27, 2022 & Fady Zekry Hanna & Added Sections 5 to 8 and added final touches\\
-
-
+September 27, 2022 & 1.0 & Added Sections 1 to 4. \\
+September 27, 2022 & 1.1 & Added Sections 5 to 8 and added final touches. \\
+November 1, 2022 & 2.0 & Updated PoC Plan to remove takeoff and landing, and replaced takeoff with propulsion verification. \\
+December 20, 2022 & 3.0 & Removed indoor flight testing due to instability of drone and lack of indoor space. \\
+March 4, 2023 & 4.0 & Removed autonomous explore from project description. Updated deadlines for milestones. \\
 \bottomrule
 \end{tabularx}
-\end{table}
-
 
 \newpage
 
 \maketitle
 
-\indent Existing solutions sometimes involve a designated person, a parking lot officer, who helps to communicate parking spot availability to visitors. Of course, the primary drawback is that the operator being a person often cannot see or monitor large swaths of the parking lot accurately. Other solutions involve installing vehicle counters in the parking lot. These vehicle counters are installed either at the entrance/exits or throughout the parking lot, such as a distributed system of cameras.  These solutions are expensive and involve installations at precise locations, and thus require greater investment for organizers. Vehicle counter technology thus does not fulfill the need for many outdoor, seasonal, temporary, and/or cheaper organizers.  Examples include provincial/national parks, concerts, and religious places of worship where the highest demand for this solution is only for a certain period of time. 
-\subsection{Project Description}
+\indent The struggle of finding a parking spot in a busy parking lot is an issue that many visitors and organizers face. The hassle of finding a parking spot results in a loss of time for the visitors, a wastage of vehicle energy, and causes frustration for visitors. All of these issues result in lost revenue and/or productivity for all stakeholders, visitors and organizers. Parking lot sizes often cannot be increased without planning and investment. Given that the number of parking spots is often a constraint, utilizing the existing parking spaces efficiently is critical to minimizing the negative impacts of this issue.
 
-ParkingLotHawk is an aerial drone that will fly above the parking lot to gather information about slot availability and general parking lot status. The parking lot authorities will be able to access and visualize this information from an application on their Personal Computers (PCs). The parking lot authorities will command the ParkingLotHawk  only through an application running on their PC. The drone will be able to stabilize and move to different locations autonomously. Thus from the PC application, the operator will be able to launch or land the drone, after which they can either let the drone mutinously investigate the entire parking lot or have the drone investigate specific sections of the parking lot. 
+
+\indent Existing solutions sometimes involve a designated person, a parking lot officer, who helps to communicate parking spot availability to visitors. Of course, the primary drawback is that the operator being a person often cannot see or monitor large swaths of the parking lot accurately. Other solutions involve installing vehicle counters in the parking lot. These vehicle counters are installed either at the entrance/exits or throughout the parking lot, such as a distributed system of cameras.  These solutions are expensive and involve installations at precise locations, and thus require greater investment for organizers. Vehicle counter technology thus does not fulfill the need for many outdoor, seasonal, temporary, and/or cheaper organizers.  Examples include provincial/national parks, concerts, and religious places of worship where the highest demand for this solution is only for a certain period of time. 
+
+\subsection{Project Description}
+ParkingLotHawk is an aerial drone that will fly above the parking lot to gather information about slot availability and general parking lot status. The parking lot authorities will be able to access and visualize this information from an application on their Personal Computers (PCs). The parking lot authorities will command the ParkingLotHawk  only through an application running on their PC. From the PC application, the operator will be able to launch the drone, move the drone to a specific location, or land the drone. When given a location to investigate, the drone will autonomously fly toward the location without the Operator's input. During flight, the operator will receive a live video feed from the drone's camera, as well as other valuable parking lot information.
 
 \section{Team Meeting Plan}
 
@@ -62,6 +97,8 @@ The meeting roles are provided in Table 2.
 \end{tabular}
 \end{center}
 \end{table}
+
+\clearpage
 
 Meetings will be conducted through the use of an agenda and will be kept under one hour in length. A day prior to the meeting, all members are responsible for creating a completed agenda which contains the discussion items and the allocated time to spend on it. Potential discussion items include design considerations and important issues and should be phrased as questions to promote discussion amongst the team. These items should then be led by either the member with the relevant expertise or by the creator of the item.  
 
@@ -119,8 +156,9 @@ Internal Sensors & Winnie and Ali & The Internal Sensors domain includes the sen
 \end{center}
 \end{table}
 
+\clearpage
+
 The domains of expertise will dynamically evolve with the progression of the project to ensure that newer relevant domains are added. For example, the current development focus is hardware heavy, which leads to multiple hardware related domains. Once the construction of the drone is completed, software domains will play a larger factor in the development of the project, thus creating new domains with new experts. Such new domains may include ‘Software in the Loop Simulations’ and ‘Localization and Mapping’. If the need for role switching arises, the member(s) switching must provide written record that they agree to said switch, and they are responsible for any knowledge transfers that may be required. However, unless a valid reason is provided, roles will remain the same to prevent the need for detailed knowledge transferring. 
-\newpage
 
 \section{Workflow Plan}
 
@@ -151,6 +189,8 @@ High Priority & High priority issues that must be fixed as soon as possible. \\
 \end{center}
 \end{table}
 
+\clearpage
+
 Predefined milestones will also be used within the team to coordinate periodic releases of the product. These milestones are outlined within the Project Schedule section and provides the general development path for the project. Once the milestone is reached on the Master branch, a Project Release and Git Tag will be made from the Master branch. This serves as a record of the product at all major points of its development and increases the traceability of new bugs, as the introduction of major components can be precisely determined from the release history. 
 
 \section{Proof of Concept Demonstration Plan}
@@ -159,28 +199,17 @@ The risks of building an aerial drone from scratch without a flight controller a
 
 The team has researched multiple flight controllers and decided to proceed with the \href{https://navio2.emlid.com/}{Navio2 flight controller}. The flight controller is well documented online, with a dedicated forum for aerial drone enthusiasts.  The available documentation online allows the group to quickly find solutions to any issues during the process of building the drone
 \subsection{Sensor and Serial Communication}
-The most significant risk is losing sensor and motor communication midflight. Before trying to fly the drone, the group plans on testing the motors without propellers attached and moving the flight controller in an infinity figure motion to ensure the adequate functionality of the sensors. Doing so allows the group to unit test the individual components and determine any issues and root cause problems in a safer manner.
+The most significant risk is losing sensor and camera communication midflight. Before trying to fly the drone, the group plans on testing the sensors by moving the flight controller in an infinity figure motion to ensure the adequate functionality of the sensors. Doing so allows the group to unit test the individual components and determine any issues and root cause problems in a safer manner. Live camera streams will also be verified during this test.
 
 \subsection{Drone Specifications}
 Drone frame dimensions, motor stator and constant velocity, the propeller diameter, and battery size are all vital specifications that need to be considered. Having one of these variables not adequately set can cause in a loss of resources and non-flyable drone.
 
 To ensure compatibility between the components, the will follow standard guidelines on the required specifications of the components, in relation to the frame size. This will ensure that enough lift is generated for the drone size, and adequate power is supplied to the electrical components.
 
-\subsection{Drone Lift}
-The lift of a drone can be challenging. The challenges the group anticipates overcoming are the weight of the system, the chassis weight distribution, and the vertical propulsion in the workspace. To mitigate these challenges, the group plans on testing the drone in an enclosed working space while limiting the altitude of the drone. The group will inspect the behaviour of the drone within controlled variables and make the necessary changes accordingly.
+\subsection{Drone Motors}
+The power draw of 4 brushless DC motors incur large current draws of up to 20A per motor, for a combined 80A. Thus, the team must verify that the ESC and battery is able to sustain the high current draw. To address this concern, the team will connect the motors to the ESC and power supply without propellors attached, and run the motors up to maximum speed. Successful completion of the test verifies that the propulsion system is adequate.
 
-\subsection{Drone Landing}
- To limit the shock of landing, the group will design landing rods that will absorb landing shock. The rod will be something similar to the rods in the image below.\\
-
-
-\begin{figure}[h!]
-  \begin{center} 
-  \caption{Drone landing rods example} 
- 
-        \includegraphics[width=0.5\textwidth]{drone.jpg}
-  \end{center}
-\end{figure}
-
+\clearpage
 
 \section{Technology}
 There are several key hardware and firmware components that will need to be purchased, integrated and tested before advanced algorithms can be developed and tested.  
@@ -189,7 +218,7 @@ There are several key hardware and firmware components that will need to be purc
 \item Solidworks - 3D Design software used for the design of the frame
 \item Brushless Motors
 \item Propellers
-\item Navio2 Flight Controller- Physical flight controller hardware, contains various sensors such as barometer, hyroscope, accelerometer, GPS, etc. Other electrical components, such as the motores and baterries will interface with this Navio2. 
+\item Navio2 Flight Controller- Physical flight controller hardware, contains various sensors such as barometer, gyroscope, accelerometer, GPS, etc. Other electrical components, such as the motors and batteries will interface with this Navio2. 
 \item Batteries
 \item Camera - placed on drone
 \item Raspberry Pi (RPi) - Physical board placed on the drone. Runs various algorithms and controls the execution of the Navio2. 
@@ -200,21 +229,19 @@ There are several key hardware and firmware components that will need to be purc
 
 
 Once the drone is able to fly reliably and accurately, software modules and algorithms will be developed. Heavy image processing algorithms are run on the RPi. Control algorithms to move and land the drone in various locations are also run on the RPi.
-• Python: Used for prototyping the first software versions of the image and control algorithms. Python will also be used to develop the user interface for the Operator. 
 \begin{itemize}
-    \item C++: C++ will be used to write image and control algorithms.
-\item Clang-Tidy - C++ linter.
-\item Pylint - Python linter.
-\item Visual Studio Code: will be the IDE for python, and the text editor for C++.
+    \item  Python: Used for prototyping the first software versions of the image and control algorithms. Python will also be used to develop the user interface for the Operator. 
+    \item C++: C++ will be considered for image and control algorithms if run time is not up to specs.
+    \item Clang-Tidy - C++ linter.
+    \item Pylint - Python linter.
+    \item Visual Studio Code: will be the IDE for python, and the text editor for C++.
 \end{itemize}
 
 
-The algorithms will be developed and tested on various kinds of test. Different types of testing may require specific technology.
-• Unit testing - Bench testing of individual components will be done before integration with the drone. Basic functionality with the flight controller (ability to turn on, follow commands, and stay on) will be verified. 
+The algorithms will be developed and tested on various kind of tests. Different types of testing may require specific technology.
 \begin{itemize}
     \item Unit testing - Bench testing of individual components will be done before integration with the drone. Basic functionality with the flight controller (ability to turn on, follow commands, and stay on) will be verified. 
-    \item Indoor Drone Testing - Will be done to ensure basic flying capabilities before outdoor testing. A large transparent cube will be created to ensure safety of the developers.  
-    \item Safety Glasses  and First Aid Kit for safety
+    \item Safety Glasses and First Aid Kit for safety
     \item Simulation Testing - Software for the simulation of the quadcopter (ArduPilot's Software-in-the-loop, (SITL)) is provided by the firmware, allowing for code execution of a simulation target. Once the drone is able to fly, any extra control algorithms and localization algorithms will be developed using this framework in addition to a simulation visualizer tool, such as Gazebo and Simulink. 
 \end{itemize}
 
@@ -223,125 +250,85 @@ Overleaf will be used for document generation from Latex.
 
 
 \section{Coding Standard}
+\label{sec:codingStandard}
 To ensure consistency in code within the team, all members will use VS Code as the Integrated Development Environment (IDE), with a maximum code length per line of 150 characters and the linter enabled. As linters are language specific, the chosen linters are Pylint for Python and clang-tidy for C++. To further improve consistency between the team, as well as between languages, the team will be using the Drake Style Guide. 
 
 To use consistent naming conventions, the team will be following camel case rules and has opted to use affixes as stated below in in the table below.
 
 \begin{table}[h]
 \begin{center}
-    
-
 \caption {Variable Affixes} \label{tab:title}
-
 \begin{tabular}{ | m{4cm} | m{4cm} | m{4cm} |} 
-
-
     \hline
      Affix Type & Affix & Variable Type\\ 
- 
     \hline
      Prefix & \texttt{m\_}& Member variables\\ 
-
     \hline
      Prefix & \texttt{g\_} & Global variables\\
-     
      \hline
      Suffix & \texttt{\_e} & Enumeration variables\\
-     
      \hline
 \end{tabular}
 \end{center}
 \end{table}
 
-
 Within the Github repository, all members will abide by a two-part commit message format, as described in the Project Workflow section in addition to linking all pull requests with an issue. This further improves consistency between the members, as well as increasing the traceability of tasks.
 
 
-
-
-
-
-
-
 \section{Project Scheduling}
-There are two levels of project scheduling, one being the day to day agenda which tries to follow ad meet the higher level, long term schedule. The long-term schedule consists of a  list of milestones the team has collectively agreed on. 
-
-
-
+There are two levels of project scheduling, one being the day to day agenda which tries to follow ad meet the higher level, long term schedule. The long-term schedule consists of a list of milestones the team has collectively agreed on. 
 
 
 \begin{table}[h]
 \begin{center}
-    
-
 \caption {Milestone Dates} \label{tab:title}
-
 \begin{tabular}{ | m{2cm} | m{11cm} | } 
 \hline
 Date & Task\\
-
 \hline
-
 October 2 &
 \begin{itemize}
     \item Finalize and order drone component
     \item Send out finalized 3D models to McMaster 3D printing facility, the whole print will likely take weeks.
 \end{itemize}   \\
-
 \hline
 October 5 & Finalize, order, find and/or create safety related equipment in preparation of flight tests, such as safety glasses and transparent cube.\\
-
 \hline
 October 25 & Setup the simulation environment while the parts have not arrived.\\
-    
 \hline
 November 2 & Verify that IMU on flight controller is giving accurate readings to the ArduPilot firmware. This verifies that the flight controller and firmware is communicating.\\
-
 \hline
 November 6 & Verify that the flight controller is able to spin the motors. This step confirms most several key hardware pieces are functioning correctly: battery, power distribution board, Raspberry Pi, flight controller, ESC's, and motors. This step will likely reveal issues with the ordered hardware, and is thus best performed early. \\
-
 \hline
 November 10 & Integrate the pieces of the drone onto the frame. \\
 \hline
 November 13 & Present the proof of concept.\\
-
 \hline
 November 22 & Verify that the radios and cameras are able to connect to the Raspberry Pi.\\
-
 \hline
 December 2 & Tune the flight controller to the point that the drone can stabilize and maneuver. This will likely start with getting the drone to first lift off, then to hover, to land safely and finally to aerially move to specific location GPS locations. \\
-
 \hline
 December 20 & Create a user application to receive live camera output. This application will be used by parking lot operators.\\
-
 \hline
-January 1 & Collect some live video from the drone on parking lots. This data will be used to test vision and parking lot algorithms developed later on.\\
-
+January 15 & Collect some live video from the drone on parking lots. This data will be used to test vision and parking lot algorithms developed later on.\\
 \hline
-January 15 & Develop the feature that allows the operator to command the drone to a specific GPS location.\\
-
-\hline
-January 30 & Develop the vision/perception algorithm that lets the drone know when the parking lot ends, and the control to prevents the drone from exploring beyond parking lot boundaries.\\
-
+January 30 & Develop the feature that allows the operator to command the drone to a specific GPS location.\\
 \hline
 February 1 & Version 0, minimum viable product demonstration. \\
-
 \hline
-February 15 & Develop the algorithm to make the drone autonomously fly over every section of an irregularly shaped parking lot. \\
-
+February 15 & Develop the vision/perception algorithm that lets the drone know when the parking lot ends, and the control to prevents the drone from exploring beyond parking lot boundaries.\\
 \hline
-March 1 & Develop and test the algorithm to take off and land at multiple points in and around the parking lot. \\
-
+February 27 & Develop the algorithm to make the drone autonomously fly over every section of an irregularly shaped parking lot. \\
 \hline
 March 15 & Develop an algorithm to create an occupancy map of the parking lot. \\
-
 \hline
 April 1 & Iteratively develop and test the computer vision and control algorithms in order to meet the specified the stretch goals. The algorithms can be tested using real videos collected in previous steps or using the simulation environment.\\
 \hline
-
 \end{tabular}
 \end{center}
 \end{table}
+
+\clearpage
 
 These large milestones will be broken down into sub-tasks. The sub-tasks will be documented on Git Issues and Git Projects, and a task priority will be included. Breaking these milestones down into modules is a task that the team will do together after a given milestone is completed. 
 

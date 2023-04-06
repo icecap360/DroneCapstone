@@ -35,7 +35,9 @@
 \newcommand{\colGwidth}{0.5\textwidth}
 \newcommand{\colHwidth}{0.28\textwidth}
 
-
+\input{../Comments}
+\input{../Common}
+\externaldocument{../ProblemStatement/ProblemStatement}
 \newcommand{\deftheory}[9][Not Applicable]
 {
 \newpage
@@ -84,17 +86,8 @@
 
 \begin{document}
 
-\title{
-Software Requirements Specification for ParkingLotHawk \\
-  \large MECHTRON 4TB6 Capstone Design Project 
-    }
-
-\author{\authname Team \#34 \\
-Fady Zekry Hanna, zekryhf \\
-Winnie Trandinh, trandint \\
-Muhammad Ali, alim102 \\
-Muhammad Khan, khanm120}
-
+\title{Software Requirements Specification: \progname} 
+\author{\authname}
 \date{\today}
 	
 \maketitle
@@ -119,6 +112,18 @@ Oct 31, 2022 & 2.0 & Split up Autonomous Move and malfunction states, added tran
 \\
 
 \bottomrule
+Jan 7, 2023 & 3.0 & Renamed Manual Move to Autonomous Move to remove ambiguity. Updated input variables for references with Design Docs. Updated Traceability tables.
+\\
+
+\bottomrule
+Jan 14, 2023 & 4.0 & Split hover state into Arm and Takeoff states when taking off. Changes made to improve clarity of states as Hover state previously performed multiple functions. Updated transition requirements and traceability tables.
+\\
+
+\bottomrule
+March 4, 2023 & 5.0 & Added clarification on 'External Parties' specified within SEC\_002 Updated references to IEEE 1998 template used, and derivations from it.
+\\
+\bottomrule
+April 6, 2023 & 6.0 & Added new output indicating if satellite imagery is available. Added Compulsive Move state, eliminated Autonomous Move and the Desired Location Error State. Broke malfunction state into Malfunction State and Communication Lost state. Simplified the usage of the product by getting rid of mode input (normal vs configure). Changed Compulsive Move to occur when m\_CompulsiveMove happens rather than when m\_DesiredLocation changes.
 \end{tabularx}
 
 ~\newpage
@@ -128,11 +133,9 @@ Oct 31, 2022 & 2.0 & Split up Autonomous Move and malfunction states, added tran
 \section{Introduction}
 \label{sec:Intro}
 \subsection{Purpose}
-The purpose of the project will be to design an aerial drone, called ParkingLotHawk, that can detect how many parking spots are available in any given parking lot. ParkingLotHawk can be operated by property personnel to communicate to drivers on how many spots are available at a parking lot. ParkingLotHawk will explore over any parking lot designated by the user and will aggregate visual information and output the amount of parking spots available. Many parking lots today do not have this data and this data can be used for many reasons. The data can be used by retailers to know how long customers stay at specific stores or location. This data can also be used for drivers to know if there are parking spots available in a specific location allowing for drivers to not waste time and resources in a full parking lot. 
+The purpose of the ParkingLotHawk project is to help parking lot authorities monitor the state of their parking lot. The ParkingLotHawk consists of an aerial drone that the operator can control and autonomously move to various locations around the parking lot. The drone streams live camera video to the Operator's PC. Using the drone's location and the current camera view, the Operator can understand how busy a given section of the parking lot is and if there are any parking spots available. 
 \subsection{Scope}
-The product specified in this SRS \ref{DefTable} is about an autonomous aerial drone for helping parking lot operators understand the state of their parking lot. The product specified does not require the operator to manually control or move the drone, rather the requirement describes various autonomous flight modes. The specified drone shall support the ability to both create a path to reach its specified location, as well as create and follow a path to explore large parking lot sections autonomously. During flight, the specified drone shall transmit live information about the parking lot sections it detects. The completed product, a combination of the physical drone and any equipment/application intended to be kept by the parking lot operator to communicate with the drone, is called the ParkingLotHawk. A solution that implements the requirements will help parking lot authorities of outdoor lots quickly gain valuable information without requiring permanent solution, large monetary and time investments, or complex training. 
-
-
+The ParkingLotHawk consists of an aerial drone and a graphical user interface that an Operator can use to explore a given parking lot. This document contains requirements for the design of the aerial drone, the user interface, and their integration. By satisfying the requirements, the product will be functional,  in the sense that it solves the problem for the parking lot operator and satisfy the various goals listed in \nameref{table:Goals}. A solution that implements the requirements will help parking lot authorities of outdoor lots quickly gain valuable information without requiring a permanent solution, large monetary and time investments, or complex training. 
 
 \subsection{Definitions, Acronyms, and Abbreviations}
 
@@ -144,17 +147,21 @@ The product specified in this SRS \ref{DefTable} is about an autonomous aerial d
 \hline
 Term & Definition. \\
 \hline
-Inclement Weather & Weather with rain, snow, fog, and/or winds over 50 km/hour. \\
-\hline
-Parking Lot Authorities & Event organizers for whome parking lot management is one of thier tasks. Examples include property managers, and concert organizers.  \\
-\hline
-Parking Lot Operator (Operator) & Person responsible for managing the product during operation. \\
-\hline
 Clear Boundaries & The border surrounding the parking lot. For example the border between the lot and sidewalks, buildings, curbs, and sections of grass.\\
+\hline
+DMS & Degrees/Minutes/Seconds used as GPS coordinates\\
+\hline
+External Parties & Organizations outside of ParkingLotHawk. \\
 \hline
 Flight Controller & The central part of the drone that receives most sensor input and is responsible for controlling the propellers.\\
 \hline
 Flight States & The states of the state machine that require the drone to be aerially flying, detailed in the requirements \ref{flightModes}.\\
+\hline
+Inclement Weather & Weather with rain, snow, fog, and/or winds over 50 km/hour. \\
+\hline
+Parking Lot Authorities & Event organizers for whom parking lot management is critical for efficiency. Examples include property managers and concert organizers.  \\
+\hline
+Parking Lot Operator (Operator) & Person responsible for managing the product during operation. \\
 \hline
 PC & Personal Computer. \\
 \hline
@@ -162,24 +169,22 @@ MVP & Minimum Viable Product. \\
 \hline
 SRS & Software Requirement Specifications. \\
 \hline
-DMS & Degrees/Minutes/Seconds used as GPS coordinates\\
-\hline
 \end{tabular}
 \end{center}
 \end{table}
 
 \subsection{References}
-There are no external software documents referenced in the SRS. 
+The SRS is based off the \href{https://github.com/icecap360/DroneCapstone/blob/master/refs/IEEE1998.pdf}{IEEE 1998 Template}. 
 
 \subsection{Overview}
-The SRS is organized to follow the IEEE 1998 template. \nameref{sec:Intro} contains the purpose of the SRS as well as the scope of the product and the problem it solves. \nameref{sec:Desc}  refines the scope of the product further. It provides more detail about the products environment, primary functions, intended users, constraints, and finally assumptions. \nameref{sec:Req} contains a detailed description of all requirements, organized into sections for readability. Finally, the \nameref{appendix} contains \nameref{appendixa} regarding new knowledge and skills the team needs to create the specified product, along with approaches to how the team will acquire the knowledge. The \nameref{appendixb}  also contains the formal transition tables between the states of the finite state machine which will be later introduced within \nameref{subsec:ProdFunc}.
+The SRS is organized to follow the \href{https://github.com/icecap360/DroneCapstone/blob/master/refs/IEEE1998.pdf}{IEEE 1998 template}. \nameref{sec:Intro} contains the purpose of the SRS as well as the scope of the product and the problem it solves. \nameref{sec:Desc}  refines the scope of the product further. It provides more detail about the product's environment, primary functions, intended users, constraints, and finally assumptions. \nameref{sec:Req} contains a detailed description of all requirements, organized into sections for readability. Sections 3.6 through 3.14 are made as headings outside of Design Constraints to facilitate legibility. Finally, the \nameref{appendix} contains \nameref{appendixa} regarding new knowledge and skills the team needs to create the specified product, along with approaches to how the team will acquire the knowledge. The \nameref{appendixb}  also contains the formal transition tables between the states of the finite state machine which will be later introduced within \nameref{subsec:ProdFunc}.
 \section{Overall Description}
 \label{sec:Desc}
 General factors that affect the product and the requirements are described in the following subsections. A high-level overview of the product functions are also described (see \nameref{subsec:ProdFunc}). 
 \subsection{Product Perspective}
 The system specified is an independent and stand-alone parking lot tool. It does not fit into or interface with a larger system of parking lot and security technologies the operator may have available. 
 
-The environment consists of an outdoor parking lot and the operator's PC. The operator's PC shall be operating with Windows 10 or Windows 11.
+The environment consists of an outdoor parking lot and the operator's PC. The operator's PC shall be operating with Windows 7, 10 or 11.
 
 \subsection{Product Functions}
 \label{subsec:ProdFunc}
@@ -189,13 +194,10 @@ This subsection describes the behaviour overview of the ParkingLotHawk by splitt
 The product is powered on and communicating with the operator application, but all motors are turned off. 
 \subsubsection{Hover State}
 \label{Hover State}
-The product maintains its current longitudinal and latitudinal position, and hovers at a pre-defined operator selected height. 
-\subsubsection{Autonomous Move State}
-\label{Autonomous Move State}
-If the Operator requests to move to a specific location within the parking lot, the product shall move to that location and hover at a pre-defined operator-selected height. Note that this height does not need to be the same as the height specified in the Hover State. 
+The product maintains its current longitudinal and latitudinal position, and hovers at a pre-defined operator-selected height. 
 \subsubsection{Compulsive Move State}
 \label{Compulsive Move State}
-If the Operator requests to move to a location, the product shall move to that location regardless of if it is within the parking lot. One at that location the product shall hover at a pre-defined operator-selected height. Note that this height does not need to be the same as the height specified in the Hover State. 
+If the Operator requests to move to a location, the product shall move to that location. If the requested location is outside of the parking lot, a warning message will be presented to the Operator. Once at that location, the product shall hover at a pre-defined operator-selected height. Note that this height does not need to be the same as the height specified in the Hover State. 
 \subsubsection{Autonomous Explore State}
 \label{Autonomous Explore State}
 The product shall autonomously explore within the current parking lot without operator input. 
@@ -207,16 +209,13 @@ During this state, the operator is able to define parameters of operation that a
 The product shall be unpowered and stops communication with the operator application. 
 \subsubsection{Land State}
 \label{Land State}
-The product shall land at its initial launch location.
-\subsubsection{Desired Location Error State}
-\label{Desired Location Error State}
-This error state occurs when the operator specifies an invalid desired position and shall provide the appropriate error message to the operator. 
+The product shall land at its initial launch location. 
 \subsubsection{No Parking Lot Detected Error State}
 \label{No Parking Lot Detected Error State}
 This error state occurs when the product does not detect a valid parking lot, and shall provide the appropriate error message to the operator.
 \subsubsection{Malfunction State}
 \label{Malfunction State}
-This error state occurs when an internal/external malfunction occurs in such a way that nominal performance is not possible. The resulting action by the product will be further specified within \nameref{sec:funcReqs}. 
+This error state occurs when an internal or external malfunction occurs in such a way that nominal performance is not possible. The resulting action by the product will be further specified within \nameref{sec:funcReqs}. 
 \subsubsection{Communication Lost State}
 \label{Communication Lost State}
 This error state occurs when the product has lost connection or has a very weak connection so the Operator's Application, and shall provide the appropriate error message to the operator.
@@ -231,7 +230,6 @@ The normal modes of operation include the following:
 \begin{itemize}
   \item Idle State
   \item Hover State
-  \item Autonomous Move State
   \item Compulsive Move State
   \item Autonomous Explore State
   \item Configure State
@@ -243,17 +241,14 @@ The flight modes of operation \label{flightModes} include the following:
 \begin{itemize}
   \item Hover State
   \item Takeoff State
-  \item Autonomous Move State
-  \item Compulsive Autonomous Move
+  \item Compulsive Move State
   \item Autonomous Explore State
    \item No Parking Lot Detected Error State
-   \item Desired Location Out of Bounds Error State
 \end{itemize}
 With the exception of the Configure State and Off State, the product shall update continuously update c\_CurrentView and c\_OccupancyMap for the operator. These requirements are further refined within \nameref{sec:funcReqs}. 
 
 The error modes are listed below:
 \begin{itemize}
-    \item Desired Location Error State
     \item No Parking Lot Detected Error State
     \item Malfunction State
     \item Communication Lost State
@@ -271,29 +266,32 @@ The behaviour overview of the product is described below, with each directional 
 \end{figure}
 
 \subsection{User characteristics}
-The stakeholders are Dr. Spencer Smith, the MECHTRON 4TB6 teaching assistants, parking lot authorities \ref{DefTable}, parking lot operators, and visitors of the parking lot. All demographics mentioned would find the data of the ParkingLotHawk useful. There is no technical or software knowledge expected for users of the ParkingLotHawk. The user will need to turn the drone on and place it close to a parking lot.  The ParkingLotHawk is made mindful of the societhttps://www.overleaf.com/project/633da9268221bf16bb108961y and community and its health impacts; therefore, little to no air or noise pollution shall occur, and no invasion of privacy shall ensue.
+The stakeholders are Dr. Spencer Smith, the MECHTRON 4TB6 teaching assistants, parking lot authorities \ref{DefTable}, parking lot operators, and visitors of the parking lot. All demographics mentioned would find the data of the ParkingLotHawk useful. There is no technical or software knowledge expected from users of the ParkingLotHawk. The user will need to turn the drone on and place it close to a parking lot.  The ParkingLotHawk is made mindful of the society and community and its health impacts; therefore, little to no air or noise pollution shall occur, and no invasion of privacy shall ensue.
 \subsection{Constraints}
 \label{sec:Constraints}
-The purpose of the system is to provide parking lot information to parking lot operators, who in turn could use that information to decrease the amount of time visitors spend to find a parking spot. As the user can come from a non-technical background, the constraints on the usability of the product should be considered. If the system chooses to use radio communication between the operator's laptop and the product, it must abide by national radio frequency regulations of 2.4MHz. Furthermore, radio communication can only work within approximately 2 km from one point to the other while still abiding by the national regulations. The project constraint present is a maximum budget of \$ 750.  Canadian regulatory policy does not allow for drone flight within 1 nautical mile (about 2 km) from heliports and 3 nautical miles (5.6 km) from airports\cite{canada_flying_2020}. If the drone weighs over 25 kg, the team will need to get special permission from Transport Canada before flying the drone\cite{canada_find_2021}; therefore, the product should be under a weight of 25kg to support widespread adoption.
-\subsection{Assumptions}
+The purpose of the system is to provide parking lot information to parking lot operators, who in turn could use that information to decrease the amount of time visitors spend to find a parking spot. As the user can come from a non-technical background, the constraints on the usability of the product should be considered. If the system chooses to use radio communication between the operator's laptop and the product, it must abide by national radio frequency regulations of 2.4MHz. Furthermore, radio communication can only work within approximately 2 km from one point to the other while still abiding by national regulations. The project constraint present is a maximum budget of \$ 750.  Canadian regulatory policy does not allow for drone flight within 1 nautical mile (about 2 km) from heliports and 3 nautical miles (5.6 km) from airports\cite{canada_flying_2020}. If the drone weighs over 25 kg, the team will need to get special permission from Transport Canada before flying the drone\cite{canada_find_2021}; therefore, the product should be under a weight of 25kg to support widespread adoption.
+\subsection{Assumptions and Dependencies}
 \label{sec:Assumptions}
 The assumptions of the project are:
 \begin{itemize}
 
-  \item Operator does not fly the drone exceeding a specified amount of time.
+  \item Operator does not fly the drone with malintent.
   \item Birds do not interfere with the drone.
   \item Operator's PC has a Windows 10 or 11 OS.
-  \item Parking lot lines are visible to the naked eye.
+  \item Operator is aware of the maximum height among all obstacles in the environment and configures the drone's height parameters to fly above all obstacles before flight.
   \item Operation done under non-inclement weather\ref{DefTable}. 
 
 \end{itemize}
 
+The product has no dependencies with regards to the SRS.
+
 \subsection{Apportioning of Requirements}
-The Phase in Plan is composed of three main releases:  
+The Phase in Plan is composed of four main releases:  
 \begin{itemize}
     \item Phase I: Proof of Concept - November 14, 2022
     \item Phase II: Revision 0 (Minimal Viable Product (MVP) ) - February 6, 2023 
     \item Phase III: Revision 1 - March 27, 2023
+    \item Phase IV: Revision 2 - June 1, 2023
 \end{itemize}
 Each requirement will then be assigned to one of these phases within \nameref{sec:Req}, indicated by their Phase. 
 
@@ -302,7 +300,7 @@ Each requirement will then be assigned to one of these phases within \nameref{se
 This section of the SRS contains all requirements of the product in order to further refine the scope of the product.
 
 \subsection{External Interfaces}
-Input Variables: Input variables are set/configured before any flight operations are entered \ref{flightModes} . They are constant throughout the drones flight operation \ref{flightModes} .
+Input Variables: Input variables are set/configured before any flight operations are entered \ref{flightModes} . They are constant throughout the drone's flight operation \ref{flightModes} .
 
 
 \begin{figure}[!h]
@@ -340,7 +338,7 @@ Monitored Variables are variables that are continuously monitored by the product
 \hline
  Variable Name & Type & Unit & Description \\ 
  \hline
-m\_Acceleration	& Vector& m/s^2 & three-dimensional vector containing acceleration relative to frame of the drone. \\
+m\_Acceleration	& Vector& $m/s^2$ & three-dimensional vector containing acceleration relative to frame of the drone. \\
 \hline
 m\_Gyroscope & Vector	&Rad &	 three-dimensional vector containing orientation relative to frame of the drone.\\
 \hline
@@ -357,8 +355,6 @@ m\_Configure &	Boolean	 &  - &	Indicates if the operator desires the drone to co
 m\_Takeoff &	Boolean	 &  - &	Indicates if the operator desires the drone to takeoff.  \\
 \hline
 m\_AutonomousExplore &	Boolean &	 -	 &Indicates if the operator desires the drone to autonomously explore the parking lot.\\ 
-\hline
-m\_AutonomousMove &	Boolean &	 -	 & Indicates if the operator desires the drone to go to a specific GPS location through the Autonomous Move State.\\ 
 \hline
 m\_CompulsiveMove &	Boolean &	 -	 &Indicates if the operator desires the drone to go to a specific GPS location through the Compulsive Move State.\\ 
 \hline
@@ -388,7 +384,7 @@ Controlled Variables are variables that are outputted by the system. Some are vi
 \hline
  Variable Name & Type & Unit & Description \\ 
  \hline
- c\_CurrentView &	Image &	Array of Pixels &	Live visual display of parking lot section the drone's currently sees, as well as any further annotations and text.\\
+ c\_CurrentView &	Image &	Array of Pixels &	Live visual display of parking lot section the drone's currently sees.\\
  \hline
 c\_OccupancyMap &	Image &	Array of Pixels &	Map of available parking spots based on the drone’s previous paths. \\
 \hline
@@ -396,20 +392,22 @@ c\_CurrentLoc & 	Tuple&	\{DMS, m\} & GPS coordinates are stored at the first ind
 \hline
 c\_PastLoc&	Vector &	DMS  &	Trace of the drone's location in the past 60 seconds (vector of GPS locations).\\
 \hline
-c\_MotorSpeeds &Vector&	   rad/s^2 &	 n-dimensional vector containing the motor speeds of however many motors the drone chooses to use (2 for helicopter, 4 for quadcopter, 6 for hexcopter, etc.). The vector contains speeds of each motor clockwise from front of the drone.\\
+c\_MotorSpeeds &Vector&	   $rad/s^2$ &	 n-dimensional vector containing the motor speeds of however many motors the drone chooses to use (2 for helicopter, 4 for quadcopter, 6 for hexcopter, etc.). The vector contains speeds of each motor clockwise from front of the drone.\\
 
 \hline
 
-c\_Connected & Boolean &	- &	Indicates if connection between the drone and the operator's application is established\\
+c\_Connected & Boolean &	- &	Indicates if the connection between the drone and the operator's application is established.\\
 \hline
-c\_ParkingLotDetected&	Boolean &	-&	Indicated if a parking lot is detected in the c_CurrentView.\\
+c\_ParkingLotDetected&	Boolean &	-&	Indicates if a parking lot is detected in the c_CurrentView.\\
+\hline
+c\_SattalieteImageryAvailable&	Boolean &	- &	Indicates if a satellite imagery at the current location is available.\\
 \hline
 c\_UserError &	Enumeration &	0 - None,
 1 - Desired_Location_Out_Of_Bounds,
 2 - No_Lot_Detected&	Indicates if a command the user requested is not feasible.\\
 \hline
 c\_HealthStatus &	Enumeration &	0 - Healthy,
-1 - Unhealthy&	Indicates if the drone's mechanical and electrical state allows it to safely fly.  For example if there is mechanical damage, the value should be Unhealthy.\\
+1 - Unhealthy&	Indicates if the drone's mechanical and electrical state allows it to safely fly.  For example, if there is mechanical damage, the value should be Unhealthy.\\
 \hline
 c\_Logs &	List of Strings &	- &	Contains a list of past log messages.\\
 \hline
@@ -435,13 +433,13 @@ The following requirements are required in order to achieve the product's functi
 \label{GEN_001}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall be able to recognize Clear Boundaries \ref{DefTable}. This requirement is a refinement of the \nameref{Autonomous Explore State}. \\
+Description & The product shall be able to recognize Clear Boundaries \ref{DefTable}.  \\
 \hline
 Rationale & This requirement ensures that the product is able to implement basic autonomy, such as not traveling past the parking lot boundaries. \\
 \hline
 Phase & II \\
 \hline
-Likely to Change & No. This requirement is required to implement the \nameref{Autonomous Explore State}. \\
+Likely to Change & No. This requirement is required to implement the \nameref{Autonomous Explore State} and \nameref{Compulsive Move State}. \\
 \hline
 Associated Inputs and Outputs & m\_CamVision. \\
 \hline
@@ -516,13 +514,13 @@ Associated Inputs and Outputs & i\_MinHoverHeight, i\_DesiredHoverHeight, and i\
 \label{GEN_005}
 \begin{tabular}{ | m{3cm} | m{11cm} |}
 \hline
-Description & The product shall be able to identify non-occupied parking spots. This requirement is a refinement of the normal and non-configuration operation states specified in Section \ref{subsec:ProdFunc}. \\
+Description & The product shall be able to classify the central pixel of an image as occupied or non-occupied. This requirement is a refinement of the normal and non-configuration operation states specified in Section \ref{subsec:ProdFunc}. \\
 \hline
-Rationale & This requirement ensures that the product is able to create the occupancy map. \\
+Rationale & This requirement ensures that the product can create the occupancy map. \\
 \hline
 Phase & III \\
 \hline
-Likely to Change & No. This requirement is required to create the occupancy map (c_OccupancyMap), which is one of the main functions of the product during the Phase III Release. \\
+Likely to Change & No. This requirement is required to create the occupancy map (c_OccupancyMap), which is one stretch goal of the product. \\
 \hline
 Associated Inputs and Outputs & m\_CamVision, c\_ParkingLotDetected, and c\_OccupancyMap. \\
 \hline
@@ -538,11 +536,11 @@ Associated Inputs and Outputs & m\_CamVision, c\_ParkingLotDetected, and c\_Occu
 \hline
 Description & The product shall be shall highlight non-occupied parking slots on the operator's display (update c_CurrentView). This requirement is a refinement of the normal and non-configuration operation states specified in Section \ref{subsec:ProdFunc}. \\
 \hline
-Rationale & This requirement ensures that the product is able to create the occupancy map. \\
+Rationale & This requirement ensures that the product is able to create the parking slot map. \\
 \hline
-Phase & III \\
+Phase & IV \\
 \hline
-Likely to Change & No. This requirement is a key feature of the occupancy map in order to efficiently communicate the data to the operator. \\
+Likely to Change & No. This requirement is a key feature of the parking slot map to help parking lot operators find parking for new visitors. This is a stretch goal for the project. \\
 \hline
 Associated Inputs and Outputs & m\_CamVision, c\_CurrentView, c\_ParkingLotDetected, and c\_OccupancyMap. \\
 \hline
@@ -585,7 +583,7 @@ Associated Inputs and Outputs & m\_PowerOn and c\_Connected. \\
 \hline
 Description & The product shall implement a Hover State. During this state, the solution shall fly to and hover at a height of i\_MaxHoverHeight. The drone shall keep the same lateral location it is currently at. The drone cannot transition to another flight state until it has reached a height of i\_MaxHoverHeight. This requirement is a refinement of the \nameref{Hover State} and is further refined by \nameref{PERF_002}, \nameref{PERF_004}, \nameref{PERF_005}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
 \hline
-Rationale & This state is used for when the product is waiting for further operator commands. Hover height is selected to be i\_MaxHoverHeight, so that the drone can see as much of the parking lot section as it can. This makes the transition to \nameref{Autonomous Explore State} more likely.
+Rationale & This state is used when the product is waiting for further operator commands. Hover height is selected to be i\_MaxHoverHeight, so that the drone can see as much of the parking lot section as it can. This makes the transition to \nameref{Autonomous Explore State} more likely.
 The drone cannot exit the Hover state until it reaches i\_MaxHoverHeight. This feature is added to ensure that the drone moves does not move laterally until it has sufficient height. during this state. For example, if the drone is just launching from the ground, it is unsafe for the drone to transition to the \nameref{Autonomous Explore State} and move laterally (as it could collide with an object).    \\
 \hline
 Phase & II \\
@@ -593,26 +591,6 @@ Phase & II \\
 Likely to Change & No. This requirement is a key feature of the MVP, and is required in order to gather any useful information to the operator. \\
 \hline
 Associated Inputs and Outputs & m\_Barometer, m\_Acceleration, m\_Gyroscope, m\_Gps, i\_MaxHoverHeight, and c\_MotorSpeeds. \\
-\hline
-\end{tabular}
-\end{center}
-\end{table}
-
-\begin{table}[!h]
-\begin{center}
-\caption {STA\_002} 
-\label{STA_002}
-\begin{tabular}{ | m{3cm} | m{11cm} | }
-\hline
-Description & The product shall implement an Autonomous Move State. During this state, the drone moves to the m\_DesiredUserLoc if it is within the parking lot, and hovers at that location with height i\_DesiredHoverHeight. This requirement is a refinement of the \nameref{Autonomous Move State} and is further refined by \nameref{PERF_003}, \nameref{PERF_004}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}, and \nameref{PERF_008}. \\
-\hline
-Rationale & This state is used for when the product needs to provide the operator the ability to move the drone to a specific location, with the functionality of stopping motion if the location is invalid. \\
-\hline
-Phase & II \\
-\hline
-Likely to Change & No. This requirement is a key feature of the product, and is required in order for the operator to make changes to the product's path. \\
-\hline
-Associated Inputs and Outputs & m\_DesiredUserLoc, m\_Barometer, m\_Acceleration, m\_Gyroscope, m\_Gps, i\_DesiredHoverHeight, and c\_MotorSpeeds. \\
 \hline
 \end{tabular}
 \end{center}
@@ -628,9 +606,9 @@ Description & The product shall implement an Autonomous Explore State. During th
 \hline
 Rationale & This state is used for when the operator does not need to constantly instruct the drone to move. \\
 \hline
-Phase & III \\
+Phase & IV \\
 \hline
-Likely to Change & No. This requirement is an important part of the Phase III Release, as it allows for automated creation of the occupancy map. \\
+Likely to Change & No. This requirement is an important part of the Phase IV Release, as it allows for automated creation of the occupancy map. This is a stretch goal of this project. \\
 \hline
 Associated Inputs and Outputs & m\_Barometer, m\_Acceleration, m\_Gyroscope, m\_Gps, m\_AutonomouseExplore, m\_CamVision, c\_CurrentView, and c\_MotorSpeeds. \\
 \hline
@@ -664,7 +642,7 @@ Associated Inputs and Outputs &  i\_MinHoverHeight, i\_MaxHoverHeight, and i\_De
 \label{STA_005}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall implement an Off state.  All modules are powered off. No battery power is consumer. c\_UserError is set to None, c\_HealthStatus is set to Healthy, and c\_Connected is set to false. All values in the matrices c\_MotorSpeeds, c\PastLoc, c\_OccupancyMap, and c\_CurrentView are set to 0. This requirement is a refinement of the \nameref{Off State} and is further refined by \nameref{PERF_004}, \nameref{PERF_007}, \nameref{SAFE_001}, and \nameref{SAFE_003} \\
+Description & The product shall implement an Off state.  All modules are powered off. No battery power is consumer. c\_UserError is set to None, c\_HealthStatus is set to Healthy, and c\_Connected is set to false. All values in the matrices c\_MotorSpeeds, c\_PastLoc, c\_OccupancyMap, and c\_CurrentView is set to 0. This requirement is a refinement of the \nameref{Off State} and is further refined by \nameref{PERF_004}, \nameref{PERF_007}, \nameref{SAFE_001}, and \nameref{SAFE_003} \\
 \hline
 Rationale & This state is used to explicitly state what it means for the drone to be off. \\
 \hline
@@ -672,7 +650,7 @@ Phase & I \\
 \hline
 Likely to Change & No. This requirement is required for the safe operation, transport, and handling of the product. \\
 \hline
-Associated Inputs and Outputs & c\_UserError, c\_HealthStatus, c\_Connected, c\_MotorSpeeds, c\PastLoc, c\_OccupancyMap, and c\_CurrentView. \\
+Associated Inputs and Outputs & c\_UserError, c\_HealthStatus, c\_Connected, c\_MotorSpeeds, c\_PastLoc, c\_OccupancyMap, and c\_CurrentView. \\
 \hline
 \end{tabular}
 \end{center}
@@ -684,7 +662,7 @@ Associated Inputs and Outputs & c\_UserError, c\_HealthStatus, c\_Connected, c\_
 \label{STA_006}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall implement a Land state. In the land state the solution first travel laterally to the initial launch location, and then lands vertically downward. After landing the drone enters the disarms and enters the Idle state. This requirement is a refinement of the \nameref{Land State} and is further refined by \nameref{PERF_002}, \nameref{PERF_004}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
+Description & The product shall implement a Land state. In the land state the solution first travels laterally to the initial launch location and then lands vertically downward. After landing the drone enters the disarms and enters the Idle state. This requirement is a refinement of the \nameref{Land State} and is further refined by \nameref{PERF_002}, \nameref{PERF_004}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
 \hline
 Rationale & This state is used to explicitly designate a landing path and command. \\
 \hline
@@ -693,26 +671,6 @@ Phase & II \\
 Likely to Change & No. This requirement is required for stopping the operation of the product. \\
 \hline
 Associated Inputs and Outputs & m\_Barometer, m\_Acceleration, m\_Gyroscope, m\_Gps, and c\_MotorSpeeds. \\
-\hline
-\end{tabular}
-\end{center}
-\end{table}
-
-\begin{table}[!h]
-\begin{center}
-\caption {STA\_007} 
-\label{STA_007}
-\begin{tabular}{ | m{3cm} | m{11cm} | }
-\hline
-Description & The product shall implement a Desired Location Error state. Upon entry to this state, the c\_UserError variable is set to Desired_Location_Out_Of_Bounds, and set to None upon exit. The drone proceeds to Hover at its current location. Upon exit of this state, the drone shall set c\_UserError to None. Upon entry, the message "Desired Location out of parking lot bounds" shall be logged into c\_Logs. This requirement is a refinement of the \nameref{Desired Location Error State} and is further refined by \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
-\hline
-Rationale & This state is used to indicate explicitly that the operator's request cannot be met.  \\
-\hline
-Phase & II \\
-\hline
-Likely to Change & No. This requirement is required for clear communication with the operator to handle unsupported requests. \\
-\hline
-Associated Inputs and Outputs & m\_Barometer, m\_Acceleration, m\_Gyroscope, m\_Gps, c\_UserError, c\_Logs and c\_MotorSpeeds. \\
 \hline
 \end{tabular}
 \end{center}
@@ -764,7 +722,7 @@ Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_
 \label{STA_010}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall implement a Communication Lost state. During this state, the drone sets the c\_HealthStatus to Unhealthy, and a message "Connection with drone lost." is sent to the Operator's Application. Upon exit, "Connection with drone established." is logged to c\_Logs and c\_HealthStatus to Healthy. While in this state, the product tries to land at its launch location. After landing the drone enters the disarms and enters the Idle state. This requirement is a refinement of the \nameref{Communication Lost State} and is further refined by \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
+Description & The product shall implement a Communication Lost state. During this state, the drone sets the c\_HealthStatus to Unhealthy, and a message "Connection with drone lost." is sent to the Operator's Application. Upon exit, "Connection with drone established" is logged to c\_Logs and c\_HealthStatus to Healthy. While in this state, the product tries to land at its launch location. After landing the drone enters the disarms and enters the Idle state. This requirement is a refinement of the \nameref{Communication Lost State} and is further refined by \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, and \nameref{USE_003}. \\
 \hline
 Rationale & This state is used to ensure that the product can handle large malfunctions that can occur during operation. \\
 \hline
@@ -787,9 +745,9 @@ Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_
 \label{STA_011}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall implement a Compulsive Move State. During this state, the drone moves to the m\_DesiredUserLoc regardless of if it is within the parking lot, and hovers at that location with height i\_DesiredHoverHeight. This requirement is a refinement of the \nameref{Compulsive Move State} and is further refined by \nameref{PERF_003}, \nameref{PERF_004}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{PERF_008} and \nameref{USE_003}. \\
+Description & The product shall implement a Compulsive Move State. In this state the drone moves toward m\_DesiredUserLoc and hovers at that location with height i\_DesiredHoverHeight. Prior to moving toward m\_DesiredUserLoc, the user interface check the user if m\_DesiredUserLoc is within a parking lot, and asks the user if they are sure they want to move to m\_DesiredUserLoc when it is not within a parking lot. This requirement is a refinement of the \nameref{Compulsive Move State} and is further refined by \nameref{PERF_003}, \nameref{PERF_004}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{PERF_008} and \nameref{USE_003}. \\
 \hline
-Rationale & This state is used for when the the product needs to provide the operator the ability to move the drone to a specific location. \\
+Rationale & This state is used for when the product needs to provide the operator the ability to move the drone to a specific location. \\
 \hline
 Phase & II \\
 \hline
@@ -906,11 +864,11 @@ Associated Inputs and Outputs & m\_Arm and m\_Configure. \\
 \label{TRANS_004}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & If in the Hover state, and c\_ParkingLotDetected is equal to true, the product shall enter the Autonomous Explore state and explore the detected lot. If two parking lots are detected at the same time, it arbitrarily picks one to explore. This requirement references the \nameref{Hover State} and the \nameref{Autonomous Explore State}. \\
+Description & If in the Hover state, c\_ParkingLotDetected and m\_AutonomousExplore is equal to true, the product shall enter the Autonomous Explore state and explore the detected lot. If two parking lots are detected at the same time, it arbitrarily picks one to explore. This requirement references the \nameref{Hover State} and the \nameref{Autonomous Explore State}. \\
 \hline
 Rationale & This requirement ensures that the default mode of operation is Autonomous Explore after entering the Hover state.  \\
 \hline
-Phase & III \\
+Phase & IV \\
 \hline
 Associated Inputs and Outputs & c\_ParkingLotDetected. \\
 \hline
@@ -918,19 +876,20 @@ Associated Inputs and Outputs & c\_ParkingLotDetected. \\
 \end{center}
 \end{table}
 
+
 \begin{table}[!h]
 \begin{center}
 \caption {TRANS\_005} 
-\label{TRANS_005}
+\label{TRANS_007}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & Upon m\_AutonomousMove is asserted to true, the drone shall automatically enter the Autonomous Move state. This requirement references the \nameref{Autonomous Move State}. \\
+Description & When m\_AutonomousExplore is set to true and c\_ParkingLotDetected is equal to true, the product shall enter the Autonomous Explore state. This requirement references the \nameref{Autonomous Explore State}. \\
 \hline
 Rationale & This requirement ensures that the product shall take the operator's request with higher priority than any other kind of operation. \\
 \hline
-Phase & II \\
+Phase & IV \\
 \hline
-Associated Inputs and Outputs & m\_DesiredUserLoc, m\_CompulsiveMove. \\
+Associated Inputs and Outputs & m\_AutonomousExplore and c\_ParkingLotDetected. \\
 \hline
 \end{tabular}
 \end{center}
@@ -939,16 +898,16 @@ Associated Inputs and Outputs & m\_DesiredUserLoc, m\_CompulsiveMove. \\
 \begin{table}[!h]
 \begin{center}
 \caption {TRANS\_006} 
-\label{TRANS_006}
+\label{TRANS_008}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & If while in the Autonomous Move State and the product determines that m\_DesiredUserLoc is outside parking lot boundaries, the product shall enter the Desired Location Error state. This requirement references the \nameref{Autonomous Move State} and the \nameref{Desired Location Error State}. \\
+Description & When m\_AutonomousExplore is set to true but c\_ParkingLotDetected is equal to false, the product shall enter the No Parking Lot Detected Error state. This requirement references the \nameref{No Parking Lot Detected Error State}. \\
 \hline
 Rationale & This requirement ensures that the product shall notify any issues with the operator's request at the moment it is detected, so that the operator can make adjustments. \\
 \hline
-Phase & II \\
+Phase & IV \\
 \hline
-Associated Inputs and Outputs & m\_DesiredUserLoc. \\
+Associated Inputs and Outputs & m\_AutonomousExplore and c\_ParkingLotDetected. \\
 \hline
 \end{tabular}
 \end{center}
@@ -957,42 +916,6 @@ Associated Inputs and Outputs & m\_DesiredUserLoc. \\
 \begin{table}[!h]
 \begin{center}
 \caption {TRANS\_007} 
-\label{TRANS_007}
-\begin{tabular}{ | m{3cm} | m{11cm} | }
-\hline
-Description & When m\_AutonomousExplore is set to true and c\_ParkingLotDetected is equal to true, the product shall enter the Autonomous Explore state. This requirement references the \nameref{Autonomous Explore State}. \\
-\hline
-Rationale & This requirement ensures that the product shall take the operator's request with higher priority than any other kind of operation. \\
-\hline
-Phase & II \\
-\hline
-Associated Inputs and Outputs & m\_AutonomousExplore and c\_ParkingLotDetected. \\
-\hline
-\end{tabular}
-\end{center}
-\end{table}
-
-\begin{table}[!h]
-\begin{center}
-\caption {TRANS\_008} 
-\label{TRANS_008}
-\begin{tabular}{ | m{3cm} | m{11cm} | }
-\hline
-Description & When m\_AutonomousExplore is set to true but c\_ParkingLotDetected is equal to false, the product shall enter the No Parking Lot Detected Error state. This requirement references the \nameref{No Parking Lot Detected Error State}. \\
-\hline
-Rationale & This requirement ensures that the product shall notify any issues with the operator's request at the moment it is detected, so that the operator can make adjustments. \\
-\hline
-Phase & II \\
-\hline
-Associated Inputs and Outputs & m\_AutonomousExplore and c\_ParkingLotDetected. \\
-\hline
-\end{tabular}
-\end{center}
-\end{table}
-
-\begin{table}[!h]
-\begin{center}
-\caption {TRANS\_009} 
 \label{TRANS_009}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
@@ -1010,7 +933,7 @@ Associated Inputs and Outputs & m\_Land. \\
 
 \begin{table}[!h]
 \begin{center}
-\caption {TRANS\_010} 
+\caption {TRANS\_008} 
 \label{TRANS_010}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
@@ -1028,7 +951,7 @@ Associated Inputs and Outputs & c\_Connected. \\
 
 \begin{table}[!h]
 \begin{center}
-\caption {TRANS\_011} 
+\caption {TRANS\_009} 
 \label{TRANS_011}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
@@ -1046,7 +969,7 @@ Associated Inputs and Outputs & c\_Connected. \\
 
 \begin{table}[!h]
 \begin{center}
-\caption {TRANS\_012} 
+\caption {TRANS\_013} 
 \label{TRANS_012}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
@@ -1064,7 +987,7 @@ Associated Inputs and Outputs & m\_DesiredUserLoc, m\_CompulsiveMove. \\
 
 \begin{table}[!h]
 \begin{center}
-\caption {TRANS\_013} 
+\caption {TRANS\_010} 
 \label{TRANS_013}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
@@ -1082,11 +1005,11 @@ Associated Inputs and Outputs & m\_Takeoff. \\
 
 \begin{table}[!h]
 \begin{center}
-\caption {TRANS\_014} 
+\caption {TRANS\_011} 
 \label{TRANS_014}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & While in the \nameref{Takeoff State}, upon the drone reaching within 1 meter of i\_MaxHoverHeight, the drone should transition to the \nameref{Hover State}. This requirement references the \nameref{Hover State} and the \nameref{Takeoff State}. \\
+Description & While in the \nameref{Takeoff State}, upon the drone reaching within 0.2 meter of i\_MaxHoverHeight, the drone should transition to the \nameref{Hover State}. This requirement references the \nameref{Hover State} and the \nameref{Takeoff State}. \\
 \hline
 Rationale & This requirement facilitates the setup and configuration of the product.  \\
 \hline
@@ -1100,7 +1023,7 @@ Associated Inputs and Outputs & m\_Barometer. \\
 
 \begin{table}[!h]
 \begin{center}
-\caption {TRANS\_015} 
+\caption {TRANS\_012} 
 \label{TRANS_015}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
@@ -1128,8 +1051,6 @@ Functional Requirement & Non-functional requirement  \\
 \hline
 \nameref{STA_001} & \nameref{PERF_002}, \nameref{PERF_004}, \nameref{PERF_005}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}  \\
 \hline
-\nameref{STA_002} & \nameref{PERF_003}, \nameref{PERF_004}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}  \\
-\hline
 \nameref{STA_003} & \nameref{PERF_001}, \nameref{PERF_004}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}  \\
 \hline
 \nameref{STA_004} & \nameref{PERF_004}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}  \\
@@ -1137,8 +1058,6 @@ Functional Requirement & Non-functional requirement  \\
 \nameref{STA_005} & \nameref{PERF_004}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}  \\
 \hline
 \nameref{STA_006} & \nameref{PERF_002}, \nameref{PERF_004}, \nameref{PERF_006}, \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}  \\
-\hline
-\nameref{STA_007} & \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}  \\
 \hline
 \nameref{STA_008} & \nameref{PERF_007}, \nameref{SAFE_001}, \nameref{SAFE_003}, \nameref{USE_003}  \\
 \hline
@@ -1166,13 +1085,11 @@ Functional Requirement & Non-functional requirement  \\
 \hline
 Functional Requirement & Function  \\
 \hline
-\nameref{GEN_001} & \nameref{Autonomous Explore State},\nameref{Autonomous Move State}  \\
+\nameref{GEN_001} & \nameref{Autonomous Explore State},\nameref{Compulsive Move State}  \\
 \hline
 \nameref{STA_000} & \nameref{Idle State}  \\
 \hline
 \nameref{STA_001} & \nameref{Hover State}  \\
-\hline
-\nameref{STA_002} & \nameref{Autonomous Move State}  \\
 \hline
 \nameref{STA_003} & \nameref{Autonomous Explore State}  \\
 \hline
@@ -1181,8 +1098,6 @@ Functional Requirement & Function  \\
 \nameref{STA_005} & \nameref{Off State}  \\
 \hline
 \nameref{STA_006} & \nameref{Land State}  \\
-\hline
-\nameref{STA_007} & \nameref{Desired Location Error State}  \\
 \hline
 \nameref{STA_008} & \nameref{No Parking Lot Detected Error State}  \\
 \hline
@@ -1212,7 +1127,7 @@ Description & The product shall be capable of exploring upto 1400 $ m^2 $ of the
 \hline
 Rationale & The requirement ensures that \nameref{Autonomous Explore State} is able to survey atleast 60 parking spots each of size 13.5 $ m^2 $, assuming 6m of parking space between rows of parking. \\
 \hline
-Phase & III \\
+Phase & IV \\
 \hline
 Likely to Change & Yes. Based on algorithm performance of autonomous exploration and the limitations of the hardware, the threshold may be required to change. \\
 \hline
@@ -1248,7 +1163,7 @@ Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_
 \label{PERF_003}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall move to a specified location with an average speed exceeding 4km/hour. This is a refinement of \nameref{STA_002}. \\
+Description & The product shall move to a specified location with an average speed exceeding 4km/hour. This is a refinement of \nameref{STA_011}. \\
 \hline
 Rationale & The requirement ensures that the operator spends minimal time waiting for the product to move to the desired location, and that it is quicker than the average speed of a person walking.  \\
 \hline
@@ -1268,7 +1183,7 @@ Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_
 \label{PERF_004}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall transmit all data to the operator at a rate exceeding 0.5 frames per second. This is a refinement of the functions specified in Section \nameref{subsec:ProdFunc}. \\
+Description & The product shall execute its operation in cycles exceeding 0.5 frames per second. In particular, collecting data from the sensors (Camera, GPS, Barometer, etc.), processing the collected sensor data, and transmitting all the data to the Operator's PC should happen faster than 2 seconds. This is a refinement of the functions specified in Section \nameref{subsec:ProdFunc}. \\
 \hline
 Rationale & The requirement ensures the operator is receiving real time data from the product. \\
 \hline
@@ -1308,7 +1223,7 @@ Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_
 \label{PERF_006}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & While the product is in a flying state that is not Takeoff the drone shall always maintain an altitude between i\_MaxHoverHeight and i\_MinHoverHeight, within a tolerance of ±5\%. This requirement are refinements of \nameref{STA_001}, \nameref{STA_002}, \nameref{STA_011} and \nameref{STA_003}.  \\
+Description & While the product is in a flying state that is not Takeoff the drone shall always maintain an altitude between i\_MaxHoverHeight and i\_MinHoverHeight, within a tolerance of ±5\%. This requirement are refinements of \nameref{STA_001}, \nameref{STA_011}, \nameref{STA_011} and \nameref{STA_003}.  \\
 \hline
 Rationale & The requirement ensures that the operator specified altitude limits are respected during operation of the product. \\
 \hline
@@ -1328,7 +1243,7 @@ Associated Inputs and Outputs & m\_barometer, i\_MaxHoverHeight, i\_MinHoverHeig
 \label{PERF_007}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall be operable within requirements within non-inclement weather \ref{DefTable}.  This requirement are refinements of all the functions stated in Section \nameref{subsec:ProdFunc}, and the assumption of the weather in Section \nameref{sec:Assumptions}. This is further refined within requirement \nameref{MTNC_003}. \\
+Description & The product shall be satisfy all requirements during non-inclement weather \ref{DefTable}.  This requirement are refinements of all the functions stated in Section \nameref{subsec:ProdFunc}, and the assumption of the weather in Section \nameref{sec:Assumptions}. This is further refined within requirement \nameref{MTNC_003}. \\
 \hline
 Rationale & The requirement ensures that the product is usable in the majority of the environmental conditions, such that its availability is maximized. \\
 \hline
@@ -1336,7 +1251,7 @@ Phase & III \\
 \hline
 Likely to Change &  Yes. Based on hardware limitations, this requirement may need to be modified to include less adverse weather conditions.  \\
 \hline
-Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_gps, c\_CurrentView, c\_CurrentLoc, c\PastLoc, and c\_MotorSpeeds.  \\
+Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_gps, c\_CurrentView, c\_CurrentLoc, c\_PastLoc, and c\_MotorSpeeds.  \\
 \hline
 \end{tabular}
 \end{center}
@@ -1348,7 +1263,7 @@ Associated Inputs and Outputs & m\_barometer, m\_acceleration, m\_gyroscope, m\_
 \label{PERF_008}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall maintain a longitudinal and lateral position within a 1.5m radius once the product has reached m\_DesiredUserLoc while in the \nameref{Autonomous Move State} or \nameref{Compulsive Move State}. This requirement is a refinement of \nameref{STA_002} and \nameref{STA_011}. \\
+Description & The product shall maintain a longitudinal and lateral position within a 1.5m radius once the product has reached m\_DesiredUserLoc while in the \nameref{Compulsive Move State}. This requirement is a refinement of \nameref{STA_011}. \\
 \hline
 Rationale & The requirement ensures that the product does not drift to a different location when the operator expects it to be stationary. \\
 \hline
@@ -1594,7 +1509,7 @@ Associated Inputs and Outputs & i\_MaxHoverHeight, i\_MinHoverHeight, and i\_Des
 \label{SAFE_003}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall not require the operator to physically manipulate the product in any way in any states outside of Off State. This requirement are further refinements of all the states outlined in Section \ref{subsec:ProdFunc}.  \\
+Description & The product shall not require the operator to physically manipulate the product in any way in any states outside of Off and Idle States. This requirement is a refinement of all the states outlined in Section \ref{subsec:ProdFunc}.  \\
 \hline
 Rationale & The requirement ensures that the operator does not interfere with the functions of the product, and that the operator is kept safe from any malfunctions of the product.  \\
 \hline
@@ -1634,7 +1549,7 @@ Associated Inputs and Outputs & N/A \\
 \label{SAFE_005}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall include a mechanical Off switch to the product. This requirement is a refinement of the \nameref{Off State}.  \\
+Description & The product shall include a mechanical method of turning the product off. This requirement is a refinement of the \nameref{Off State}.  \\
 \hline
 Rationale & The requirement ensures that the product can be turned off even in the case of electronic failures, and can double as a kill switch.  \\
 \hline
@@ -1682,7 +1597,7 @@ Description & Upon m\_SaveOutput becoming true, a file dialog shall open to let 
 \hline
 Rationale & The requirement ensures that the operator can save the current data for future reference and analysis, and provides a digital record of its operation. \\
 \hline
-Phase & III \\
+Phase & IV \\
 \hline
 Likely to Change & Yes. The method of which the operator saves the data, or which data is saved, may  be changed in future revisions. \\
 \hline
@@ -1698,13 +1613,13 @@ Associated Inputs and Outputs & m\_Barometer, m\_Acceleration, m\_Gyroscope, m\_
 \label{USE_003}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall be able to operate and provide data to the operator for > 5 minutes without the need to recharge. This requirement is refines the functions stated within Section \nameref{subsec:ProdFunc} and references \nameref{MTNC_001}. \\
+Description & The product shall be able to operate and provide data to the operator for > 5 minutes without the need to recharge. This requirement refines the functions stated within Section \nameref{subsec:ProdFunc} and references \nameref{MTNC_001}. \\
 \hline
 Rationale & The requirement ensures that the product is able to explore the entire parking lot without the need to recharge in between. \\
 \hline
 Phase & II \\
 \hline
-Likely to Change & Yes. This requirement may be changed due to hardware limitations of the product, and is not required for the MVP. \\
+Likely to Change & Yes. This requirement may be changed due to hardware limitations of the product and is not required for the MVP. \\
 \hline
 Associated Inputs and Outputs & N/A.  \\
 \hline
@@ -1762,7 +1677,7 @@ There are no requirements related to the portability of the product.
 \label{appendix}
 \subsubsection{Appendix A: Reflection}
 \label{appendixa}
-Although the team has a solid education in the foundation in Mechatronics, they lack practical experience in building drones and robots in general. The knowledge the team currently does not have is identified in \nameref{tab:DomainExp}. Each discipline of knowledge was assigned to a specific team members who would become the expert in the subject. They may use any resources to gain the knowledge, such as books, blogs, YouTube videos, and other websites available to them. 
+Although the team has a solid education in the foundation in Mechatronics, they lack practical experience in building drones and robots in general. The knowledge the team currently does not have is identified in \nameref{tab:DomainExp}. Each discipline of knowledge was assigned to a specific team member who would become the expert in the subject. They may use any resources to gain knowledge, such as books, blogs, YouTube videos, and other websites available to them. 
 
 The team has also defined what it means to be an expert in their domain: 
 \begin{itemize}
@@ -1773,28 +1688,27 @@ The team has also defined what it means to be an expert in their domain:
     \item In depth understanding of the integration of the domain into the project. 
 \end{itemize}
 
-For many of the technical domains, the team has opted to partake in a dual-expert system where two experts are present for the domain. This ensures that in the absence of an expert, the effects on the team are minimized. Furthermore, this promotes collaboration between the experts during their research of their domain. Git, programming languages and Linux are already well understood by team members. 
+For many of the technical domains, the team has opted to partake in a dual-expert system where two experts are present for the domain. This ensures that in the absence of an expert, the effects on the team are minimized. Furthermore, this promotes collaboration between the experts during their research of their domain. Git, programming languages and Linux are already well-understood by team members. 
 
 \begin{table}[!h]
 \begin{center}
 \caption {Domain Experts} 
 \label{tab:DomainExp}
-\begin{tabular}{ | m{2cm} | m{2cm} | m{8cm} | m{2.1cm} | } 
+\begin{tabular}{ | m{2cm} | m{1.5cm} | m{8cm} | m{2.1cm} | } 
 \hline
 Domain & Assigned Experts & Description of Domain & Recommended Resources\\
 \hline
+Latex & Zaid & The Latex domain expert is responsible for understanding the Latex syntax and generation process. & \href{https://www.overleaf.com/learn}{Overleaf Latex Documentation}   \\
 \hline
-Latex & Zaid & The Latex domain expert is responsible for understanding the Latex syntax and generation process. & Google \\
+Power Management and Motors & Fady and Zaid & This domain relates to the powering of the individual components of the drone, and the control of the motors. Example components include the battery, Power Distribution Board, and the Electronic Speed Controller. & \href{https://rotorvillage.ca/iflight-xing-2205-2300kv-motor/}{Motor Specs}, \href{https://rotorvillage.ca/gnb-1500mah-4s-120c-hv-lipo-xt60/}{Battery Specs} \\
 \hline
-Power Management and Motors & Fady and Zaid & This domain relates to the powering of the individual components of the drone, and the control of the motors. Example components include the battery, Power Distribution Board, and the Electronic Speed Controller. & Motor datasheet, Google, Youtube \\
+Mechanical Design & Winnie and Ali & Included within this domain is the creation of the custom drone frame, in addition to minimizing vibrations while maximizing structural integrity. & \href{https://rotorvillage.ca/gemfan-f4s-freestyle-tri-blade-prop-2cw-2ccw/}{Propeller specs}, \href{https://www.youtube.com/watch?v=BZGbkEkqrMM}{SolidWorks Quadcopter Tutorial}\\
 \hline
-Mechanical Design & Winnie and Ali & Included within this domain is the creation of the custom drone frame, in addition to minimizing vibrations while maximizing structural integrity. & Google, Youtube\\
+External Sensors and Peripherals & Fady, Winnie and Ali & This domain includes the external sensors that connect to the flight controller, including the camera, radio transmitter, and any other sensors that may be required. & \href{https://www.pishop.ca/product/navio2-gps-gnss-antenna/}{GPS Specs}, \href{https://www.arducam.com/product/arducam-ov5647-standard-raspberry-pi-camera-b0033/}{Camera Specs}, \href{https://www.amazon.ca/Microzone-Transmitter-Quadcopter-Helicopter-Multicopter/dp/B07V3ZG9LN}{Radio transmitter Specs} \\
 \hline
-External Sensors and Peripherals & Fady, Winnie and Ali & This domain includes the external sensors that connect to the flight controller, including the camera, radio transmitter, and any other sensors that may be required. & Google, Youtube, Datasheet of components \\
+Flight Controller & Zaid, Fady, Ali, and Winnie & All the members should be responsible for being experts at the Flight Controller as they all need to know how to interface with it. Further sub domains may be created at a later date if the need arises. &  \href{https://docs.emlid.com/navio2/ardupilot/installation-and-running/}{Official documentation of Flight Controller}\\
 \hline
-Flight Controller & Zaid, Fady, Ali, and Winnie & All the members should be responsible for being experts at the Flight Controller as they all need to know how to interface with it. Further sub domains may be created at a later date if the need arises. & Official documentation of Flight Controller\\
-\hline
-Internal Sensors & Fady, Winnie and Ali & The Internal Sensors domain includes the sensors within the Flight Controller. Such sensors include the Inertial Measurement Unit, barometer, and GPS.  & Official documentation of Flight Controller, Google, Youtube \\
+Internal Sensors & Fady, Winnie and Ali & The Internal Sensors domain includes the sensors within the Flight Controller. Such sensors include the Inertial Measurement Unit, barometer, and GPS.  &    \href{https://ardupilot.org/copter/docs/common-navio2-overview.html#specifications}{Official documentation of Flight Controller} \\
 \hline
 \end{tabular}
 \end{center}
@@ -1829,42 +1743,38 @@ Internal Sensors & Fady, Winnie and Ali & The Internal Sensors domain includes t
 \begin{center}
 \caption {State Transition Matrix: This is a formal specification of the finite state machine. The current states are written along the top row, and the transitions along the leftmost column. Other cells indicate the next state.  } 
 \label{TransTable}
-\begin{tabular}{ | m{3cm} | m{1cm} | m{0.7cm} | m{1cm} | m{1cm} | m{1cm} | m{0.5cm} | m{1.5cm} | m{1cm} | m{0.8cm} | m{1.5cm} |  m{1.3cm} | m{1cm} | m{0.7cm} | m{0.8cm} |} 
+\begin{tabular}{ | m{3cm} | m{1cm} | m{0.7cm} | m{1.3cm} | m{1.2cm} | m{0.7cm} | m{1cm} | m{0.8cm} | m{1.5cm} |  m{1.3cm} | m{1cm} | m{0.7cm} | m{0.9cm} |} 
 
 \hline
-- & Idle & Hover & \seqsplit{Autonomous Move} (AM) & \seqsplit{Autonomous Explore (AE)}  & \seqsplit{Configuration} (CON) & Off &	Desired Location Error (DLE) & \seqsplit{Malfunction} (MAL) & Land & No Parking Lot Error Detected & \seqsplit{Communication Lost} (CL) & \seqsplit{Compulsive Move} & Arm & \seqsplit{Takeoff} (TF) \\
+- & Idle & Hover & \seqsplit{Autonomous Explore (AE)}  & \seqsplit{Configuration} (CON) & Off & \seqsplit{Malfunction} (MAL) & Land & No Parking Lot Error Detected & \seqsplit{Communication Lost} (CL) & \seqsplit{Compulsive Move} & Arm & \seqsplit{Takeoff} (TF) \\
 \hline
-\seqsplit{m\_PowerOn}  & - & - & - & - & - & Idle & - & - & - & - & - & - & - & -\\
+\seqsplit{m\_PowerOn}  & - & -  & - & - & Idle & - & - & - & - & - & - & -\\
 \hline
-\seqsplit{!m\_PowerOn} & Off & - & - & - & - & - & - & - & - & - & - & - & - & -\\
+\seqsplit{!m\_PowerOn} & Off & - & -  & - & - & - & - & - & - & - & - & -\\
 \hline
-m\_Arm \& m\_Connected \& m\_BatteryCapacity > 120 & Arm & - & - & - & - & - & - & - & - & - & - & - & - & -\\
+m\_Arm \& m\_Connected \& m\_BatteryCapacity > 120 \& c\_SatalietteImageryAvailable & Arm & - & - & -  & - & -  & - & - & - & - & - & -\\
 \hline
-m\_Configure & CON & - & - & - & - & - & - & - & -  & - & -  & - & - & -\\
+m\_Configure & CON & - & -   & - & - & - & -  & - & -  & - & - & -\\
 \hline
-m\_Takeoff & - & - & - & - & - & - & - & - & -  & - & -  & - & TF & -\\
+m\_Takeoff & - & - & -  & -  & - & - & -  & - & -  & - & TF & -\\
 \hline
-m\_Barometer > m\_MaxHoverHeight - 1 & - & - & - & - & - & - & - & - & -  & - & -  & - & - & Hover\\
+m\_Barometer > m\_MaxHoverHeight - 1 & -   & - & - & - & - & - & -  & - & -  & - & - & Hover\\
 \hline
-m\_Barometer == 0 & - & - & - & - & - & - & - & Idle & Idle  & - & -  & - & - & -\\
+m\_Barometer == 0 & - & - & -  & -  & - & Idle & Idle  & - & -  & - & - & -\\
 \hline
-m\_AutonomousExplore \& c\_ParkingLotDetected & - & AE & AE & AE & - & - & AE & - & - & AE & -  & AE & - & -\\
+m\_AutonomousExplore \& c\_ParkingLotDetected & - & AE & AE & - & - & - & - & AE & -  & AE & - & -\\
 \hline
-c\_UserError == Desired_Location_Out_Of_Bounds & - & - & DLE  & - & - & - & - & - & - & - & -  & - & - & -\\
+m\_Land & - & Land & Land  & - & - & Land & Land & Land & -  & Land & - & -\\
 \hline
-m\_Land & - & Land & Land & Land & - & - & Land & Land & Land & Land & -  & Land & - & -\\
+(c\_Connected == False) held for k\_ConnectionLostThresh & - & CL & CL & - & - & - & - & CL & -  & CL & - & -\\
 \hline
-(c\_Connected == False) held for k\_ConnectionLostThresh & - & CL & CL & CL & - & - & CL & - & - & CL & -  & CL & - & -\\
+(c\_Connected == True) held for k\_ConnectionLostThresh & - & - & -  & - & - & - & - & - & Hover & - & - & - \\
 \hline
-(c\_Connected == True) held for k\_ConnectionLostThresh & - & - & - & - & - & - & - & - & - & - & Hover & - & - & - \\
+c\_ParkingLotDetected  & - & AE & -  & - & - & - & - & - & -  & - & - & -\\
 \hline
-c\_ParkingLotDetected  & - & AE & - & - & - & - & - & - & - & - & -  & - & - & -\\
+m\_CompulsiveMove & - & CM  & CM & - & - & - & CM & CM & -  & CM & - & -\\
 \hline
-m\_AutonomousMove & - & AM & AM & AM & - & - & AM & - & AM & AM & -  & AM & - & -\\
-\hline
-m\_CompulsiveMove & - & CM & CM & CM & - & - & CM & - & CM & CM & -  & CM & - & -\\
-\hline
-m\_BatteryCapacity < 120 sec  & MAL & MAL & MAL & MAL & MAL & - & MAL & - & MAL & MAL & MAL  & MAL & - & -\\
+m\_BatteryCapacity < 120 sec  & MAL  & MAL & MAL & - & MAL & - & MAL & MAL & MAL  & MAL & - & -\\
 \hline
 \end{tabular}
 \end{center}
@@ -1874,5 +1784,15 @@ m\_BatteryCapacity < 120 sec  & MAL & MAL & MAL & MAL & MAL & - & MAL & - & MAL 
 \subsection{Index}
 
 \bibliographystyle{IEEEtran}
-\bibliography{bib.bib} % your .bib file
+%\bibliography{bib.bib} % your .bib file
+
+\begin{thebibliography}{9}
+
+\bibitem{canada_flying_2020}
+
+T. Canada, “Where to fly your drone,” Transport Canada, Dec. 02, 2021. https://tc.canada.ca/en/aviation/drone-safety/learn-rules-you-fly-your-drone/where-fly-your-drone
+‌
+\bibitem{canada_find_2021}
+T. Canada, “Find your category of drone operation,” AARV 13921205, Feb. 19, 2021. https://tc.canada.ca/en/aviation/drone-safety/learn-rules-you-fly-your-drone/find-your-category-drone-operation
+\end{thebibliography}
 \end{document}

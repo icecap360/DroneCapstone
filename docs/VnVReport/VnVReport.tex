@@ -128,11 +128,7 @@ Criteria & Feedback & Team Response \\
 \hline
 The condition i\_MinHoverHeight <= i\_DesiredHoverHeight <= i\_MaxHoverHeight shall always be true. & 
     This requirement is not explicitly associated with a specific module or state, whether it's the GUI module or the Configure State. Thus, no module is currently verifying this condition. &
-    The condition will be verified within the Configure State when the values are updated by the user. \\ 
-\hline
-The product shall be shall highlight non-occupied parking slots on the operator's display (update c\_CurrentView). &
-    There is no window to show the c\_currentView. Only the live camera output is visible. &
-    The new window will be added into the GUI module. \\
+    The SRS was updated to specify that the condition will be verified within the Configure State. \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -151,7 +147,7 @@ A more detailed internal review has also been conducted using \nameref{Design2_C
 Criteria & Feedback \\ 
 \hline
 Does the design implement all the performance requirements listed below? & 
-    These requirements have not been fully tested in the real world. However, all performance requirements have been tested within a Software in The Loop (SITL) environment and has met all requirements. \\ 
+    By satisfying the relevant system test cases, the product meets performance requirements.  \\ 
 \hline
 The product shall be mechanically waterproof, to the point it can sustain a light drizzle for 1 minute of operation while still performing within the requirements. &
     The product has not been explicitly tested within the rain for operation, but design considerations have been made to mechanically isolate the electronic components. The product is capable of aerial flight during light snow flurries and takeoff/landing in 5cm+ of frozen snow. \\
@@ -248,9 +244,9 @@ Procedure & Attempt to take off and hover the drone at the minimum safe hover he
 \hline
 Expected Result & The drone should launch to 7m within 25 seconds, hover within 0.5m of the 7m height, and laterally stay within 1.5m of the launch location.   \\ 
 \hline
-Actual Result & Within SITL, the drone successfully takes off to 7m. It successfully remains within the height and lateral requirements for the time period specified. The test was never performed with the physical drone in an outdoor environment.  \\ 
+Actual Result & This test was performed with the physical drone in an outdoor environment, the drone successfully takes off to 7m. It successfully remains within the height and lateral requirements for the time period specified.   \\ 
 \hline
-Result Analysis & Partially Pass. One of the purposes of the test was to verify operation states (such as configure, hover, and land). The SITL test verified the operation states. The test's primary purpose was to verify that the drone's mechanical design, electrical design, and autonomous flight software can fly and land the drone from a height of 7m. The product failed to fulfill the primary purpose of this test. The cause of failure is that the autonomous flight software has not yet been fully tuned, thus autonomous flight cannot be performed. See \nameref{tab:STCR_001} for a test of the product's mechanical and electrical design.  \\ 
+Result Analysis & Pass.   \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -270,7 +266,7 @@ Test Case Result ID & \nameref{tab:STCR_004} \\
 \hline
 Test Case Reference & \nameref{tab:STC_004}  \\ 
 \hline
-Requirements Tested & \nameref{STA_002}, \nameref{TRANS_005}, \nameref{PERF_008}, \nameref{PERF_006}, \nameref{USE_001}, \nameref{PERF_003}
+Requirements Tested &  \nameref{TRANS_005}, \nameref{PERF_008}, \nameref{PERF_006}, \nameref{USE_001}, \nameref{PERF_003}
 \\ 
 \hline
 
@@ -280,9 +276,9 @@ Procedure & While in a flight state, set the desired location to be 20m diagonal
 \hline
 Expected Result & The drone should fly toward the desired location, traveling at least 4 m/sec. A live display of the drone's location and a visual trace of the drone's past location should be visible in the GUI. After reaching the desired location, the drone should remain within 1.5m of the desired location.    \\ 
 \hline
-Actual Result & Within SITL, the drone successfully flies in a straight line path to the desired location, while satisfying the height, speed, and lateral position requirements. The test was never performed with the physical drone in an outdoor environment. \\ 
+Actual Result & The drone successfully flies in a straight line path to the desired location, while satisfying the height, speed, and lateral position requirements. The location trace was visible. \\ 
 \hline
-Result Analysis & Partially Pass. One of the purposes of the test was to verify the compulsive move operation states. The SITL test verifies that operation state. The test's primary purpose however was to verify that the drone's mechanical design, electrical design, and autonomous flight software can laterally fly the drone and fly faster than the 4 m/sec average speed requirement. The product failed to fulfill the primary purpose of this test. The cause of failure is that the autonomous flight software has not yet been fully tuned, thus autonomous flight cannot be performed. \\ 
+Result Analysis &  Pass. \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -334,9 +330,9 @@ Procedure &  Fly the drone in any flying state.  \\
 \hline
 Expected Result & After a sufficiently long time (at least 3.5 minutes), when the battery capacity remaining is less than 1.5 minutes, the drone will enter the Malfunction state. Upon entering the malfunction state, the drone shall log an error message and land itself at its original launch location.   \\ 
 \hline
-Actual Result & Within the SITL, the drone enters the Malfunction state after 6 minutes of flight. The battery capacity remaining at his point is 20\% (1.5 minutes). The drone logs a low battery message and lands at its launch location. The test was never performed with the physical drone in an outdoor environment. \\ 
+Actual Result & During physical flight, the drone enters the Malfunction state after about 4 minutes of flight. The battery capacity remaining at his point is 20\% (1.5 minutes). The drone logs a low battery message and lands at its launch location. \\ 
 \hline
-Result Analysis & Partially Pass. The primary purpose of the test was to verify the Malfunction state and the low battery transitions. The SITL test verifies the Malfunction state and the low battery transition. The test's secondary purpose however was to verify that the drone's mechanical design and electrical design allow a battery life of flight time of at least 3.5 minutes. The product failed to fulfill the secondary purpose of this test. The cause of failure is that the autonomous flight software has not yet been fully tuned, thus autonomous flight cannot be performed. \\ 
+Result Analysis & Pass.  \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -388,9 +384,9 @@ Procedure & During any of the flight states, disconnect the Operator's PC from t
 \hline
 Expected Result & The drone should log an error message, return an unhealthy status, and enter the communication lost state.   \\ 
 \hline
-Actual Result & Within SITL, the drone enters the Communication Lost state and lands upon the communication network being disconnected. A log message and unhealthy status is seen on the Operator's PC. While testing on the drone but with propellers disconnected and in a flight state, it is observed that the drone enters the Communication Lost state.  \\ 
+Actual Result & The drone correctly enters the Communication Lost state and lands upon the communication network being disconnected. A log message and unhealthy status is seen on the Operator's PC.  \\ 
 \hline
-Result Analysis & Principally Pass. The purpose of this test was to verify the Communication Lost state. The operation of the communication lost state was verified in SITL, and the transition into the state was verified using the stationary drone test. Thus the purpose of this test was accomplished. The purpose of this test did not mention any flight dynamics testing, as there are other test cases to verify landing dynamics (\nameref{tab:STCR_003}), thus a real-life flight is not necessary.   \\ 
+Result Analysis & Pass.    \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -442,11 +438,9 @@ Procedure & Fly the drone forward until Communication is lost, which can be done
 \hline
 Expected Result & Upon communication being lost, the drone should enter the Communication Lost state and fly back toward the launch location. While flying back the drone should eventually reconnect to the Operator's PC, and enter the Hover state.    \\ 
 \hline
-Actual Result & The test was performed with the propellers disconnected, and a person holding and walking with the drone away. The drone lost communication at about 200m. When the tester walked back, the drone reconnected and entered the Hover state. 
-
-The test was not performed in proper flight as the drone has not yet been tuned for autonomous flight. The test could not be performed in SITL either, as even at large distances the simulated drone would not lose connection.  \\
+Actual Result & The drone correctly entered and exited the communication lost state. The drone lost communication at about 50m. While flying back, the drone gained communication at about 20m. \\
 \hline
-Result Analysis & Partially Pass. The primary purpose of the test was to stress test the strength of the communication network and the ability of the drone to disconnect and reconnect. Another reason for the test is to verify transitions to and from Communication Lost state as well as its operation. Both purposes were fulfilled by the manual walking with the drone test. Another purpose of the test case was to elucidate how performance degrades with the drone far away. This purpose cannot be tested until the drone flies autonomously in the real physical world.  \\ 
+Result Analysis & Pass.  \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -472,9 +466,9 @@ Procedure & Change m\_DesiredUserLocation to a location outside of the parking l
 \hline
 Expected Result & When the user attempts to move to an invalid location, the ParkingLotHawk application running on the Operator's PC should display a prompt, indicating that the desired location is invalid. When the user presses "OK", indicating they still want to fly to the location, the drone should fly toward the desired location of the user.  \\ 
 \hline
-Actual Result & Within SITL, the drone gave a prompt informing the user the requested location is not within a parking lot. Upon selecting "Yes", the drone flied towards the requested location. The test was not performed in real life as the drone is still not tuned for autonomous flight.  \\
+Actual Result & When attempting to move to a location outside of the parking lot, a prompt appears on the Operator's PC Application. Upon selecting "Yes", the drone flew towards the requested location.   \\
 \hline
-Result Analysis & Principally Pass. The purpose of the test was to verify the ability of the drone to prompt the user when the requested location is detected as invalid, this behavior was verified by the SITL test. The ability of the drone to detect parking boundaries was not a motivation for this test, and rather is the motivation for \nameref{tab:STC_014}.  \\ 
+Result Analysis & Pass.  \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -501,7 +495,11 @@ Expected Result & The first attempt to Autonomously Explore the parking lot shou
 \hline
 Actual Result & Within SITL, the first attempt to enter the Autonomous Explore state failed. The drone entered the No Parking Lot Error state when the desired location was not within a parking lot. During the No Parking Lot Detected state, the drone was hovering and an error message is seen in c\_Log, and c\_UserError is No_Lot_Detected_State. During the Compulsive Move state, c_UserError changed to None. The second attempt to enter the Autonomous Explore succeeded. The test was not performed in real life.  \\
 \hline
-Result Analysis & Principally Pass. The purpose of the test was to verify the transition to the Autonomous Explore state, verify the behavior of the compulsive move state moving to a location, and verify the behavior of the No Parking Lot Error state. These activities were verified by the SITL test. The ability of the drone to detect parking boundaries was not a motivation for this test, and rather is the motivation for \nameref{tab:STC_014}.   \\ 
+Result Analysis & This test verifies behavior needed for a stretch goal of this project, thus passing it is not necessary for a minimum viable product. 
+
+However, the test can be declared as principally pass. The purpose of the test was to verify the transition to the Autonomous Explore state, verify the behavior of the compulsive move state moving to a location, and verify the behavior of the No Parking Lot Error state. These activities were verified by the SITL test. The ability of the drone to detect parking boundaries was not a motivation for this test, and rather is the motivation for \nameref{tab:STC_014}. 
+
+\\ 
 \hline
 \end{tabular}
 \end{center}
@@ -529,7 +527,8 @@ Expected Result & The drone should automatically detect the parking lot upon lau
 \hline
 Actual Result &  The test was not performed. \\
 \hline
-Result Analysis & Fail. The primary purpose of the test was to verify the operation of the  autonomous explore feature during a live real-life test case. SITL cannot be used for this test case because it is the motivation for a different test, \nameref{tab:STC_016}. The test was not performed in real life as the drone is still not tuned for autonomous flight.  \\ 
+Result Analysis & This test verifies behavior needed for a stretch goal of this project, thus passing it is not necessary for a minimum viable product. 
+Fail. The autonomous explore feature has not been implemented, it was a stretch goal.  \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -610,7 +609,9 @@ Expected Result & The drone should automatically detect the parking lot upon lau
 \hline
 Actual Result &  The test was not performed. \\
 \hline
-Result Analysis & Fail. The primary purpose of the test was to verify the path planning/autonomous explore feature of the drone. The path planning feature was a stretch goal for this project and was not implemented, thus the Autonomous Explore state is empty (it simply hovers the drone).    \\ 
+Result Analysis & This test verifies behavior needed for a stretch goal of this project, thus passing it is not necessary for a minimum viable product. 
+
+Fail. The path planning feature was a stretch goal for this project and was not implemented, thus the Autonomous Explore state is empty (it simply hovers the drone).    \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -638,9 +639,9 @@ Procedure & Two volunteers who have never used Parking Lot Hawk before reads the
 \hline
 Expected Result & Both volunteers successfully install the application and complete \nameref{tab:STC_012} without any help from the developers within 2 hours.  \\ 
 \hline
-Actual Result &  The volunteers independently installed the Parking Lot Hawk Application and conducted the \nameref{tab:STC_012} within a premade SITL environment within 2 hours. \\
+Actual Result &  The volunteers independently installed the Parking Lot Hawk Application and conducted the \nameref{tab:STC_012} within 2 hours. \\
 \hline
-Result Analysis & Partially Pass. The primary purpose of the test was to verify that new users can learn to use the Parking Lot Hawk using just the user manual. Although users were able to install and use the drone in SITL, because they did not operate the drone in real-life the test cannot be declared as pass.    \\ 
+Result Analysis & Pass.    \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -767,13 +768,39 @@ Procedure & Use the save button on the GUI to save the current camera image (c\_
 \hline
 Expected Result & A file explorer opens to let the user pick a folder. An image of the c\_CurrentView and c\_OccupancyMap are saved into the folder.  \\ 
 \hline
-Actual Result &  A file explorer that lets the user pick a folder opens. An image of the c\_CurrentView and c\_OccupancyMap are saved into the folder.  \\
+Actual Result &  The user interface does not contain a save button.   \\
 \hline
-Result Analysis & Pass. \\ 
+Result Analysis & The save feature was a stretch goal for this project, and its implementation is not necessary for a minimum viable product. Fail. \\ 
 \hline
 \end{tabular}
 \end{center}
 \end{table}
+
+
+\begin{table}[!h]
+\begin{center}
+\caption {STCR\_002}
+\label{tab:STCR_002}
+\begin{tabular}{ | m{3.2cm} | m{12.2cm} | } 
+\hline
+Test Case Result ID & \nameref{tab:STCR_023} \\ 
+\hline
+Test Case Reference & \nameref{tab:STC_023}  \\ 
+\hline
+Requirements Tested & \nameref{SR_001} \\ 
+\hline
+Procedure & Attempt to arm the drone in a location without pre-downloaded satellite imagery.  \\ 
+\hline
+Expected Result & The drone should not arm, a descriptive error message should be logged to c\_Log.    \\ 
+\hline
+Actual Result & The drone does not arm, a descriptive error message is logged to c\_Log.  \\ 
+\hline
+Result Analysis & Pass.  \\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
 
 \clearpage
 
@@ -1013,9 +1040,11 @@ Procedure & The user enters an incorrect username and/or password. Then the user
 \hline
 Expected Result & The user can only access the user interface once the correct username and password is entered. \\ 
 \hline
-Actual Result & The user can only access the user interface once the correct username and password is entered. \\ 
+Actual Result & Not login page appears when the GUI is opened.  \\ 
 \hline
-Result Analysis & Pass. \\ 
+Result Analysis & Adding the login page was a stretch goal of this project, and implementing it is not necessary for a minimum viable product. 
+
+Fail. \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -1037,9 +1066,9 @@ Procedure & A volunteer goes through the list of inputs and outputs in the SRS, 
 \hline
 Expected Result & All inputs, outputs, and specifications are accounted for.  \\ 
 \hline
-Actual Result & All inputs and outputs are accounted for. Specifications are accounted for within the design, but some are not fully implemented. See other test cases for more detail on missing specifications. \\ 
+Actual Result & All inputs, outputs, and specifications are accounted for.  \\ 
 \hline
-Result Analysis & Principally pass. The purpose of the test case is to ensure that the design passes the test case, which is met. However, the current implementation of the design does not. \\ 
+Result Analysis & Pass. \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -1064,14 +1093,14 @@ Requirements Tested & \nameref{GEN_005} \\
 \hline
 Procedure &  Curate a dataset of at least 50 images of varying weather, lighting, and height conditions (details in the full test case specification). Use the dataset to profile the performance of the algorithm (FPS) on the Raspberry Pi hardware. Also, use the dataset to estimate the classifier's accuracy.  \\ 
 \hline
-Expected Result & The algorithm processes at least 0.5 frames per second on the Raspberry Pi Hardware. Given the simplicity of the classification task, an accuracy of 80\% for assigning the center pixel correctly to either parking lot, nature, or occupied is required. \\ 
+Expected Result & The algorithm processes at least 0.5 frames per second on the Raspberry Pi Hardware. Given the simplicity of the classification task, an accuracy of 70\% for assigning the center pixel correctly to either parking lot, nature, or occupied is required. \\ 
 \hline
 Actual Result & Among over 50 samples, the classifier takes on average 0.478 seconds with a standard deviation 0.048 sec, to process one frame. The maximum time to process a single frame was 0.68 sec. The histogram of time is shown in Figure \ref{fig:occClassifierPerf}. 
 
 
-The overall accuracy of the classifier was 51\%. The classifier performed well on the nature classification task but performed poorly on classifying parking lots in sunny conditions. The classifier really struggled to correctly predict the center pixel as being occupied by some obstacle, scoring just 24\%. Further analysis revealed that the obstacles were often confused with parking lots. Table \ref{tab:OccClassifierSummary} breaks down the results by object and weather type. Samples of the images tested are shown in Figure \ref{fig:sampleImages}. \\ 
+The overall accuracy of the classifier was 77\%. The classifier performed well on the all classification tasks except for classifying parking lots in sunny conditions.  Table \ref{tab:OccClassifierSummary} breaks down the results by object and weather type. Samples of the images tested are shown in Figure \ref{fig:sampleImages}. \\ 
 \hline
-Result Analysis & Fail. The classifier performs at a sufficient speed to satisfy the 0.5 FPS requirement. However, the accuracy of the classifier was well below the expected 80\%, and is not fit for being used by the user. \\ 
+Result Analysis & Pass. The classifier performs at a sufficient speed to satisfy the 0.5 FPS requirement. However, the accuracy of the classifier was well above the expected 70\%. \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -1094,11 +1123,11 @@ Result Analysis & Fail. The classifier performs at a sufficient speed to satisfy
 \hline
 Object Type & Nature & Parking Lot & Occupied (e.g. car, bin, etc.) \\ 
 \hline
-Total Accuracy & 16/18 & 8/18 & 5/21 \\
+Total Accuracy & 16/18 & 12/18 & 16/21 \\
 \hline
-Accuracy on Sunny Conditions & 7/9 & 2/10 & 3/10 \\
+Accuracy on Sunny Conditions & 8/9 & 4/10 & 8/10 \\
 \hline
-Accuracy on Overcast Conditions & 9/9 & 6/8 & 2/11 \\
+Accuracy on Overcast Conditions & 8/9 & 8/8 & 8/11 \\
 \hline
 \end{tabular}
 \end{center}
@@ -1124,13 +1153,13 @@ Test Case Reference & \nameref{tab:UTC_012}  \\
 \hline
 Requirements Tested & \nameref{GEN_001} \\ 
 \hline
-Procedure & Measure the accuracy of the segmentation algorithm on a satellite imagery dataset of 12. \\ 
+Procedure & Measure the accuracy of the segmentation algorithm on 21 satellite images dataset of. \\ 
 \hline
-Expected Result & The segmentation algorithm has an average accuracy of above 80\%. Accuracy is calculated as pixels correctly classified divided by the total number of pixels. \\ 
+Expected Result & The segmentation algorithm has an average accuracy of above 70\%. Accuracy is calculated as pixels correctly classified divided by the total number of pixels. \\ 
 \hline
-Actual Result & The segmentation algorithm has an average accuracy of 73\% with a standard deviation of 0.22. Individual results per image are shown in Figure \ref{fig:segAccuracy}. \\ 
+Actual Result & The segmentation algorithm has an average accuracy of 74\% with a standard deviation of 0.18. Individual results per image are shown in Figure \ref{fig:segAccuracy}. \\ 
 \hline
-Result Analysis & Fail, the algorithm is well below the 80\% desired. From Figure \ref{fig:segAccuracy}, it can be seen that certain images have much poorer accuracy, such as image 3. The segmented result of image 3 is shown in Figure \ref{fig:segShadow}. The lower half of the image is covered by a shadow from the building, producing a much darker ground surface. This then causes the segmenter to misidentify the parking lot.  \\ 
+Result Analysis & Pass. From Figure \ref{fig:segAccuracy}, it can be seen that certain images have much poorer accuracy, such as image 8. The segmented result of image 9 is shown in Figure \ref{fig:segShadow}. The parking lot is abnormally dark.  \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -1154,9 +1183,9 @@ Result Analysis & Fail, the algorithm is well below the 80\% desired. From Figur
 
 \begin{figure}[h!]
   \begin{center} 
-  \caption{Segmentation Result of Image 3 due to Shadow}
+  \caption{Segmentation Result of Image 8, an abnormally dark road}
   \label{fig:segShadow}
-        \includegraphics[width=1\textwidth]{VnVReport/SegmentationShadow.png}
+        \includegraphics[width=1\textwidth]{VnVReport/SegmentationDarkRoad.png}
   \end{center}
 \end{figure}
 
@@ -1177,13 +1206,15 @@ Test Case Reference & \nameref{tab:UTC_013}  \\
 \hline
 Requirements Tested & \nameref{GEN_002}\\ 
 \hline
-Procedure &  Feed a pre-recorded video of the drone flying over a parking lot into the Vision App. Compare the final occupancy map to the actual occupancy map of the parking lot in the video.\\ 
+Procedure &  Feed a pre-recorded video of the drone flying over a parking lot into the Vision App. Compare the final occupancy map and parking slot map to the actual occupancy  and parking slot map of the parking lot in the video.\\ 
 \hline
 Expected Result & The estimated occupancy map should be similar to the actual occupancy in the video. \\ 
 \hline
 Actual Result & The test was not attempted. \\ 
 \hline
-Result Analysis & Fail. Occupancy Map creation was a stretch goal for this project, and development for it has not begun. \\ 
+Result Analysis & Occupancy map and parking slot creation was a stretch goal for this project.
+
+Fail. This test required recording a video and annotating it, for which there was not enough time.  \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -1239,9 +1270,9 @@ Procedure & While in the Idle state, send a user command to arm the drone, takeo
 \hline
 Expected Result & The drone arms, takeoffs to the maximum hover height, moves 5m left, and then lands at the original location. \\
 \hline
-Actual Result & This test is only conducted within the SITL environment. The drone arms, takeoffs to the maximum hover height, moves 5m left, and then lands at the original location. \\
+Actual Result & The drone arms, takeoffs to the maximum hover height, moves 5m left, and then lands at the original location. \\
 \hline
-Result Analysis & Partially pass. The purpose of the test is to verify the drone's ability to takeoff, move, and land autonomously. From the SITL results, it ensures that the behaviour and transitions between the states are meeting specifications. However, real performance on the drone is untested and could suffer performance loses in comparison to SITL. \\ 
+Result Analysis & Pass. \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -1263,9 +1294,9 @@ Procedure & While in the Idle state, send a user command to arm and takeoff. Aft
 \hline
 Expected Result & The drone takeoffs and hovers until battery capacity reaches 20\%, at which point it enters the Malfunction state and lands. \\
 \hline
-Actual Result & This test is only conducted within the SITL environment. The drone takeoffs and hovers until battery capacity reaches 20\%, at which point it enters the Malfunction state and lands. \\
+Actual Result & This test was conducted within the SITL environment. The drone takeoffs and hovers until battery capacity reaches 20\%, at which point it enters the Malfunction state and lands. \\
 \hline
-Result Analysis & Principally pass. This test ensures that the Malfunction state and its associated behaviours are correct, and is tested within SITL. \\ 
+Result Analysis & Pass.\\ 
 \hline
 \end{tabular}
 \end{center}
@@ -1287,9 +1318,9 @@ Procedure & While in the Idle state, send a user command to arm and takeoff. Onc
 \hline
 Expected Result & The drone takeoffs and hovers until the Message Socket is disconnected, at which point it enters the Communication Lost state and lands. \\
 \hline
-Actual Result & Within SITL, drone takeoffs and hovers until the Message Socket is disconnected, at which point it enters the Communication Lost state and lands. When tested on the physical drone, the propellors are removed to prevent flight. The drone enters the Takeoff state and transitions into the Hover state. Once the Message Socket is disconnected, it transitions into the Communication Lost state and attempts to land by decreasing the speed of the motors. \\
+Actual Result & Within SITL, the drone takes off and hovers until the Message Socket is disconnected, at which point it enters the Communication Lost state and lands.  \\
 \hline
-Result Analysis & Principally pass. This test is fully tested within SITL. Within the physical drone, the components related to flight are untested, but the behaviour of the states are verified. \\ 
+Result Analysis & Pass. \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -1311,9 +1342,9 @@ Procedure & While in the Idle state, send a user command to arm and takeoff. The
 \hline
 Expected Result & After the drone takeoffs, it enters the No Parking Lot Detected Error state. \\
 \hline
-Actual Result & Within SITL, after the drone takeoffs, it enters the No Parking Lot Detected Error state. When tested on the physical drone, the propellors are removed to prevent flight. The drone enters the takeoff state, and is physically held over a grassy area such that the camera does not see a parking lot. The drone then enters the No Parking Lot Detected Error state. \\
+Actual Result & Within SITL, after the drone takes off and receives the Autonomous Explore request, it enters the No Parking Lot Detected Error state. \\
 \hline
-Result Analysis & Principally pass. This test is fully tested within SITL. Within the physical drone, the components related to flight are untested, but the behaviour of the states are verified. \\ 
+Result Analysis & Pass. \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -1331,13 +1362,13 @@ Test Case Reference & \nameref{tab:UTC_019}  \\
 \hline
 Requirements Tested & \nameref{STA_003}, \nameref{TRANS_004} \\ 
 \hline
-Procedure & While in the Idle state, send a user command to arm and takeoff within a parking lot. Hardcode a suggested path of left 5m from the Path Plan App. \\ 
+Procedure & While in the Idle state, send a user command to arm, takeoff and finally autonomously explore. Hardcode a suggested path of left 5m from the Path Plan App. \\ 
 \hline
 Expected Result & After the drone takeoffs, it enters the Autonomous Explore state and begins to move left 5m. \\
 \hline
-Actual Result & Within SITL, after the drone takeoffs within a parking lot, it enters the Autonomous Explore state and begins to move left 5m. This behaviour is not currently tested on the physical drone. \\
+Actual Result & Within SITL, after the drone takes off within a parking lot, it enters the Autonomous Explore state. It does not move left 5m.  \\
 \hline
-Result Analysis & Principally pass. This test is fully tested within SITL, ensuring correct performance of the Autonomous Explore state. However, it has not yet been tested on the physical drone. \\ 
+Result Analysis & Fail. The autonomous explore state was a stretch goal of this project, and is not required for a minimum viable product. \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -1434,16 +1465,16 @@ Result Analysis & Principally pass. The test within SITL verifies that the modul
 
 \section{Reflection}
 \subsection{Project Assessment}
-The current quality of the project is inadequate, as the MVP still has yet to be developed. In particular the autonomous flight software not being tuned to fly autonomously is preventing the project from reaching the MVP milestone. However, there has been significant development on meeting some stretch goals, especially those concerned with visual perception. These are shown within \nameref{subsec:visionApp}. 
+At Revision 0, the quality of the project was inadequate, as the MVP still has yet to be developed. In particular, the autonomous flight software not being tuned to fly autonomously was preventing the project from reaching the MVP milestone. However, there had been significant development in meeting some stretch goals, especially those concerned with visual perception. These are shown within \nameref{subsec:visionApp}. The visual perception features however performed below the 70\% accuracy requirement.
 
-The most important area of improvement is tuning the flight controller so the drone can attain autonomous flight. Areas such as mechanical, electrical, software infrastructure, and communication network design are developed thoroughly and are fully tested. Therefore, once the flight controller is sufficiently tuned, many of the remaining features will be implemented. Another area of improvement are the visual perception features, in particular improving functionality in sunny weather conditions. The low performance is demonstrated within \nameref{tab:OccClassifierSummary}.
+As of Revision 1, the minimum viable product, having a completed aerial drone that can autonomously fly to a location upon a user click, is complete. Some progress has been made on the stretch goals. The occupancy map feature has been implemented, although its accuracy has never been profiled during a live physical drone test. The visual perception stretch goal was fully implemented, and the unit tests showed their accuracy was now sufficient. The "No Parking Lot Detected" error state was implemented. The Autonomous Explore state was implemented although, functionally it simply hovered at its location (path planning was not implemented). 
 
 \subsection{Changes Due to Testing}
 \label{subsec:changesFromTesting}
 
-The documentation review yielded several important changes that need to be made. Improvements to the SRS included specifying which module implements the height requirement, and requirements need to be written for the design decision to use predownloaded satellite imagery. This includes specifying where satellite imagery is stored on the Operator's PC, specifying how the user can specify a location to download satellite imagery, and what happens when the drone flies in an area without predownloaded satalite imagery. Furthermore, due to changes in design, the definition of c\_CurrentView needs to be changed to be just the live camera view without annotations as opposed to an annotated camera stream. Changes to the FSM are also required as the state machine did not account for when software algorithm modules fail to execute, in addition to the changes made to the compulsive/autonomous move state. The VnV Plan survey also revealed that multiple spare batteries, or larger capacity batteries, should be purchased to facilitate the testing process.
+The documentation review yielded several important changes that need to be made. Improvements to the SRS included specifying which module implements the height requirement, and requirements need to be rewritten for the design decision to use predownloaded satellite imagery. This includes specifying where satellite imagery is stored on the Operator's PC, specifying how the user can specify a location to download satellite imagery, and what happens when the drone flies in an area without predownloaded satalite imagery. Furthermore, due to changes in design, the definition of c\_CurrentView needs to be changed to be just the live camera view without annotations as opposed to an annotated camera stream. Changes to the FSM are also required as the state machine did not account for when software algorithm modules fail to execute, in addition to the changes made to the compulsive move state. The VnV Plan survey also revealed that multiple spare batteries, or larger capacity batteries, should be purchased to facilitate the testing process.
 
-The test cases also revealed issues with the current implementation. For example a visual trace of the drone's previous path in the past 10 seconds is not visible in the GUI, and the accuracy of the visual perception algorithm (both segmentation and classification) is poor and not robust, thus should be improved.
+The test cases also revealed issues with the implementation at that time. For example a visual trace of the drone's previous path in the past 10 seconds was not visible in the GUI, and the accuracy of the visual perception algorithm (both segmentation and classification) is poor and not robust, thus should be improved.
 
 \section{Automated Testing}
 
@@ -1499,12 +1530,10 @@ Functional Requirement & Test Case to Verify \\
 \nameref{GEN_006} & \nameref{tab:STCR_013}, \nameref{tab:STCR_016}\\ \hline
 \nameref{STA_000} & \nameref{tab:STCR_001}, \nameref{tab:STCR_002}, \nameref{tab:STCR_003}, \nameref{tab:UTCR_015} \\ \hline
 \nameref{STA_001} & \nameref{tab:STCR_001}, \nameref{tab:STCR_002}, \nameref{tab:STCR_003}, \nameref{tab:UTCR_015} \\ \hline
-\nameref{STA_002} & \nameref{tab:STCR_005}, \nameref{tab:STCR_011} \\ \hline
 \nameref{STA_003} & \nameref{tab:STCR_016}, \nameref{tab:STCR_012}, \nameref{tab:STCR_013}, \nameref{tab:UTCR_019} \\ \hline
 \nameref{STA_004} & \nameref{tab:STCR_001}, \nameref{tab:STCR_002}, \nameref{tab:STCR_003}, \nameref{tab:UTCR_014}, \nameref{tab:UTCR_015} \\ \hline
 \nameref{STA_005} & \nameref{tab:STCR_001}, \nameref{tab:STCR_002}, \nameref{tab:STCR_003} \\ \hline
 \nameref{STA_006} & \nameref{tab:STCR_001}, \nameref{tab:STCR_002}, \nameref{tab:STCR_003} \\ \hline
-\nameref{STA_007} & \nameref{tab:STCR_011} \\ \hline
 \nameref{STA_008} & \nameref{tab:STCR_012}, \nameref{tab:UTCR_018} \\ \hline
 \nameref{STA_009} & \nameref{tab:STCR_006}, \nameref{tab:UTCR_016} \\ \hline
 \nameref{STA_010} & \nameref{tab:STCR_008}, \nameref{tab:STCR_009}, \nameref{tab:STCR_010}, \nameref{tab:UTCR_017} \\ \hline

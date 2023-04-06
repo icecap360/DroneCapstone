@@ -64,6 +64,7 @@
 \toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
 \midrule
 January 17, 2023 & 1.0 & Initial Revision\\
+April 5, 2023 & 2.0 & Updated User Interface section for changes.\\
 \bottomrule
 \end{tabularx}
 
@@ -160,12 +161,9 @@ The following normal states are listed as per the SRS. Within this behaviour, th
  \hline Hover & After completion of Takeoff State. & 
     The product shall fly and hover to height i\_MaxHoverHeight. The drone shall keep the same lateral location it is currently at. The drone cannot transition to another flight state until it has reached a height of i\_MaxHoverHeight. & 
     This state is used for when the product is waiting for further operator commands. Hover height is selected to be i\_MaxHoverHeight, so that the drone can see as much of the parking lot section as it  can. \\
-\hline Autonomous Move & Operator asserts m_CompulsiveMove == true and requested      location is within parking lot bounds. & 
-    If the Operator requests to move to a specific location within the parking lot, the product shall move to the m\_DesiredUserLoc if it is within the parking lot, and hovers at that location with height i\_DesiredHoverHeight. Note that this height does not need to be the same as the height specified in the Hover State. & 
-    This state is used for when the product needs to provide the operator the ability to move the drone to a specific location within the parking lot. \\
 \hline Compulsive Move & Operator sets m_CompulsiveMove == true and requested         location is outside parking lot bounds.	& 
-    If the Operator requests to move to a location, the product shall move to that location regardless of if it is within the parking lot. Once at that location, the product shall hover at a pre-defined operator-selected height. Note that this height does not need to be the same as the height specified in the Hover State.	&
-    This state is used for when the product needs to provide the operator the ability to move the drone to a specific location outside of the parking lot. \\
+    If the Operator requests to move to a location, the product shall move to that location. If the location is not within a parking lot, a prompt warns the user prior to proceeding. Once at that location, the product shall hover at a pre-defined operator-selected height. Note that this height does not need to be the same as the height specified in the Hover State.	&
+    This state is used for when the product needs to provide the operator the ability to move the drone to a specific location. \\
 \hline 
 \end{tabular}
 \end{center}
@@ -232,10 +230,6 @@ The following error states in Table \ref{ErrorStates} require no additional hard
 \begin{tabular}{ | m{2.7cm} | m{2.3cm} | m{7.5cm} | m{2.5cm} | } 
 \hline
  State & Transition & Behaviour & Purpose \\ 
- \hline Desired Location Error &
-    The operator specifies an invalid desired position. & 
-    Upon entry to this state, the c\_UserError variable is set to Desired\_Location\_Out\_Of\_Bounds, and set to None upon exit. The drone proceeds to Hover at its current location. Upon exit of this state, the drone shall set c\_UserError to None. Upon entry, the message "Desired Location out of parking lot bounds" shall be logged into c\_Logs. & 
-    This state is used to indicate explicitly that the operator’s  request cannot be met. \\
 \hline No Parking Lot Detected Error & 
     The product does not detect a valid parking lot. & 
     Upon entry to this state, the c\_UserError variable is set to No\_Lot\_Detected\_State, and while upon exit c\_UserError is set to None upon exit. The drone proceeds to Hover at its current location. Upon exit of this state, the drone shall set c\_UserError to None. Upon entry, the message "No Parking Lot detected." shall be logged into c_Logs. & 
@@ -287,12 +281,10 @@ Functional Requirement & Relevant Components & Component Reference \\
 \nameref{GEN_006} & Normal Flight States & \nameref{FlightStates} \\ \hline
 \nameref{STA_000} & Idle State & \nameref{NonFlightStates} \\ \hline
 \nameref{STA_001} & Hover State & \nameref{FlightStates} \\ \hline
-\nameref{STA_002} & Autonomous Move State & \nameref{FlightStates} \\ \hline
 \nameref{STA_003} & Autonomous Explore State & \nameref{FlightStates} \\ \hline
 \nameref{STA_004} & Configure State & \nameref{NonFlightStates} \\ \hline
 \nameref{STA_005} & Off State & \nameref{NonFlightStates} \\ \hline
 \nameref{STA_006} & Land State & \nameref{FlightStates} \\ \hline
-\nameref{STA_007} & Desired Location Error State & \nameref{ErrorStates} \\ \hline
 \nameref{STA_008} & No Parking Lot Detected Error State & \nameref{ErrorStates} \\ \hline
 \nameref{STA_009} & Malfunction State & \nameref{ErrorStates} \\ \hline
 \nameref{STA_010} & Communication Lost State & \nameref{ErrorStates} \\ \hline
@@ -333,7 +325,7 @@ Non-Functional Requirement & Relevant Components & Component Reference \\
 \nameref{PERF_005} & Hover State & \nameref{FlightStates} \\ \hline
 \nameref{PERF_006} & Normal Flight States & \nameref{FlightStates} \\ \hline
 \nameref{PERF_007} & All Flight States & \nameref{FlightStates}, \nameref{NonFlightStates}, \nameref{ErrorStates} \\ \hline
-\nameref{PERF_008} & Autunomous Move State & \nameref{FlightStates} \\ \hline
+\nameref{PERF_008} & Compulsive State & \nameref{FlightStates} \\ \hline
 \nameref{DES_001} & Mechanical Hardware and Electrical Components & \nameref{sec:mechHardware}, \nameref{sec:elecComponents} \\ \hline
 \nameref{STD_001} & Mechanical Hardware and Electrical Components & \nameref{sec:mechHardware}, \nameref{sec:elecComponents} \\ \hline
 \nameref{STD_002} & Radio Receiver & \nameref{sec:elecComponents} \\ \hline
@@ -460,7 +452,9 @@ c\_MotorSpeeds &Vector&	   $rad/s^2$ &	 n-dimensional vector containing the moto
 \hline
 c\_Connected & Boolean &	- &	Indicates if connection between the drone and the operator's application is established\\
 \hline
-c\_ParkingLotDetected&	Boolean &	-&	Indicated if a parking lot is detected in the c_CurrentView.\\
+c\_ParkingLotDetected&	Boolean &	-&	Indicates if a parking lot is detected in the c_CurrentView.\\
+\hline
+c\_SatalietteImageryAvailable&	Boolean &	-&	Indicates if a sataliete imagery for the current drone location is available.\\
 \hline
 c\_UserError &	Enumeration &	0 - None,
 1 - Desired_Location_Out_Of_Bounds,
@@ -497,7 +491,8 @@ The Software User Interface for ParkingLotHawk is used to control the drone from
   \end{center}
 \end{figure}
 
-The first window is the \nameref{UserInterface} where the operator can view the location of the drone on the map and various information related to the drone. The information on the drone is displayed at the top of the window. There is also a logs window which displays the program status or any changes that occur in the software at the bottom. The operator can control the configurations for the drone start-up from the left section of the window. The central map displayed in the window functions similarly to the maps within SITL programs that are used for drone simulation, which is to direct the drone’s flight path from point A (drone position) to point B (drone destination) upon mouse click, and trace its movement as it moves. \\
+
+The first window is the \nameref{UserInterface} where the operator has various buttons available at there discretion to transition the drone to various flight states. The information about the drones current status is displayed at the top of the window. There is also a logs window which displays the program status or any changes that occur in the software at the bottom. \\
 
 \begin{figure}[h!]
   \begin{center} 
@@ -507,17 +502,21 @@ The first window is the \nameref{UserInterface} where the operator can view the 
   \end{center}
 \end{figure}
 
-\clearpage
 
-The second window, \nameref{CameraandOccupancy}, displays c\_currentView and the occupancy map of the entire parking lot that is currently being explored by the drone. There exists a sliding divider in the center which displays the visual images from the camera on the left and the parking lot on the right, with the status of the parking spots constantly updated by the drone. \\
+The second window is the \nameref{Satellite Map Window} which is a stitched to get area surrounding the connection location. The stitched image is created from pre-downloaded satellite maps from the Google Maps API. A blue diamond indicates drone’s current location, circular blue marker used for drone location trace, yellow cross indicates the desired location that can be changed by clicking on the map,
+green circles indicate unoccupied points, and red circles indicate occupied points. \\
 
 \begin{figure}[h!]
   \begin{center} 
-  \caption{Camera and Occupancy Map}
-  \label{CameraandOccupancy}
-        \includegraphics[width=0.65\textwidth]{CamOcc.png}
+  \caption{Satellite Map Window}
+  \label{Satellite Map Window}
+        \includegraphics[width=1\textwidth]{SatalieteWindow.png}
   \end{center}
 \end{figure}
+
+
+The third window contains the live video feed from the drone's camera. \\
+
 
 There are many objects that are used during the operation of the application, with the major ones being focused on in the \nameref{tab:UserInterfaceObjects} table.
 
@@ -576,8 +575,6 @@ Compulsive Move & self.pushButton_5 & Button & Click for allowing user to contro
 \begin{tabular}{ | m{2.5cm} | m{3.5cm} | m{2.5cm} | m{6.5cm} | } 
 \hline
 Name & Variable Name & Object Type & Description \\
-\hline
-Autonomous Move & self.pushButton_6 & Button & Click to have the drone move automatically. \\
 \hline
 Land & self.pushButton_7 & Button & Click to land the drone. \\
 \hline
@@ -936,7 +933,7 @@ January 14, 2023 & Research and implement the algorithms used by the Vision App,
 \hline
 Date & Modules/Description & Test Method & Responsible By \\
 \hline
-February 6, 2022 & Integration testing of the non-autonomous operation states on the physical drone. & 
+March 30th, 2022 & Integration testing of the non-autonomous operation states on the physical drone. & 
     On the physical drone, run the following test case: 
     \begin{enumerate}
     \item Configure the height parameters to each be 10 meters.
@@ -949,7 +946,7 @@ February 6, 2022 & Integration testing of the non-autonomous operation states on
     \end{enumerate}
     & Ali, Fady, Zaid, Winnie \\
 \hline
-March 15, 2023 & Integration testing the autonomous operation states on the physical drone. & 
+June 1st, 2023 & Integration testing the autonomous operation states on the physical drone. & 
     Run the Main Algorithm Module and the Main DDC Module as concurrent processes on the drone. Using the user interface, make the drone enter the autonomous explore state. Wait 1 minute. It should explore some section of the parking lot. If this test works, the No Parking Lot Detected Error state automatically works as well. Also using the user interface, command to drone use the Autonomous Move state and move to a location outside the parking lot. Once the drone reaches near the edge of the parking lot, it should enter the Desired Location Error state, complaining the location is outside of the parking lot.  & Ali, Zaid, Fady, Winnie \\
 \hline
 \end{tabular}

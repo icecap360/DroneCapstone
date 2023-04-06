@@ -313,7 +313,7 @@ Ardupilot \\
 Communication Hiding &
 Drone-PC Communication Hiding & Base Socket \\
  && Message Socket \\
- && GStreamer \\
+ && Video Streamer \\
  && Drone Camera \\
  && Operator Camera \\
  &{Drone Inter-Process Communication Hiding} 
@@ -343,6 +343,96 @@ Interface Hiding
 \label{TblMH}
 \end{table}
 
+
+\section{Repository File Guide} \label{SecFG}
+
+A description of the various files contained in the repository and any modules they implement is documented in \ref{tab:FileGuideDrone}, \ref{tab:FileGuideShared}, and \ref{tab:FileGuidePC}. 
+
+
+\begin{table}[!h]
+\begin{center}
+\caption {Description of each written code file in the repository that are run on the drone.}
+\label{tab:FileGuideDrone}
+\begin{tabular}{ | m{5cm} | m{3cm} | m{9cm} | } 
+\hline
+Folder & Filename & Description/Modules Implemented \\ 
+\hline
+\path{src\DroneApp\src\algo_app\src} & TopicInterface.py & Implements \nameref{Algorithm Topic Interface} \\ 
+\hline
+\path{src\DroneApp\src\algo_app\src} & AlgorithmApp.py & Implements \nameref{Algorithm Manager App}  \\ 
+\hline
+\path{src\DroneApp\src\algo_app\src} & MainPI.py & Implements \nameref{Main Algorithm Module} for the Raspberry Pi platform. This module is run on the physical drone. \\ 
+\hline
+\path{src\DroneApp\src\algo_app\src} & MainSITL.py & Implements \nameref{Main Algorithm Module} for the SITL platform. Used for testing. \\ 
+\hline
+\path{src\DroneApp\src\algo_app\src} & MapperApp.py & Implements \nameref{Mapper App}. \\ 
+\hline
+\path{src\DroneApp\src\algo_app\src} & PathPlanApp.py & Implements \nameref{Path Plan App}. \\ 
+\hline
+\path{src\DroneApp\src\fsm_app\src} & \seqsplit{ServiceInterface.py} & Implements \nameref{DDC Service Interface}. \\ 
+\hline
+\path{src\DroneApp\src\fsm_app\src} & TopicInterface.py & Implements \nameref{DDC Topic Interface}. \\ 
+\hline
+\path{src\DroneApp\src\fsm_app\src} & AbstractState.py & Contains an abstract base class with the interface of \nameref{Operation States}. \\ 
+\hline
+\path{src\DroneApp\src\fsm_app\src} & BasicStates.py & Implements of all operation states specified in the SRS, inheriting and the interface specified in \nameref{Operation States}.\\ 
+\hline
+\path{src\DroneApp\src\fsm_app\src} & MainPI.py & Implements \nameref{Main DDC Module} for the Raspberry Pi platform. \\ 
+\hline
+\path{src\DroneApp\src\fsm_app\src} & MainSITL.py & Implements \nameref{Main DDC Module} for the SITL platform. This module is used for testing. \\ 
+\hline
+\path{src\DroneApp\src\fsm_app\src} & \seqsplit{OperationManager.py} & Implements \nameref{Operations Manager}. \\ 
+\hline
+\path{src\DroneApp\src\fsm_app\src} & Params.json & Stores height parameters for reload during reboot. \\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+\begin{table}[!h]
+\begin{center}
+\caption {Description of each written code file in the repository that is run on both the drone and Operator's PC.}
+\label{tab:FileGuideShared}
+\begin{tabular}{ | m{5cm} | m{3cm} | m{9cm} | } 
+\hline
+Folder & Filename & Description/Modules Implemented \\ 
+\hline
+\path{src\Utils} & Common.py & Contains the implementation of the enumerated types c\_UserError and c\_HealthStatus. \\ 
+\hline
+\path{src\Utils} & MessageSocket.py & Implements \nameref{Message Socket}. \\ 
+\hline
+\path{src\Utils} & VisionApp.py & Implements \nameref{Vision App} for both the Raspberry PI and PC platforms. \\ 
+\hline
+\path{src\Utils} & Segmenters.py, Classifier.py & Contain routines used by VisionApp.py.  \\ 
+\hline
+\path{src\Utils} & Camera.py, Classifier.py & Implements \nameref{Drone Camera}  \nameref{Operator Camera}. \\ 
+\hline
+\path{test} & - & This folder contains files that were used for conducting the unit tests. \\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[!h]
+\begin{center}
+\caption {Description of each written code file in the repository that are run on the Operator's PC.}
+\label{tab:FileGuidePC}
+\begin{tabular}{ | m{5cm} | m{5cm} | m{5cm} | } 
+\hline
+Folder & Filename & Description/Modules Implemented \\ 
+\hline
+\path{src\OperatorApp} & MainUserInterface.py & Implements \nameref{Main Interface Module}. \\ 
+\hline
+\path{src\OperatorApp} & UserInterface.py & Implements \nameref{User Interface}. \\ 
+\hline
+\path{src\OperatorApp} & MapWindow.py, Stitch.py, DroneApp.ui & Contains routines used by UserInterface.py. \\ 
+\hline 
+\end{tabular}
+\end{center}
+\end{table}
+\clearpage
 \section{Connection Between Requirements and Design} \label{SecConnection}
 
 The design of the system is intended to satisfy the requirements developed in
@@ -434,10 +524,10 @@ different platforms over a LAN network.
 \end{description}
 
 \paragraph{Video Streamer}
-\label{GStreamer}
+\label{Video Streamer}
 \begin{description}
 \item[Secrets:] The secret of this module is the creation and maintenance of complex video streaming pipelines.
-\item[Services:] GStreamer is an library and application that can be used to read images from a camera, send images over a network, and and read images from a network (IP and POrt).
+\item[Services:] GStreamer is an open-source library and application that can be used to read images from a camera, send images over a network, and and read images from a network (IP and POrt).
 
 On the Drone, GStreamer is a process that can read images from a camera and share them over a network (IP and Port). It supports the creation of complex optimized video streaming pipelines. Various types of  compression algorithms, decompression algorithms, and streaming protocols are supported.
 
@@ -748,7 +838,7 @@ This section shows two traceability matrices: between the modules and the requir
 \ref{AC_MavROS2} & \nameref{MavROS} \\
 \ref{AC_BaseSocket1} & \nameref{Base Socket} \\
 \ref{AC_MessageSocket1} & \nameref{Message Socket} \\
-\ref{AC_GStreamer1} & \nameref{GStreamer} \\
+\ref{AC_GStreamer1} & \nameref{Video Streamer} \\
 \ref{AC_DroneCamera1} & \nameref{Drone Camera} \\
 \ref{AC_DroneCamera2} & \nameref{Drone Camera} \\
 \ref{AC_OperatorCamera1} & \nameref{Operator Camera} \\

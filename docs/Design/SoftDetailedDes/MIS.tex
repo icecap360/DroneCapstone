@@ -82,6 +82,7 @@ urlcolor=cyan          % color of external links
 \toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
 \midrule
 January 18, 2023 & 1.0 & Initial Revision\\
+April 5, 2023 & 2.0 & Updating topic interfaces for new topics, split the process methods into process and publish, and updated camera modules for new interface. \\
 \bottomrule
 \end{tabularx}
 
@@ -378,7 +379,9 @@ The secret of this module is accessing the Drone's camera images for modules run
 \hline
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 init & - & - & - \\
+read & - & - & - \\
 getImage & - & Image Array & NoImage \\
+send & Image Array & - & SendFailed \\
 \hline
 \hline
 \end{tabular}
@@ -406,12 +409,26 @@ The init() routine is called before any other access programs.
 \item output: -
 \item description: Starts the background thread to read images from the camera.
 \end{itemize}
+\noindent read():
+\begin{itemize}
+\item transition: -
+\item output: -
+\item exception: \{image = NULL $\Rightarrow$ NoImage)\}
+\item description: Returns the latest image captured from the camera, stores it in the image variable. If for some failure the images cannot be read from the hardware, a NoImage error is returned.  
+\end{itemize}
 \noindent getImage():
 \begin{itemize}
 \item transition: -
 \item output: out := image 
 \item exception: \{image = NULL $\Rightarrow$ NoImage)\}
-\item description: Returns the latest image captured from the camera. If for some failure the images cannot be read from the hardware, a NoImage error is returned.  
+\item description: Returns a reference to the image variable.  
+\end{itemize}
+\noindent send(inImage):
+\begin{itemize}
+\item transition: -
+\item output: -
+\item exception: \{inImage = NULL $\Rightarrow$ SendFailed)\}
+\item description: Sends the image passed as input over the video stream. Returns SendFailed if the image was unable to be sent
 \end{itemize}
 \subsubsection{Local Functions}
 \noindent startReadThread():
@@ -444,6 +461,7 @@ The secret of this module is the communication means used to obtain images from 
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 init & - & - & - \\
 getImage & - & Image Array & NoImage \\
+read & - & - & NoImage \\
 \hline
 \hline
 \end{tabular}
@@ -471,6 +489,12 @@ The init() routine is called before any other access programs.
 \item transition:\\startReadThread();
 \item output: -
 \item description: Starts the background thread to read images from the VideoStreamer.
+\end{itemize}
+\noindent read():
+\begin{itemize}
+\item output: -
+\item exception: \{image = NULL $\Rightarrow$ NoImage\}
+\item description: Captures the latest image and stores a reference to it in the image variable. 
 \end{itemize}
 \noindent getImage():
 \begin{itemize}
@@ -512,7 +536,7 @@ The secret of this module is reading data from various topics created by other p
 parkLotDetectedPub & ROS Topic Publisher for publishing booleans. &  Indicates if a parking lot is currently visible at the drone's current position. Meant for usage by the \nameref{Operations Manager}. \\
 desLocInboundPub & ROS Topic Publisher for publishing booleans. &  Indicates if the location that the Operations Manager App is intends the drone to move to is within the parking lot. Meant for usage by the \nameref{Operations Manager}. \\
 occupancyMapPub  & ROS Topic Publisher for publishing occupancy maps. &  Contains the latest occupancy map, created from observations ever since the drone launched. Meant for usage by the \nameref{Operations Manager}. \\
-localPosPub & ROS topic Publisher for publishing local poses. &  Contains the next position the drone should move to. This topic is consumed by the MavROS process, which in turn relays this instruction to the flight controller. \\
+setpointPosPub & ROS topic Publisher for publishing global poses. &  Contains the next position the drone should move to. This topic is consumed by the MavROS process, which in turn relays this instruction to the flight controller. \\
 visionAppHealthPub & Health Status & Health status of the Vision App module.  \\
 mapperAppHealthPub & Health Status & Health status of the Mapper App module.  \\
 pathPlanAppHealthPub & Health Status & Health status of the Path Plan App module.  \\
@@ -527,8 +551,10 @@ pathPlanAppHealthPub & Health Status & Health status of the Path Plan App module
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 init &  - & - & - \\
 getDroneState &  - & string & - \\
-getDesiredPose & - & Local Pose & - \\
+getDesiredPose & - & Global Pose & - \\
 getLocalPose & - & Local Pose & - \\
+getGlobalPose & - & Global Pose & - \\
+getDesiredPose & - & Global Pose & - \\
 \hline
 \hline
 \end{tabular}
@@ -541,7 +567,8 @@ getLocalPose & - & Local Pose & - \\
 \textbf{Name} & \textbf{Type} & \textbf{Description}  \\
 droneState & string & The latest estimate of the current Operation State (\nameref{Operation States}) the drone is currently operating in. Received from the \nameref{Operations Manager}.  \\
 desiredPose & Local Pose & The latest estimate of the location the user desires the drone to move to. Received from the \nameref{Operations Manager}. \\
-localPose & Local Pose & The current pose of the drone, with respect to the location the drone was armed.  \\
+globalPose & Global Pose & The current pose of the drone, in global coordinates.  \\
+desiredPose & Global Pose & The desired pose of the drone, as per Operation Manager (this is typically just the requested pose from the user interface).  \\
 \hline
 \hline
 \end{tabular}
@@ -566,6 +593,14 @@ The init() routine is called before any other access programs.
 \noindent getLocalPose():
 \begin{itemize}
 \item output: out := localPose 
+\end{itemize}
+\noindent getGlobalPose():
+\begin{itemize}
+\item output: out := globalPose 
+\end{itemize}
+\noindent getDesiredPose():
+\begin{itemize}
+\item output: out := desiredPose 
 \end{itemize}
 \subsubsection{Local Functions}
 \noindent initSubscribers():
@@ -634,9 +669,10 @@ The init() routine is called before any other access programs.
 \noindent process():
 \begin{itemize}
 \item transition: annotatedImage := droneCamera.getImage(); \\
-res = runImageAlgorithms(topicInterface); \\ sendUpdate(topicInterface);
+droneCamera.read()\\
+res = processImage(droneCamera.getImage()); 
 \item exception: \{annotatedImage = NoImage $\rightarrow$ NoImage, res = AlgoError $\Rightarrow$ AlgoError\} \\
-\item description: Called every frame, this function runs the vision algorithm on the latest raw images from the Drone Camera module and information from the Topic Interface. Then it updates the relevent topics and modules.
+\item description: Called every frame, this function runs the vision algorithm on the latest raw images from the Drone Camera module and information from the Topic Interface. 
 \end{itemize}
 \noindent getParkLotDetected():
 \begin{itemize}
@@ -646,13 +682,13 @@ res = runImageAlgorithms(topicInterface); \\ sendUpdate(topicInterface);
 \begin{itemize}
 \item output: out := health 
 \end{itemize}
-\noindent publish(topicInterface):
+\noindent publish():
 \begin{itemize}
 \item transition: topicInterface.parkLotDetectedPub.publish(getParkLotDetected()); \\ topicInterface.visionAppHealthPub.publish(getHealth())
 \item description: Shares the algorithm results on the relevant topics.
 \end{itemize}
 \subsubsection{Local Functions}
-\noindent runImageAlgorithms(topicInterface):
+\noindent processImage(image):
 \begin{itemize}
 \item exception: If the algorithm fails to run for any issues, it returns an AlgoError exception. 
 \item description: Runs the image processing algorithm and stores the resulting image in annotatedImage. Updates the parkLotDetected variable.  
@@ -719,10 +755,9 @@ The init() routine is called before any other access programs.
 \end{itemize}
 \noindent process():
 \begin{itemize}
-\item transition: res := runMappingAlgorithms(visionApp, topicInterface); \\
-sendUpdate(topicInterface);
+\item transition: -
 \item exception: \{res = AlgoError $\Rightarrow$ AlgoError \}
-\item description: Called every frame, this function runs the mapping algorithm on the latest raw information from the Vision App and Topic Interface. Then it updates the topics with the latest mapping results.
+\item description: Called every frame, this function runs the mapping algorithm on the latest raw information from the Vision App and Topic Interface. Its details are hidden since the algorithm as it is a secret of this module. 
 \end{itemize}
 \noindent getOccupancyMap():
 \begin{itemize}
@@ -737,11 +772,6 @@ sendUpdate(topicInterface);
 \noindent getHealth():
 \begin{itemize}
 \item output: out := health 
-\end{itemize}
-\noindent runMappingAlgorithms(visionApp, topicInterface):
-\begin{itemize}
-\item exception: If the algorithm fails to run for any issues, it returns an AlgoError exception. 
-\item description: Runs the mapping algorithm, storing the results in occupancyMap. The algorithm will use the visionApp.getParkLotDetected() routine.
 \end{itemize}
 \newpage
 
@@ -775,7 +805,6 @@ The secret of this module is the path-planning decisions of the drone.
 init & inMappingApp: Mapper App, inTopicInterface: Algorithm Topic Interface & - & - \\
 process & - & - & AlgoError \\
 publish & - & - & - \\
-getLocalPose & - & Local Pose & - \\
 getDesPoseInbound & - & bool & - \\
 getHealth & - & Health Status & - \\
 \hline
@@ -791,7 +820,7 @@ getHealth & - & Health Status & - \\
 mappingApp & Mapper App & Contains a reference to the Mapper App object. \\
 topicInterface & Algorithm Topic Interface & Contains a reference to the Algorithm Topic Interface object.\\
 desPoseInbound & bool & This boolean indicates if the pose that the user requests the drone to move toward is valid (i.e within the parking lot).  \\ 
-localPose & Local Pose & This is the pose that the drone is actually instructed to move toward. \\
+autoExplorePose & Global Pose & This pose is the suggested pose for future exploration.  \\ 
 health & Health Status & Health of module, whether results can be trusted.   \\
 \hline
 \hline
@@ -809,10 +838,9 @@ localPose = new Pose();
 \end{itemize}
 \noindent process():
 \begin{itemize}
-\item transition: res := runPathPlanAlgorithms(mappingApp, topicInterface); \\
-sendUpdate(topicInterface);
+\item transition: -
 \item exception: \{res = AlgoError $\Rightarrow$ AlgoError\}
-\item description: Called every frame, this function runs the path planning algorithm on the latest raw information from the Mapper App and Topic Interface. Then it updates the topics with the latest algorithm results.
+\item description: Called every frame, this function runs the path planning algorithm on the latest raw information from the Mapper App and Topic Interface. If in autonomous explore mode, this method will update the autoExplorePose with the next suggested pose for exploration. Its implementation is a secret of this module.
 \end{itemize}
 \noindent getOccupancyMap():
 \begin{itemize}
@@ -820,19 +848,17 @@ sendUpdate(topicInterface);
 \end{itemize}
 \noindent publish(topicInterface):
 \begin{itemize}
-\item transition: topicInterface.desLocInboundPub.publish(getDesLocInbound()); \\
-topicInterface.localPosePub.publish(getLocalPose()); \\
+\item transition: 
+droneState = self.topicInterface.getDroneState() \\
+desPoseFSM = self.topicInterface.getDesiredPose()\\
+if  droneState== 'AutonomousExplore': \\ topicInterface.globalPosPub.publish(autoExplorePose) \\
+else: \\
+topicInterface.globalPosPub.publish(desPoseFSM) \\
+topicInterface.desLocInboundPub.publish(getDesLocInbound()); \\
 topicInterface.pathPlanHealthPub.publish(getHealth()); \\
 \item description: Updates the relevant topics and modules with the algorithm results.
 \end{itemize}
 \subsubsection{Local Functions}
-\noindent runPathPlanAlgorithms(visionApp, topicInterface):
-\begin{itemize}
-\item exception: If the algorithm fails to run for any issues, it returns a AlgoError exception. 
-\item description: Runs the path plan algorithm, storing the results in localPose and desPoseInbound. The algorithm will use the Occupancy Map (from mapping.getOccupancyMap()) to make suggest a path. 
-
-Note that localPose is different from desPose. The former is the actual pose that the drone is instructed to move toward. The latter (available in the Algorithm Topic Interface) is the pose that the  user requests the drone to move toward. They are the same in all flight states, except for the Autonomous Explore state, under which the drone moves toward the location that will yield the most amount of new parking lot information. Responsibility is given to the algorithm engineer to implement an exploration algorithm, as well as to obey the state requirements indicated in the SRS.
-\end{itemize}
 \newpage
 
 
@@ -1456,7 +1482,7 @@ port & int & Port used for communication with the client socket. \\
 \item transition: 
 serverIP = ""; // Server sockets have no IP, as per Base Socket implementation \\
 serverPort = 3000; // The port number can be changed \\
-droneSocket = new MessageSocket("SERVER", serverIP ,serverPort)\\
+droneSocket = new MessageSocket("DRONE", serverIP ,serverPort)\\
 topicInterface = new TopicInterface();\\
 serviceInterface = new ServerInterface();\\
 operationManager = new OperationManager(droneSocket, topicInterface, serviceInterface);\\
@@ -1557,7 +1583,7 @@ operatorCamera.init(); \\
 \item description: This routine does not exit until the user closes the app.  
 \end{itemize}
 \subsubsection{Local Functions}
-\noindent processInputs():
+\noindent processHeartbeat():
 \begin{itemize}
 \item transition:
 if (connect) droneSocket.init();\\
@@ -1566,7 +1592,6 @@ elif (configure) operatorSocket.send(\{"Type":"Configure", "Min":minHoverHeight,
  elif (takeoff) operatorSocket.send(\{"Type": "Takeoff"\});\\
  elif (autonomousExplore) operatorSocket.send(\{"Type": "Autonomous Explore"\});\\
  elif (compulsiveMove) operatorSocket.send(\{"Type": "Compulsive Move", \\ "X": desiredLocationX, "Y": desiredLocationY\});\\
- elif (autonomousMove) operatorSocket.send(\{"Type": "Autonomous Move", \\ "X": desiredLocationX, "Y": desiredLocationY\});\\
 \item description: This routine checks all of the environment variables. If an environment variable is triggered, send the appropriate command to the drone. For the boolean environment variables, at a given moment in time, only one of the variables will be true.
 \end{itemize}
 
@@ -1633,12 +1658,13 @@ port & int ($\mathbb{N}$) & Private IP address of the drone \\
 \noindent main():
 \begin{itemize}
 \item transition: operatorCamera = new OperatorCamera(); \\
-IP = '192.168.1.100'; // This is the static IP address of the drone. It may be something else. \\
-port = 3000; // It may be something else. \\
+IP = '192.168.1.100'; \\This is the static IP address of the drone. It may be something else. \\
+port = 3000;// It may be something else. \\
 droneInterface = new MessageSocket("OPERATOR", IP, port); \\
-StartDroneCameraDisplay(droneInterface); \\
+StartDroneCameraDisplay(operatorCamera); \\
 userInterface = new UserInterface(droneInterface);\\
-userInterface.exec\_();
+userInterface.exec\_(); \\
+uiApp.close();
 \item description: This is the starting point of execution for the process running on the Operator's PC.
 \end{itemize}
 \subsubsection{Local Functions}

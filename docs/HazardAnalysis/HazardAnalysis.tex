@@ -1,5 +1,4 @@
 \documentclass{article}
-\documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage{fullpage}
 \usepackage{amsmath, mathtools}
@@ -63,6 +62,10 @@
 October 19, 2022 & 1.0 & Initial Revision \\
 \midrule
 November 2, 2022 & 2.0 & Removing malfunction button requirement, changing low battery threshold. \\
+\midrule
+March 4, 2023 & 3.0 & Added clarification on actions to take when using redundant sensors. Added faults on visual perception system. \\
+\midrule
+March 4, 2023 & 3.1 & Requirements updated in response to change in where the parking lot bounds are computed (Drone vs PC). Moved secondary sensor implementation requirements into Phase IV. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -97,7 +100,7 @@ Safety is a key feature of almost all products and services used. In order to de
 
 The purpose of the Hazard Analysis is to find, understand and finalize resolutions to the various hazards that may occur.  
 
-The product, ParkingLotHawk, is an Autonomous Aerial Drone used to gather live images and data within the confines of any given outdoor parking lot. The drone records the situation of each parking space periodically, and the information is sent to the user staying on the property in a timely manner. The user of such a product is the Parking Lot Operator (called Operator for short), who communicates with the Aerial Drone using an application running on their PC.
+The product, ParkingLotHawk, is an autonomous aerial drone used to gather live images and data within the confines of any given outdoor parking lot.  The user of such a product is the Parking Lot Operator (called Operator for short), who communicates with the Aerial Drone using an application running on their PC.
 
 The scope of this Hazard Analysis is related to hazards that occur when the Parking Lot Operator is using the final product in the typical real-world use case: investigating an outdoor parking lot. For example, Hazards related to the development and prototyping of the product are not analyzed in this document. 
 
@@ -120,7 +123,7 @@ Main Drone Application & The Main Drone Application contains an implementation o
 \hline
 Flight Operations & This component is responsible for calculating the optimal propeller speeds to stabilize and move the drone in accordance with movement commands from the Main Application. This component consists of the flight controller hardware, the external sensors it uses, and firmware that is flashed onto the flight controller board. Internal sensors include the Inertial Measurement Unit (IMU) for estimating acceleration and angular rate, a compass for orientation, and a barometer for atmospheric pressure to determine the altitude. External sensors include the Global Positioning System (GPS), used to locate the drone's position. \\
 \hline
-Vision Perception & The Vision Perception component consists of a camera and the algorithm for detecting parking spots, making an occupancy map of the lot, and segmenting the boundaries of the parking lot. It outputs segmentation, detections of parking lots, occupancy map, and live images that are used by the Main Drone Application. \\
+Vision Perception & The Vision Perception component consists of a camera and the algorithm for detecting parking spots, making an occupancy map of the lot, and segmenting the boundaries of the parking lot. It outputs live images from that camera for the user interface to display to the operator, and outputs and detections of whether it currently sees a parking lot which is used by the user interface to create an occupancy map. \\
 \hline
 Path Planner & This software component is used for autonomous exploration; it creates a path to explore the parking lot. Its outputs are used by the Main Drone Application. \\
 \hline
@@ -143,7 +146,7 @@ Figure \ref{fig:SystemCompDiagram} below visualizes all of the system components
 
 \begin{figure}[!h]
     \centering
-    \includegraphics[width=1\textwidth]{HA/System Components.jpg}
+    \includegraphics[width=1\textwidth]{HazardAnalysis/System Components.jpg}
     \caption{Systems Components Diagram}
     \label{fig:SystemCompDiagram}
 \end{figure}
@@ -162,6 +165,12 @@ There are several assumptions that help to solve and sometimes even eliminate ha
 
 The analysis of the components outlined within \nameref{SystemBoundaries} are provided through FMEA tables below, with the associated Safety Requirements attached to any applicable hazards.
 
+The Severity, Occurance, and Detection are ranked on linear scales of 10, with 10 being the most severe. RPN then provides a combined score for the hazard, with higher RPNs being more hazardous.
+
+With regards to H\_001 and H\_002, the redundant sensor will be implemented in the same way as the primary, but the sensor will be selected to provide increased robustness at the cost of accuracy. If the primary sensor has a variance above a threshold, calculated through the Extended Kalman Filter, the secondary sensor will be used instead. If the secondary sensor also produces unacceptable variances, then the drone will enter the Malfunction State.
+
+Similarly for H\_003, the height readings from the barometer will be crosschecked with the IMU readings on the Z axis. If the variance between the sensors exceed a threshold for a specified amount of time, then the drone will enter the Malfunction State.
+
 \begin{landscape}
 \begin{table}[!h]
 \begin{center}
@@ -171,11 +180,11 @@ The analysis of the components outlined within \nameref{SystemBoundaries} are pr
 \hline
  Design Component & Failure Mode & Effect of Failure & \seqsplit{Severity} & Causes of Failure & \seqsplit{Occurrence} & \seqsplit{Detection} & RPN & Recommended Action & SR & Ref \\
 \hline
-Flight Operation & IMU gives inaccurate readings. & The Drone is unable to determine angular orientation, which makes flight motion and stabilization difficult. & 10 &  IMU damaged during flight, magnetic interference.  & 2 & 7 & 140 &  Implement Flight Controller with secondary IMU, providing diversity and redundancy. & \nameref{SR_004} & H_001 \\
+Flight Operation & IMU gives inaccurate readings. & The Drone is unable to determine angular orientation, which makes flight motion and stabilization difficult. & 10 &  IMU damaged during flight, magnetic interference, data parsing error.  & 2 & 7 & 140 &  Implement Flight Controller with secondary IMU, providing diversity and redundancy. & \nameref{SR_004} & H_001 \\
 \hline
 Flight Operation & Compass gives inaccurate readings. & Drone has difficulty in determining heading in space. & 7 & Compass damaged during flight, magnetic interference.  & 3 & 7 & 147 &  Implement Flight Controller with secondary compass, providing diversity and redundancy. & \nameref{SR_004} & H_002 \\
 \hline
-Flight Operation & Barometer gives an inaccurate reading. & Flight controller unable to determine altitude, creates difficulty in landing. & 9 & Barometer damaged during flight, UV/motor backwash interference.  & 2  & 7 & 126 &   Add an ultrasonic sensor at the bottom of the drone, providing a secondary height estimate. Although this only works for a short range (0-2m) it is sufficient for landing. & \nameref{SR_005} & H_003 \\
+Flight Operation & Barometer gives an inaccurate reading. & Flight controller unable to determine altitude, creates difficulty in landing. & 9 & Barometer damaged during flight, UV/motor backwash interference, data parsing error.  & 2  & 7 & 126 &   Add an ultrasonic sensor at the bottom of the drone, providing a secondary height estimate in the range of 0-2m for landing. & \nameref{SR_005} & H_003 \\
 \hline
 Flight Operation & Firmware unable to make the drone hover in place. Hovering was specified as stabilizing and staying within some tolerance of a location in space for a sufficiently long time. & Drone will not be able to fly to locations or follow paths well. Drone being unable to hover means that the camera will see blurry and shaky images. & 10 & Flight Controller internal malfunction, inclement weather (such as high winds).  & 1  & 2 & 20 &   Mention maximum wind requirement in User Manual. Report malfunction to Operator and enter the Malfunction state. & \nameref{SR_006}, \nameref{SR_007} & H_004 \\
 \hline
@@ -191,15 +200,17 @@ Flight Operation & GPS Connection is lost or weak. & The drone will have a less 
 \begin{center}
 \caption {FMEA Table related to Visual Perception.} 
 \label{tab:FMEA_Vision}
-\begin{tabular}{ | m{1.2 cm} | m{2.8cm} | m{3cm} | m{1cm} | m{2.5 cm} | m{0.7cm} | m{0.6cm} | m{0.6cm} | m{3.5cm}| m{0.7cm} | m{0.5cm} | }  
+\begin{tabular}{ | m{1.2 cm} | m{2cm} | m{2cm} | m{1cm} | m{2.5 cm} | m{0.7cm} | m{0.6cm} | m{0.6cm} | m{4.5cm}| m{0.7cm} | m{0.5cm} | }  
 \hline
 Design Component & Failure Mode & Effect of Failure & Severity & Causes of Failure & \seqsplit{Occurrence} & \seqsplit{Detection} & RPN & Recommended Action & SR & Ref \\
 \hline
-Visual Perception & Camera gives poor quality images or no image at all. & The primary functionality of showing the Operator the parking lot cannot be accomplished. Furthermore, the camera cannot detect the boundaries of the parking lot, causing the drone to be unable to perform autonomous tasks. & 8 & Camera lens is foggy or has other obstructions, or the camera is damaged during flight. & 3 & 1 & 24 &  Operator will detect the low image resolution themselves while they watch the live video. Operator may choose to wait or land the drone, clean the lens, restart the drone, and/or reconfigure it to fly closer to the ground.  & \nameref{SR_001} & H_006 \\
+Visual Perception & Camera gives poor quality images, delayed images, or no image at all. & The primary functionality of showing the Operator the parking lot cannot be accomplished.  & 2 & Camera lens is foggy or has other obstructions, data communication to PC is delayed, or the camera is damaged during flight. & 3 & 1 & 6 &  Operator will detect the low image resolution themselves while they watch the live video. Operator may choose to wait, move the drone to a new closer location, land the drone, clean the lens, restart the drone, and/or reconfigure it to fly closer to the ground.  & \nameref{SR_006}, \nameref{GEN_002} & H_006 \\
 \hline
-Visual Perception & Drone fails to detect the parking lot. & Drone is unable to implement autonomous states, and can only implement manual movement commands.  & 5 & Perception algorithm performs poorly due to weather conditions or the uniqueness of the parking lot. & 2 & 3 & 30 &  Operator should notice from the live camera images that the drone is consistently failing to correctly segment the parking lot, and thus the drone is only useful for true manual movement.  & \nameref{SR_006}, \nameref{SR_009} & H_007 \\
+Visual Perception & Drone fails to classify parking lot and non-parking lot correctly. & Drone is unable to create a correct occupancy map.  & 3 & Perception algorithm performs poorly due to weather conditions, the uniqueness of the parking lot, or weakness of the perception algorithm. & 2 & 3 & 18 &  Operator should notice from the live camera video feed (which will be annotated to show parking lot areas) that the drone is consistently failing to correctly segment the parking lot, and thus the user should ignore the occupancy map they see on the user interface.  & \nameref{SR_006}, \nameref{SR_009} & H_007 \\
 \hline
-Visual Perception & Drone fails to detect the boundaries of the parking lot. & Drone is unable to implement autonomous states, and can only implement manual movement commands. During an autonomous state, the drone may exit the parking lot and not have noticed.  & 5 & Perception algorithm performs poorly due to weather conditions or the uniqueness of the parking lot.  & 4 & 3 & 60 &  Operator should notice from the live camera images that the drone is consistently failing to correctly segment the parking lot, and thus the drone is only useful for true manual movement.  & \nameref{SR_006}, \nameref{SR_009} & H_008 \\
+Visual Perception & Drone fails to detect the boundaries of the parking lot. & Drone is unable to implement autonomous states, and can only implement manual movement commands.  & 5 & Perception algorithm performs poorly or the uniqueness of the parking lot.  & 4 & 3 & 60 &  Operator should notice from the drone map that the drone is consistently failing to correctly segment the parking lot, and thus the drone is only useful for true manual movement.  & \nameref{SR_009} & H_008 \\
+\hline
+Visual Perception & Launching a drone without satalitte imagery. & Operator/drone software will not be able to determine if the current location of the drone is within a parking lot.  & 8 & User attempts to launch the drone in a location without pre-downloaded satellite imagery.  & 4 & 3 & 96 &  Operator should not fly the drone or contact developers for support to fly in the specified location.  & \nameref{SR_001} & H_019 \\
 \hline
 \end{tabular}
 \end{center}
@@ -287,7 +298,7 @@ Design Component & Failure Mode & Effect of Failure & Severity & Causes of Failu
 \hline
 Design Component & Failure Mode & Effect of Failure & Severity & Causes of Failure & \seqsplit{Occurrence} & \seqsplit{Detection} & RPN & Recommended Action & SR & Ref \\
 \hline
-Path Planner (also called Autonomous Explore) & Internal explore strategy malfunctions. The Operator notices the drone is not exploring the parking lot correctly. &  Drone may keep exploring the same area thus wasting time, or the drone may exit the parking lot.  & 4 & Due to the path planning algorithm not performing accurately/correctly. For faulty vision input, see \nameref{tab:FMEA_Vision}  & 4 & 8 & 128 &  It is upon the Operator to notice the inaccuracy of the path planning feature during the Autonomous Explore State, At which point the Operator should utilize other more accurate features instead (such as Manual Explore). & - & H_017 \\
+Path Planner (also called Autonomous Explore) & Internal explore strategy malfunctions. The Operator notices the drone is not exploring the parking lot correctly. &  Drone may keep exploring the same area thus wasting time, or the drone may exit the parking lot.  & 4 & Due to the path planning algorithm not performing accurately/correctly. For faulty vision input, see \nameref{tab:FMEA_Vision}  & 4 & 8 & 128 &  It is upon the Operator to notice the inaccuracy of the path planning feature during the Autonomous Explore State, At which point the Operator should utilize other more accurate features instead (such as Manual Explore). This hazard is apart of a stretch goal for the product. & - & H_017 \\
 \hline
 \end{tabular}
 \end{center}
@@ -314,22 +325,22 @@ Design Component & Failure Mode & Effect of Failure & Severity & Causes of Failu
 \section{Safety and Security Requirements}
 Multiple new requirements were discovered through the generation of the FMEA table. Each requirement is referenced with the hazard that revealed it in the FMEA tables above.
 
-% \begin{table}[!h]
-% \begin{center}
-% \caption {SR\_001} 
-% \label{SR_001}
-% \begin{tabular}{ | m{3cm} | m{11cm} | }
-% \hline
-% Description & The product shall include a user-controlled button that sends the product to a Malfunction state.
-%  \\
-% \hline
-% Rationale & The requirement ensures that the Operator can send the product into a Malfunction state if the Operator detects something wrong with the product. \\
-% \hline
-% Associated Hazard & H\_006, H\_010 \\
-% \hline
-% \end{tabular}
-% \end{center}
-% \end{table}
+\begin{table}[!h]
+\begin{center}
+\caption {SR\_001} 
+\label{SR_001}
+\begin{tabular}{ | m{3cm} | m{11cm} | }
+\hline
+Description & The operator shall specify the cities/regions they intend to fly the drone in prior to purchasing the product. If the operator would like to fly the drone in a  city/region that they did not specify during purchase, they must contact developers for support. If the operator attempts to fly outside of this region, the drone should prevent flight and a descriptive error message on c\_Log.
+ \\
+\hline
+Rationale & The requirement ensures that the drone and Operator always have satellite imagery. \\
+\hline
+Associated Hazard & H\_019 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
 
 \begin{table}[!h]
 \begin{center}
@@ -388,7 +399,7 @@ Associated Hazard & H\_001, H\_002 \\
 \label{SR_005}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall have a redundant method of determining its height.
+Description & The product shall have a redundant method of determining its height for landing.
  \\
 \hline
 Rationale & The requirement ensures that the product can safely land in the event that the primary method of height determination is malfunctioning. \\
@@ -453,9 +464,9 @@ Associated Hazard & H\_005 \\
 \label{SR_009}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall display a segmented image of the parking lot vs non-parking lot to the Operator's application. \\
+Description & On the user interface's satellite map, the product shall highlight the parking lot boundaries. On the live drone camera video feed, the drone should annotate the raw images with segmentations of parking lot vs non-parking lot to the Operator's application. \\
 \hline
-Rationale & The requirement ensures that the Operator is aware of how the product is perceiving its environment, and can determine if the product's perception of its environment is correct or incorrect. \\
+Rationale & The requirement ensures that the Operator is aware of how the product is perceiving its environment and can determine if the product's perception of its environment is correct or incorrect. \\
 \hline
 Associated Hazard & H\_007, H\_008 \\
 \hline
@@ -501,7 +512,7 @@ Associated Hazard & H\_012 \\
 \label{SR_012}
 \begin{tabular}{ | m{3cm} | m{11cm} | }
 \hline
-Description & The product shall inform the user if the battery capacity before launch is estimated to be less than 3 minutes of flight, and prevent launch of the product. \\
+Description & The product shall inform the user if the battery capacity before launch is estimated to be less than 2.5 minutes of flight, and prevent launch of the product. \\
 \hline
 Rationale & The requirement ensures that the product is not used with excessively worn out batteries, to the extent that it cannot operate within its specifications. \\
 \hline
@@ -549,11 +560,11 @@ The requirements will be implemented within the respective phase as listed in Ta
 \hline
 Phase I & \nameref{SR_002}, \nameref{SR_010} \\
 \hline
-Phase II & \nameref{SR_001}, \nameref{SR_006}, \nameref{SR_007}, \nameref{SR_013} \\
+Phase II & \nameref{SR_006}, \nameref{SR_007}, \nameref{SR_013} \\
 \hline
-Phase III & \nameref{SR_003}, \nameref{SR_009}, \nameref{SR_011}, \nameref{SR_012} \\
+Phase III & \nameref{SR_003}, \nameref{SR_011}, \nameref{SR_012}, \nameref{SR_001} \\
 \hline
-Phase IV & \nameref{SR_004}, \nameref{SR_005}, \nameref{SR_008} \\
+Phase IV & \nameref{SR_004}, \nameref{SR_005}, \nameref{SR_008}, \nameref{SR_009} \\
 \hline
 \end{tabular}
 \end{center}
