@@ -150,7 +150,7 @@ class ParkingLotSegmenterPC(Segmenter):
 			"Erode": np.ones((9,9), np.uint8)
 		}
 		super().__init__(kernels, areaThreshold=0.6,iterations=4)
-		self.maxSaturation = 35
+		self.maxSaturation = 18
 		self.max_contour = None
 		self.debug = 0
 

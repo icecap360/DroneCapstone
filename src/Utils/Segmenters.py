@@ -65,7 +65,7 @@ class Segmenter(ABC):
 
 	def findGroups(self):
 		self.groups = []
-		for group in range(np.max(self.markers)):
+		for group in range(np.min(self.markers), np.max(self.markers)+1):
 			area = np.equal(self.markers, group)
 			if np.sum(area) == 0:
 				continue
