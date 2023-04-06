@@ -1,3 +1,7 @@
+# Author: Fady
+# Date: March 2023 
+# Purpose: Contains code to download images from Google Maps and for stitching them into a larger image
+
 import requests
 from PIL import Image
 import os
@@ -61,11 +65,6 @@ class StitchCreator:
                                                 'sensor': 'false',
                                                 'scale': self.scale})
             url = 'http://maps.google.com/maps/api/staticmap?' + urlparams
-
-
-            # f=urllib.request.urlopen(url)
-            # im=Image.open(BytesIO(f.read()))
-            # final.paste(im, (0, 0))
 
             r = requests.get(url + "center =" + self.center + "&zoom =" +
                             str(self.zoom) + "&size = "+self.szStr+"&key =" +
@@ -143,18 +142,6 @@ class StitchManager:
 
         midLattRange = [self.lat-self.latFactorMid/2,self.lat+self.latFactorMid/2 ]
         py = 0
-        # if gpsY < midLattRange[0]:
-        #     minimumLat_TopRow = self.lat - self.latFactorMid/2 - self.latFactorTop
-        #     pixelPerDegreeLat = patchSz/self.latFactorTop
-        #     py =  pixelPerDegreeLat*(gpsY  - minimumLat_TopRow) 
-        # elif gpsY < midLattRange[1]:
-        #     minimumLat_MidRow = self.lat - self.latFactorMid/2
-        #     pixelPerDegreeLat = patchSz/self.latFactorMid
-        #     py = patchSz   + pixelPerDegreeLat*(gpsY  - minimumLat_MidRow) 
-        # else:
-        #     minimumLat_BottRow = self.lat + self.latFactorMid/2
-        #     pixelPerDegreeLat = patchSz/self.latFactorBott
-        #     py =  patchSz*2+pixelPerDegreeLat*(gpsY  - minimumLat_BottRow)
 
         if gpsY > midLattRange[1]:
             maximumLat_TopRow = self.lat + self.latFactorMid/2 + self.latFactorTop

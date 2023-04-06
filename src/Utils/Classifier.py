@@ -1,3 +1,7 @@
+# Author: Winnie
+# Date: March 2023
+# Purpose: Implements object classification routines.
+
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,6 +17,7 @@ class Classifier:
         #self.filter  =cv2.GaussianBlur(temp, (self.filterSz,self.filterSz),self.sigma)
         self.filter  =gaussian_filter(temp, self.sigma)
     def plotFilter(self):
+        # debug routine
         fig, ax = plt.subplots()
         im = ax.imshow(filter)
         for i in range(self.filterSz):
@@ -28,8 +33,6 @@ class Classifier:
         for i in range(self.filterSz):
             for j in range(self.filterSz):
                 centerSquare[i][j] = segmenter.isPixelsInbound(centerX-halfFilSz+i,centerY-halfFilSz+j)
-        #centerSquare = segmenter.getResult()[(centerX-halfFilSz):(centerX+halfFilSz+1),(centerY-halfFilSz):(centerY+halfFilSz+1)]
-        #binCenterSq = centerSquare>0 #turn into boolean
         prob = np.sum(np.multiply(centerSquare,self.filter))
         #print(name+'Prob:', prob)
         return prob>self.threshold

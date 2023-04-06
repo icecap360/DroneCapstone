@@ -1,9 +1,14 @@
+# Author: Ali
+# Date: December 2023 
+# Purpose: Contains code to send and receive camera images for both the drone and Operators PC
+
+
 from multiprocessing import Process
 import cv2, io
 from multiprocessing import Queue, Lock
 import threading, time
 import numpy as np
-#import Utils.Common as Common
+import Utils.Common as Common
 
 class Camera:
     def __init__(self):
@@ -33,6 +38,7 @@ class Camera:
         self.thread.start()
 
     def _backendReader(self):
+        # thread in background to read images and store them in rawImage
         # reads frames as soon as they are available, keeping only most recent one
         while True:
             ret, frame = self.cap_receive.read()
@@ -63,13 +69,6 @@ class DroneCamera(Camera):
         from picamera.array import PiRGBArray
         from picamera import PiCamera
         time.sleep(0.1)
-        #gst_pipe = "appsrc ! videoconvert ! v4l2h264enc ! video/x-h264,level=(string)4 ! ' \
-        #  'h264parse ! matroskamux ! tcpserversink host=0.0.0.0 port=7000"
-        #gst_pipe = "appsrc ! ' \
-        #  'h264parse ! rtph264pay config-interval=10 pt=96 ! udpsink host=192.168.137.1 port=9000"
-        #gst_pipe = "appsrc ! autovideoconvert ! h264parse ! rtph264pay config-interval=10 pt=96 ! udpsink host=192.168.137.1 port=9000 "
-        #gst_pipe = "appsrc ! videoconvert ! v4l2h264enc ! h264parse ! rtph264pay config-interval=10 pt=96 ! udpsink host=192.168.137.1 port=9000"
-        #gst_pipe = "appsrc ! videoconvert ! v4l2h264enc ! x264enc tune=zerolatency bitrate=500 speed-preset=superfast ! rtph264pay ! udpsink host=192.168.137.1 port=9000"
         gst_pipe = "appsrc ! videoconvert ! v4l2h264enc ! video/x-h264,width=640,height=480,framerate=15/1,speed-preset=ultrafast ! rtph264pay config-interval=10 pt=96 ! udpsink host=192.168.137.1 port=9000"
         self.cap_send = cv2.VideoWriter(gst_pipe, cv2.CAP_GSTREAMER, 0, 15, (640, 480), True)
         self.camera = PiCamera()
@@ -84,19 +83,15 @@ class DroneCamera(Camera):
         self.readThread = threading.Thread(target=self._backendReader)
         self.readThread.daemon = True
         self.readThread.start()
-        #self.writeThread = threading.Thread(target=self._backendWriter)
-        #self.writeThread.daemon = True
-        #self.writeThread.start()
         time.sleep(0.1)
     def send(self, img):
         self.cap_send.write(img)
 
     def _backendReader(self):
+        # thread in background to read images and store them in rawImage
+        # reads frames as soon as they are available, keeping only most recent one
         try:
             for frame in self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True):
-                # grab the raw NumPy array representing the image, then initialize the timestamp
-                # and occupied/unoccupied text
-                #print('read a frame')
                 if self.stopEvent.is_set():
                     break
                 self.lock.acquire()
@@ -109,20 +104,9 @@ class DroneCamera(Camera):
             self.cap_send.release()
         except KeyboardInterrupt:
             self.cap_send.release()
-    def _backendWriter(self):
-        try:
-            while True:
-                self.lock.acquire()
-                if self.newRawImage:
-                    print('Writing image')
-                    self.send(self.rawImage)
-                    self.newRawImage = False
-                else:
-                    time.sleep(0.01)
-                self.lock.release()
-            self.cap_send.release()
-        except KeyboardInterrupt:
-            self.cap_send.release()
+
+
+
 if __name__ == '__main__':
     platform = 'PI'
     if platform == 'PI':

@@ -1,3 +1,7 @@
+# Author: Fady
+# Date:January  2023
+# Purpose: Implementation of path planning and next pose decision
+
 import rospy
 from std_msgs.msg import Bool
 from MapperApp import MapperApp
@@ -18,7 +22,6 @@ class PathPlanApp:
         self.prevPose = None
         print("Pathplan initialized")
     def process(self):
-        # plan the path if in compulsive move (update desired self.desLocInbound)
         # plan the path if in autonomous mode (update self.autonomousExplorePose)
         pass
     def publish(self):
@@ -26,32 +29,20 @@ class PathPlanApp:
         self.topicInterface.desLocInboundPub.publish(self.getDesLocInBound())
         droneState = self.topicInterface.getDroneState()
         desPoseFSM = self.topicInterface.getDesiredPose()
-        localPose = self.topicInterface.getLocalPose()
         # The final localPose should be published by the FSM under all states except Autonomous Explore, within which it is calculated from this module
         if  droneState== 'AutonomousExplore':
             self.topicInterface.localPosPub.publish(self.autonomousExplorePose)
         elif (droneState in [ 'Hover', 'Takeoff', 'DesiredLocationError', 
-                'NoParkingLotDetected','CompulsiveMove'] and 
-                self.prevPose != desPoseFSM and
-                desPoseFSM.pose.position.latitude != 0.0 and 
+                'NoParkingLotDetected','CompulsiveMove'] and  # setpointPosPub outside of these states can cause crash
+                self.prevPose != desPoseFSM and # only update setpointPosPub upon new desPoseFSM messages
+                desPoseFSM.pose.position.latitude != 0.0 and  # lat and long are 0.0 at boot up
                 desPoseFSM.pose.position.longitude!=0.0):
             
-            LogDebug('NEXT POSE:\n'+ str(desPoseFSM))
-            
-            #self.topicInterface.localPosPub.publish(localPose)
-            
-            # localPose = desPoseFSM
+            #LogDebug('NEXT POSE:\n'+ str(desPoseFSM))
             desPoseFSM.header.stamp = rospy.Time.now()
             self.prevPose = desPoseFSM
-            self.topicInterface.globalPosPub.publish(desPoseFSM)
+            self.topicInterface.setpointPosPub.publish(desPoseFSM)
             
-            # desPose = GlobalPositionTarget()
-            # desPose.altitude = desPoseFSM.pose.position.altitude
-            # desPose.latitude, desPose.longitude= desPoseFSM.pose.position.latitude, desPoseFSM.pose.position.longitude
-            # desPose.type_mask = 1024 & 2048
-            # desPose.yaw = desPoseFSM.pose.orientation.w
-            # desPose.header.stamp = rospy.Time.now()
-            # self.topicInterface.globalPosPubRaw.publish(desPose)
 
         # Reset variables when error state is exited
         if self.prevDroneState != droneState:

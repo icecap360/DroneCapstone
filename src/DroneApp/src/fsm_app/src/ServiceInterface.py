@@ -1,3 +1,7 @@
+# Author: Zaid
+# Date: November 2022
+# Purpose: Service Interface for DDC modules
+
 import rospy
 from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest, CommandTOL, CommandTOLRequest, ParamSet, ParamSetRequest     
 
@@ -16,47 +20,43 @@ class ServiceInterface:
         self.paramSetClient = rospy.ServiceProxy('/mavros/param/set', ParamSet)
     
     def callService_TypeCommand(self, req, client):
+        # internal helper routine for other services
         service_call = client.call(req).success
         while(service_call != True):
             service_call = client.call(req).success
             rospy.sleep(1)
 
     def setArm(self, arm:bool):
-        arm_cmd = CommandBoolRequest()
-        arm_cmd.value = arm
-        self.callService_TypeCommand(arm_cmd, self.armingClient)
+        armCmd = CommandBoolRequest()
+        armCmd.value = arm
+        self.callService_TypeCommand(armCmd, self.armingClient)
 
     def setRtlAlt(self, altitude:int):
-        rtl_alt_cmd = ParamSetRequest()
-        rtl_alt_cmd.param_id = 'RTL_ALT'
-        rtl_alt_cmd.value.integer = altitude 
-        rtl_alt_cmd.value.real = 0.0
-        self.callService_TypeCommand(rtl_alt_cmd, self.paramSetClient)
+        rtlAltCmd = ParamSetRequest()
+        rtlAltCmd.param_id = 'RTL_ALT'
+        rtlAltCmd.value.integer = altitude 
+        rtlAltCmd.value.real = 0.0
+        self.callService_TypeCommand(rtlAltCmd, self.paramSetClient)
     
     def sendTakeoffCmd(self, pose):
-        takeoff_cmd = CommandTOLRequest()
-        takeoff_cmd.latitude = pose.latitude
-        takeoff_cmd.longitude = pose.longitude
-        takeoff_cmd.yaw = 0.0
-        takeoff_cmd.min_pitch  = 0.0
-        takeoff_cmd.altitude = pose.altitude
-        service_call = self.takeoffClient.call(takeoff_cmd).success
-        while(service_call != True):
-            service_call = self.takeoffClient.call(takeoff_cmd).success
+        takeoffCmd = CommandTOLRequest()
+        takeoffCmd.latitude = pose.latitude
+        takeoffCmd.longitude = pose.longitude
+        takeoffCmd.yaw = 0.0
+        takeoffCmd.min_pitch  = 0.0
+        takeoffCmd.altitude = pose.altitude
+        serviceCall = self.takeoffClient.call(takeoffCmd).success
+        while(serviceCall != True):
+            serviceCall = self.takeoffClient.call(takeoffCmd).success
             rospy.sleep(1.0)
 
     def setMode(self, modeReq:str):
         mode = SetModeRequest()
         mode.custom_mode = modeReq
-        service_call = self.setModeClient.call(mode).mode_sent
-        while(service_call != True):
-            service_call = self.setModeClient.call(mode).mode_sent
+        serviceCall = self.setModeClient.call(mode).mode_sent
+        while(serviceCall != True):
+            serviceCall = self.setModeClient.call(mode).mode_sent
             rospy.sleep(1.0)
         rospy.loginfo(modeReq + " entered")
         rospy.sleep(2)
     
-    # def callService_TypeModeSent(self, req, client):
-    #     service_call = client.call(req).mode_sent
-    #     while(service_call != True):
-    #         service_call = client.call(req).mode_sent
-    #         rospy.sleep(0.5)

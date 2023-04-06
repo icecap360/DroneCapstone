@@ -1,3 +1,7 @@
+# Author: Ali
+# Date: December 2022
+# Purpose: Implements Algorithm App Module
+
 from threading import Semaphore
 from TopicInterface import TopicInterface
 from Utils import VisionAppPI
@@ -17,7 +21,7 @@ class AlgorithmApp:
         self.droneCamera = dronecam
         self.topicInterface = topinterf
         self.droneCamera.init()
-        # create segmented image publisher
+
         self.visionApp.init( self.droneCamera, self.topicInterface)
         self.mapperApp.init(self.visionApp, self.topicInterface)
         self.pathPlanApp.init(self.pathPlanApp, self.topicInterface)

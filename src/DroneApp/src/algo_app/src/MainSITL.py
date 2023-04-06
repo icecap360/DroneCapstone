@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+
+# Author: Ali
+# Date:December 2022
+# Purpose: Main algorithm node for testing on SITL
+
 import sys
 sys.path.append('/home/operator/DroneCapstone/src')
 import rospy
@@ -12,6 +17,7 @@ from Utils import DroneCamera
 from TopicInterface import TopicInterface
 
 if __name__ == "__main__":
+    # initialize ROS node
     rospy.init_node('vision_app', anonymous=True)
     rate = rospy.Rate(10)
 
@@ -26,15 +32,6 @@ if __name__ == "__main__":
     #fly in circle testcase
     #stateMachine.TestCircularMotion()
 
-    while not rospy.is_shutdown():
+    while not rospy.is_shutdown(): # while ROS has not shutdown this node 
         algorithmApp.process()
         rate.sleep()
-
-    #test launch 
-    # try:
-    #     while not rospy.is_shutdown():
-    #         algorithmApp.process()
-    #         rate.sleep()
-    #         #algorithmApp.rate.sleep(1)
-    # except KeyboardInterrupt:
-    #     print('Keyboard expection')

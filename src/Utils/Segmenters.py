@@ -1,3 +1,7 @@
+# Author: Winnie
+# Date: March 2023
+# Purpose: Implements object segmentation routines.
+
 import numpy as np
 import cv2
 from matplotlib import pyplot as plt
@@ -7,11 +11,11 @@ import copy
 class Segmenter(ABC):
 	def __init__(self, kernels, areaThreshold, iterations) -> None:
 		self.img = None
-		self.thresh = None
-		self.sureBG = None
-		self.sureFG = None
-		self.segmentedImg  = None
-		self.kernels = kernels
+		self.thresh = None # raw thresholded image
+		self.sureBG = None # areas that are surely parking lot
+		self.sureFG = None # areas that are surely non-parking lot
+		self.segmentedImg  = None # final output
+		self.kernels = kernels # used for dilation and erosion
 		self.iterations = iterations
 		self.areaThreshold = areaThreshold
 	def debugShow(self, img):
@@ -27,6 +31,7 @@ class Segmenter(ABC):
 		y_min = int(self.img.shape[0]/2 - cropH/2)
 		self.img = self.img[int(y_min):int(y_min+cropH), int(x_min):int(x_min+cropW)]
 	def preprocessRawImg(self):
+		# equalize V channel histogram to enhance contrast
 		hsv = cv2.cvtColor(self.img, cv2.COLOR_RGB2HSV)
 		hsv[:][:][2] = cv2.equalizeHist(hsv[:][:][2])
 		self.img = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
@@ -36,19 +41,15 @@ class Segmenter(ABC):
 	def threshold(self):
 		pass
 	def createSureForeground(self):
-		#kernel = np.ones((3,3),np.uint8)
+		# close the image first to erode small holes in the background area
 		closing = cv2.morphologyEx(self.thresh,cv2.MORPH_CLOSE,self.kernels["Close"], iterations = 2)
-		# Finding sure foreground area
-		#dist_transform = cv2.distanceTransform(opening,cv2.DIST_L2,5)
-		#ret, sure_fg = cv2.threshold(dist_transform,0.7*dist_transform.max(),255,0)
 		self.sureFG = cv2.erode(closing,self.kernels["Erode"],iterations=self.iterations)
 	def createSureBackground(self):
-		#kernel = np.ones((3,3),np.uint8)
+		# open the image first to remove small negligible background detections
 		opening = cv2.morphologyEx(self.thresh,cv2.MORPH_OPEN,self.kernels["Open"], iterations = 2)
-		# sure background area
 		self.sureBG = cv2.dilate(opening,self.kernels["Dilate"],iterations=self.iterations)
 	def watershed(self):
-		# Finding unknown region
+		# Finding unknown region, region that is not foreground nor background
 		self.sureFG = np.uint8(self.sureFG)
 		unknown = cv2.subtract(self.sureBG,self.sureFG)
 
@@ -61,10 +62,9 @@ class Segmenter(ABC):
 		markers[unknown==255] = 0
 
 		self.markers = cv2.watershed(self.img,markers)
-		#self.img[markers == -1] = [255,0,0]
 
 	def findGroups(self):
-		self.groups = []
+		self.groups = [] # contains pixel groups that are background
 		for group in range(np.min(self.markers), np.max(self.markers)+1):
 			area = np.equal(self.markers, group)
 			if np.sum(area) == 0:
@@ -109,7 +109,7 @@ class Segmenter(ABC):
 class ParkingLotSegmenterPI(Segmenter):
 	def threshold(self):
 		self.hsv = cv2.cvtColor(self.img, cv2.COLOR_RGB2HSV)
-		# define range of gray color in HSV
+		# define range of gray color in HSV, these parameters were tuned
 		lower_gray = np.array([0, 0, 40])
 		upper_gray = np.array([255, 80, 160])
 		# Threshold the HSV image to get only gray colors
@@ -157,19 +157,15 @@ class ParkingLotSegmenterPC(Segmenter):
 	def threshold(self):
 		img_hsv = cv2.cvtColor(self.img, cv2.COLOR_BGR2HSV)
 		threshHSV = cv2.inRange(img_hsv, (0, 0, 40), (180, self.maxSaturation, 255))
-
 		# close original image to remove noise
 		closedImg = cv2.morphologyEx(threshHSV, cv2.MORPH_CLOSE, np.ones((3,3), np.uint8), iterations = 3)
-
 		self.thresh = closedImg
 
 	def process(self, img):
 		super().process(img, findContours=True)
+
 		if self.debug:
 			plt.imshow(self.segmentedImg)
-			# plt.imsave('segmentedImg.png', np.stack((self.segmentedImg, 
-			# 		   np.zeros(self.segmentedImg.shape), 
-			# 		   np.zeros(self.segmentedImg.shape)), axis=2))
 			cv2.imwrite('segmentedImg.png',self.segmentedImg)
 			plt.show()
 			cv2.drawContours(self.img, self.getContours(), -1, (0, 255, 0), 3)

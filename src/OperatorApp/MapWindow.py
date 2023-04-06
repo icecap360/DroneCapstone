@@ -1,3 +1,7 @@
+# Author: Fady
+# Date: December 2022
+# Purpose: Creation of map window for user interface
+
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
@@ -5,6 +9,7 @@ import time
 from Stitch import StitchManager
 
 class StaticMarkerGenerator:
+    # Used for creating the previous location trace
     def __init__(self, symbol, size, color):
         self.symbol = symbol
         self.size = size
@@ -18,6 +23,8 @@ class StaticMarkerGenerator:
         self.add(tuple[0], tuple[1])
 
 class MoveableMarker:
+    # Used for singular markers
+
     def __init__(self, symbol, size, color):
         self.symbol = symbol
         self.size = size
@@ -38,6 +45,7 @@ class MoveableMarker:
         self.move(tuple[0], tuple[1])
 
 class MarkerList:
+    # Used for creating the occupancy maps
     def __init__(self, symbol, size, color, length=10):
         self.symbol = symbol
         self.size = size
@@ -75,6 +83,7 @@ class MapWindow:
         if self.windowCreated:
             return     
         
+        # set the window size
         self.fig = plt.figure(figsize=(7,7))#figsize=(len(img) * pixel_per_bar / dpi, 2), dpi=dpi)
         self.ax = self.fig.add_axes([0, 0, 1, 1])  # span the whole figure
         self.fig.canvas.set_window_title('Satellite Map')
@@ -95,8 +104,7 @@ class MapWindow:
             self.windowCreated = False
             return
         
-        # setup figure size
-
+        # set up the various markers specified in the SRS
         self.unoccupiedGen = StaticMarkerGenerator("o", 7, (102/255, 255/255, 102/255, 1))
         self.occupiedGen = StaticMarkerGenerator("o", 7, (255/255, 0/255, 0/255, 1))
         self.droneLocMarker = MoveableMarker("d", 14, (0/255, 0/255, 255/255, 1))
@@ -113,15 +121,20 @@ class MapWindow:
 
     def close(self, event):
         self.windowCreated = False
+
     def isDesLocInbound(self):
+        # returns if the user's desired location is within a parking lot
         if not self.windowCreated:
             return False
         return self.stitchManager.isPixelsInbound(self.desLocMarker.x, self.desLocMarker.y)
+    
     def getDesLocGps(self):
         if not self.windowCreated:
             return None
         return self.stitchManager.pixel2Gps(self.desLocMarker.x, self.desLocMarker.y)
+    
     def processDroneLoc(self, droneGpsLat, droneGpsLong):
+        # updates the drone location marker
         if droneGpsLat==0.0 or droneGpsLong==0.0:
             return
         if not self.windowCreated:
@@ -133,7 +146,7 @@ class MapWindow:
         self.trace.update(self.droneLocMarker)
     
     def processOccupancy(self, isOccupied, occupancyLat, occupancyLong):
-        if occupancyLat<=0.01 or occupancyLong<=0.01:
+        if occupancyLat<=0.01 or occupancyLong<=0.01: # ignore erroneous and garbage occupancies
             return
         if not self.windowCreated:
             return
@@ -141,6 +154,7 @@ class MapWindow:
             self.occupiedGen.addTuple(self.stitchManager.gps2Pixel(occupancyLat,occupancyLong))
         else:
             self.unoccupiedGen.addTuple(self.stitchManager.gps2Pixel(occupancyLat,occupancyLong))
+
     def end(self):
         plt.close()
 

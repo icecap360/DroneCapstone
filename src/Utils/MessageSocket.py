@@ -1,3 +1,7 @@
+# Author: Ali 
+# Date: December 2023
+# Purpose: Implements message socket, used for communicating dictionaries.
+
 import socket
 import struct
 import io
@@ -9,7 +13,7 @@ import threading
 from abc import ABC, abstractmethod
 import select
 
-class BaseSocket(ABC):
+class MessageSocketParent(ABC):
     def __init__(self, conn, buffSize=4096) -> None:
         self.conn = conn
         self.connLock = threading.Lock()
@@ -102,7 +106,7 @@ class BaseSocket(ABC):
                     ret = self.sendMessageSync(oneMessage)
                     while ret != True:
                         self.reconnect()
-                        ret = self.sendMessageSync(message)
+                        ret = self.sendMessageSync(oneMessage)
 
     def __receive(self) -> bool:    
         try:
@@ -162,52 +166,8 @@ class BaseSocket(ABC):
         print("SENDING:", randomdata)
         self.sendMessage( randomdata)
 
-'''
-Having seperate threads using polling, I don't think is that good
-    def __startReadThread(self):
-        self.threadRead = threading.Thread(target=self.__readMessagesInfLoop)
-        self.threadRead.daemon = True
-        self.threadRead.start()
-    def __startSendThread(self):
-        self.threadSend = threading.Thread(target=self.__sendMessagesInfLoop)
-        self.threadSend.daemon = True
-        self.threadSend.start()
-    def __readMessagesInfLoop(self):
-        while True:
-            readable, _, _ = select.select([self.conn], [], [])
-            if len(readable) > 0:
-                oneMessage = self.__receiveMessage()
-                if oneMessage:
-                    self.receivedMessages.append(oneMessage)
-                else:
-                    pass #discard message
-    def __sendMessagesInfLoop(self):
-        while True:
-            oneMessage = self.messagesToSend.popLeft()
-            if oneMessage:
-                self.sendMessageSync(oneMessage)
 
-    def __receiveOld(self):    
-        # i didnt know that empty recv is error
-        try:
-            # Should be ready to read
-            self.connLock.acquire()
-            data = self.conn.recv(self.buffSize)
-            self.connLock.release()
-        except:
-            if self.connLock.locked():
-                self.connLock.release()
-            self.reconnect()
-            self.__receive()
-        else:
-            if data:
-                self.recvBuffer += data
-            else:
-                self.reconnect()
-                self.__receive()
-'''
-
-class MessageSocket(BaseSocket) :
+class MessageSocket(MessageSocketParent) :
     def __init__(self, type, HOST=None, PORT=3002) -> None:
         self.type = type
         self.HOST = HOST
@@ -234,7 +194,7 @@ class MessageSocket(BaseSocket) :
             super().connect()
         elif self.type == "OPERATOR":
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.sock.setsockopt(socket.SOL_SOCKfiET, socket.SO_REUSEADDR, 1)
             ret = self.sock.connect_ex((self.HOST, self.PORT))
             while ret != 0:
                 Common.LogMessage('Connect failed, waiting 3 sec')

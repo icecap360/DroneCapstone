@@ -1,3 +1,7 @@
+# Author: Winnie
+# Date: December 2022
+# Purpose: Helper types and functions used thorugh out modules
+
 from threading import Lock
 from collections import deque 
 from enum import Enum

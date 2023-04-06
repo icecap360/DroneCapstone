@@ -1,3 +1,7 @@
+# Author: Winnie
+# Date: March 2023
+# Purpose: Implements vision app module for PC and PI.
+
 import numpy as np
 import cv2
 from matplotlib import pyplot as plt
@@ -7,6 +11,9 @@ from Utils.Segmenters import ParkingLotSegmenterPI, NatureSegmenter, ParkingLotS
 from Utils.Classifier import Classifier
 
 class VisionAppPI:
+	# this object is run on the Raspberry Pi to classify 
+	# the center pixel of the camera image as occupied or not
+	
 	def __init__(self) -> None:
 		self.health = True
 		self.parkLotSegmenter = ParkingLotSegmenterPI()
@@ -21,13 +28,16 @@ class VisionAppPI:
 		self.droneCamera = droneCamera
 		self.topicInterface = topicInterface
 	def process(self):
+		# read the latitude, longitude and camera image in quick succession 
+		# to ensure values are synchronized
 		ret = self.droneCamera.read()
+		self.imgLatitude = self.topicInterface.getGlobalPose().latitude
+		self.imgLongitude = self.topicInterface.getGlobalPose().longitude
+		
 		if not ret:
 			self.health = False
 			return
 		self.health = True
-		self.imgLatitude = self.topicInterface.getGlobalPose().latitude
-		self.imgLongitude = self.topicInterface.getGlobalPose().longitude
 		self.processImage(self.droneCamera.image)
 	def processImage(self, img, cropImage=True):
 		self.parkLotSegmenter.process(img, cropImage)
@@ -52,11 +62,12 @@ class VisionAppPI:
 		return self.health
 	
 class VisionAppPC:
+	# this module is run on the Operator's PC to draw parking lot contours and 
+	# warn the user when the desired location is outside a parking lot
 	def __init__(self) -> None:
 		self.parkLotBounds = ParkingLotSegmenterPC()
 	def process(self, img):
 		self.parkLotBounds.process(img)
-		#self.maxContour = self.parkLotBounds.getContour()
 	def getContours(self):
 		return self.parkLotBounds.getContours()
 	def isPixelsInbound(self, px, py):
@@ -68,4 +79,3 @@ if __name__ == '__main__':
 	path = r"C:\WORKSPACE\Capstone\DroneCapstone\src\OperatorApp\Maps\test_image_1.png"
 	img = cv2.imread(path)
 	visionAppPC.process(img)
-	#visionAppPC.parkLotBounds.debugShow()

@@ -1,3 +1,7 @@
+# Author: Ali
+# Date: December 2022
+# Purpose: Definition of State Interface
+
 import rospy
 from abc import ABC, abstractmethod
 
