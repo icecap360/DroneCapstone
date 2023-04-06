@@ -9,9 +9,24 @@ import UserInterface #import the setup code for the app
 from Utils import OperatorCameraPi, OperatorCameraSITL
 from MapWindow import MapWindow
 from Stitch import StitchManager
+import cv2 
+
+def StartDroneCameraDisplay1():  
+    Camera = OperatorCameraPi()
+    Camera.init()
+    try:
+        while True:
+            ret = Camera.read()
+            if ret:
+                cv2.imshow('DroneView', Camera.image)
+            if cv2.waitKey(1)&0xFF == ord('q'):
+                break
+    except KeyboardInterrupt:
+        LogDebug("Keyboard Interrupt")
+
 
 if __name__ == '__main__':
-    platform = 'SITL'
+    platform = 'PI'
     droneInterface = None
     p_camera = None
     if platform == 'SITL':
@@ -20,12 +35,15 @@ if __name__ == '__main__':
         # p_camera = Process(target=UserInterface.StartDroneCameraDisplay, args=(Camera, 'SITL',))
         # p_camera.start()
         Camera = OperatorCameraPi()
-        p_camera = Process(target=UserInterface.StartDroneCameraDisplay, args=(Camera, 'PI',))
+        # p_camera = Process(target=UserInterface.StartDroneCameraDisplay, args=(Camera,))
+        p_camera = Process(target=StartDroneCameraDisplay1)
         p_camera.start()
     else:
         droneInterface = Utils.MessageSocket("OPERATOR",HOST="navio")
         Camera = OperatorCameraPi()
-        p_camera = Process(target=UserInterface.StartDroneCameraDisplay, args=(Camera, 'PI',))
+        #p_camera = Process(target=UserInterface.StartDroneCameraDisplay, args=(Camera,))
+        p_camera = Process(target=StartDroneCameraDisplay1)
+        time.sleep(0.5)
         p_camera.start()
 
 

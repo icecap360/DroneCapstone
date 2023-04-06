@@ -65,7 +65,7 @@ class Segmenter(ABC):
 
 	def findGroups(self):
 		self.groups = []
-		for group in range(np.max(self.markers)):
+		for group in range(np.min(self.markers), np.max(self.markers)+1):
 			area = np.equal(self.markers, group)
 			if np.sum(area) == 0:
 				continue
@@ -126,12 +126,12 @@ class ParkingLotSegmenterPI(Segmenter):
 
 class NatureSegmenter(Segmenter):
 	def threshold(self):
-		hsv = cv2.cvtColor(self.img, cv2.COLOR_RGB2HSV)
+		self.hsv = cv2.cvtColor(self.img, cv2.COLOR_RGB2HSV)
 		# define range of gray color in HSV
 		lower_nat = np.array([20, 80, 40])
 		upper_nat = np.array([100, 255, 255])
 		# Threshold the HSV image to get only brown,yellow,green colors
-		self.thresh = cv2.inRange(hsv, lower_nat, upper_nat)
+		self.thresh = cv2.inRange(self.hsv, lower_nat, upper_nat)
 	def __init__(self):
 		kernels = {
 			"Open": np.ones((3,3), np.uint8),
@@ -155,9 +155,8 @@ class ParkingLotSegmenterPC(Segmenter):
 		self.debug = 0
 
 	def threshold(self):
-		img_hsv = cv2.cvtColor(self.img, cv2.COLOR_BGR2HSV)
-		threshHSV = cv2.inRange(img_hsv, (0, 0, 40), (180, self.maxSaturation, 255))
-
+		self.hsv = cv2.cvtColor(self.img, cv2.COLOR_BGR2HSV)
+		threshHSV = cv2.inRange(self.hsv, (0, 0, 40), (180, self.maxSaturation, 255))
 		# close original image to remove noise
 		closedImg = cv2.morphologyEx(threshHSV, cv2.MORPH_CLOSE, np.ones((3,3), np.uint8), iterations = 3)
 
