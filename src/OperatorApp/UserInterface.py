@@ -151,16 +151,19 @@ class UIController(PyQtInterface.PyQtController):
         if 'ArduMode' in data.keys():
             self.setLabelText(self.txtArdupilotMode, data['ArduMode'])
         if 'OccMap' in data.keys():
-            self.mapWindow.processOccupancy(data['OccMap']['isOccupied'],
-                                            data['OccMap']['Latitude'], 
-                                            data['OccMap']['Longitude'])
-            if data['OccMap']['isParkLot']:
-                print('ParkingLot', end=' ')
-            if data['OccMap']['isNature']:
-                print('Nature', end=' ')
-            if data['OccMap']['isOccupied']:
-                print('Occupied', end=' ')
-            print('', end='\n')
+            #print(data['OccMap'])
+            if 'isOccupied' in data['OccMap'].keys() and 'Latitude' in data['OccMap'].keys() and 'Longitude' in data['OccMap'].keys():
+                self.mapWindow.processOccupancy(data['OccMap']['isOccupied'],
+                                                data['OccMap']['Latitude'], 
+                                                data['OccMap']['Longitude'])
+                print('Debug print - Prediction: ', end=' ')
+                if data['OccMap']['isParkLot']:
+                    print('ParkingLot', end=' ')
+                if data['OccMap']['isNature']:
+                    print('Nature', end=' ')
+                if data['OccMap']['isOccupied']:
+                    print('Occupied', end=' ')
+                print('', end='\n')
             #self.displayWindow.updateOccupancyMap(data['OccMap'])
         if 'RelAlt' in data.keys():
             self.setLabelText(self.txtAltitude, data['RelAlt'])
@@ -182,7 +185,7 @@ class UIController(PyQtInterface.PyQtController):
         if 'HealthStatus' in data.keys():
             self.setLabelText(self.txtDroneHealth, HealthStatusCode(data['HealthStatus']).name)
     def processErrorLog(self, data):
-        logging.error('Error: '+str(data['Message']))
+        logging.error(str(data['Message']))
 
 class DroneCommManager(QObject): #enable background processing
     initConnSig = QtCore.pyqtSignal()
