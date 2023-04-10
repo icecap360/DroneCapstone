@@ -185,7 +185,7 @@ class StitchManager:
         elif py < patchSz*2:
             py = py-patchSz
             degreesPerPixelY = self.latFactorMid/640
-            pointLat = self.lat + degreesPerPixelY*(py-patchSz/2)
+            pointLat = self.lat - degreesPerPixelY*(py-patchSz/2)
         else:
             py = py-2*patchSz
             centerLat = self.lat - self.latFactorMid/2 - self.latFactorBott/2
@@ -205,7 +205,7 @@ class StitchManager:
         return self.stitchCreator.sz*1.5,self.stitchCreator.sz*1.5 
 
 if __name__ == '__main__':
-    sc = StitchCreator(43.4956482 ,-79.7181996)
+    sc = StitchCreator(43.246213, -79.906585)
     sc.stitchAndSave()
     # sm = StitchManager()
     # sm.init(43.263082,-79.918871)

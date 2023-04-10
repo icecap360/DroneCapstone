@@ -194,7 +194,7 @@ class MessageSocket(MessageSocketParent) :
             super().connect()
         elif self.type == "OPERATOR":
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.setsockopt(socket.SOL_SOCKfiET, socket.SO_REUSEADDR, 1)
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             ret = self.sock.connect_ex((self.HOST, self.PORT))
             while ret != 0:
                 Common.LogMessage('Connect failed, waiting 3 sec')

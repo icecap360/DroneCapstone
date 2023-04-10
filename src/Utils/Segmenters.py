@@ -21,11 +21,12 @@ class Segmenter(ABC):
 	def debugShow(self, img):
 		cv2.imshow("Debug", img)
 		cv2.waitKey(0)
-	def debugHSV(self, x,y):
-		print('X:',x,'Y:',y,'RGB:', self.img[x][y][:], 'HSV:', self.hsv[x][y][:])
-		cv2.drawMarker(self.img, ( y,x), (0,0,255), markerType=cv2.MARKER_CROSS, thickness=5)
-		cv2.imshow("Debug", self.img)
-		cv2.waitKey(0)
+	def debugHSV(self, x,y, img):
+		print('X:',x,'Y:',y,'RGB:', img[x][y][:], 'HSV:', self.hsv[x][y][:])
+		cv2.drawMarker(img, ( y,x), (0,0,255), markerType=cv2.MARKER_CROSS, thickness=5)
+		#cv2.imshow("Debug", img)
+		cv2.imwrite("Debug.png", img)
+		#cv2.waitKey(0)
 	def crop(self, cropW, cropH):
 		x_min = int(self.img.shape[1]/2 - cropW/2)
 		y_min = int(self.img.shape[0]/2 - cropH/2)
@@ -74,7 +75,7 @@ class Segmenter(ABC):
 			if percInterest > self.areaThreshold:
 				self.groups.append(group)
 	def isPixelsInbound(self, px, py):
-		return self.segmentedImg[int(px)][int(py)][0]>0
+		return self.segmentedImg[int(py)][int(px)][0]>0
 
 	def getSegmentation(self):
 		self.segmentedImg = np.zeros((self.thresh.shape[0], self.thresh.shape[1], 1), np.uint8)
@@ -155,8 +156,8 @@ class ParkingLotSegmenterPC(Segmenter):
 		self.debug = 0
 
 	def threshold(self):
-		img_hsv = cv2.cvtColor(self.img, cv2.COLOR_BGR2HSV)
-		threshHSV = cv2.inRange(img_hsv, (0, 0, 40), (180, self.maxSaturation, 255))
+		self.hsv = cv2.cvtColor(self.img, cv2.COLOR_BGR2HSV)
+		threshHSV = cv2.inRange(self.hsv , (0, 0, 40), (180, self.maxSaturation, 255))
 		# close original image to remove noise
 		closedImg = cv2.morphologyEx(threshHSV, cv2.MORPH_CLOSE, np.ones((3,3), np.uint8), iterations = 3)
 		self.thresh = closedImg
