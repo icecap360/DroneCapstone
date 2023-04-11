@@ -93,7 +93,7 @@ class UIController(PyQtInterface.PyQtController):
                 'MaxHoverHeight':self.spboxMaxHover.value()
                 })
     def btnCbArm(self):
-        if self.getIsConnected() and self.mapWindow.windowCreated:
+        if self.getIsConnected():
             self.droneComm.sendAsyncSig.emit({'Type':'Arm'})
     def btnCbDisarm(self):
         if self.getIsConnected():
@@ -219,6 +219,7 @@ class DroneCommManager(QObject):
     @QtCore.pyqtSlot(dict)
     def sendMessageAsync(self, msg:dict):
         self.droneInterface.sendMessageAsync(msg)
+        print('sent ', msg)
     @QtCore.pyqtSlot()
     def process(self):
         self.status = self.droneInterface.isConnected()
