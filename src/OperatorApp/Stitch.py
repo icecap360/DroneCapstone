@@ -16,7 +16,7 @@ from Utils import VisionAppPC
 class StitchCreator:
     def __init__(self, lat, long):
         # Enter your api key here, hide it from the public!
-        self.api_key = 'AIzaSyCDtvdqQzxtHOt9dMR4WQPU50tO-L5K_qU'
+        self.api_key = ''
         self.url = "https://maps.googleapis.com/maps/api/staticmap?"
         self.center = "Dehradun"
         self.zoom = 19
