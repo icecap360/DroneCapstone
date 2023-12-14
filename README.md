@@ -1,11 +1,12 @@
 # ParkingLotHawk
 
-Developer Names:  
+## Developer Names:  
 - Fady Zekry Hanna  
 - Muhammad Ali  
 - Winnie Trandinh  
 - Zaid Khan  
 
+## Project Overview
 Date of project start: September, 2022  
 
 This repo contains the source code and CAD designs for the Parking Lot Hawk.  
@@ -19,3 +20,11 @@ src - Source code
 test - Test cases  
 
 Detailed info on the file structures and how it relates back to the MG Document can be found within the [Repository File Guide](https://github.com/icecap360/DroneCapstone/blob/master/RepositoryFileGuide.pdf).  
+
+## Drone Model
+
+CAD Render:  
+![CAD Render](https://github.com/icecap360/DroneCapstone/blob/master/media/CADRender.gif)  
+
+Physical Model:  
+<img src="https://github.com/icecap360/DroneCapstone/blob/master/media/DroneImage.jpg" width="480">
